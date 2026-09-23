@@ -1,0 +1,16 @@
+{
+  "name": "fmat-restaurant-specification",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "lint:mermaid": "node tools/validate-mermaid.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "30.1.1",
+    "mermaid": "12.0.0"
+  }
+}
