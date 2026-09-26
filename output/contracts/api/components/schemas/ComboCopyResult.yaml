@@ -1,0 +1,20 @@
+type: object
+properties:
+  configuration:
+    ./ComboConfiguration.yaml
+  createdSlotIds:
+    type: array
+    items:
+      type: string
+      description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+      minLength: 1
+  createdOptionIds:
+    type: array
+    items:
+      type: string
+      description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+      minLength: 1
+required:
+- configuration
+- createdSlotIds
+- createdOptionIds

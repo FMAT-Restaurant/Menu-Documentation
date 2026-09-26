@@ -1,0 +1,34 @@
+type: object
+description: Solo slots habilitados de la definición vendible; cada opción disponible aporta una selección a la
+  capacidad, no quantity.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  minSelections:
+    type: integer
+    minimum: 0
+  maxSelections:
+    type: integer
+    minimum: 0
+  availableCapacity:
+    type: integer
+    minimum: 0
+  options:
+    type: array
+    items:
+      $ref: ./CatalogComboOption.yaml
+  enabled:
+    type: boolean
+    const: true
+required:
+- id
+- name
+- minSelections
+- maxSelections
+- availableCapacity
+- options
+- enabled

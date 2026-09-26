@@ -1,0 +1,25 @@
+type: object
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  menuItemId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  orderIndex:
+    type: integer
+    minimum: 0
+  values:
+    type: array
+    items:
+      $ref: ./VariantValue.yaml
+required:
+- id
+- menuItemId
+- name
+- orderIndex
+- values

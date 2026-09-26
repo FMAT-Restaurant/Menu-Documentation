@@ -1,0 +1,19 @@
+type: object
+description: No se permiten combinaciones habilitadas duplicadas ni representar simultáneamente la misma oferta
+  como item DEFAULT y variante de otro item. Para item sin dimensiones se crea una única variante técnica DEFAULT.
+properties:
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  dimensionSelections:
+    type: array
+    items:
+      $ref: ./DimensionSelection.yaml
+required:
+- unitPrice
+- enabled
+- dimensionSelections

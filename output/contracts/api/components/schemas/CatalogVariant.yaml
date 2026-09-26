@@ -1,0 +1,33 @@
+type: object
+description: Solo variantes estructuralmente elegibles. La disponibilidad, readiness y capacidad operacional son
+  proyecciones separadas de la configuración comercial.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  illustrativeImage:
+    type: string
+    description: Imagen ilustrativa de la variante; no es imagen de venta ni de presentación comercial.
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  groupAssignments:
+    type: array
+    items:
+      $ref: ./ModifierGroupAssignment.yaml
+  localModifierGroups:
+    type: array
+    items:
+      $ref: ./ModifierGroup.yaml
+  isAvailable:
+    type: boolean
+required:
+- id
+- illustrativeImage
+- unitPrice
+- groupAssignments
+- localModifierGroups
+- isAvailable

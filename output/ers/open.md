@@ -40,7 +40,8 @@ Esta sección consolida las decisiones de diseño adoptadas en cumplimiento de l
 
 ## [OPEN-010] Restricciones Cuantitativas, Moneda y Tipos Lógicos
 
-- **Signo y Rangos de Precios:** Permanecen deliberadamente abiertos el signo, rangos admisibles, reglas de redondeo y semántica de valores en precios (`unitPrice`) y deltas (`priceDelta`), sin prescribir restricciones de no-negatividad a nivel de dominio.
+- **Semántica del Precio Base y Composición del Importe:** Conforme a BR-MENU-007, `MenuItemVariant.unitPrice` es un precio unitario absoluto asignado directamente; no se deriva de Preparación, ingredientes ni existencias. Conforme a BR-MENU-008, el importe final de un combo se calcula con el precio absoluto de `ComboConfiguration`, más los `priceDelta` de las opciones seleccionadas y los modificadores seleccionados en sus componentes, sin sumar los precios regulares `MenuItemVariant.unitPrice` de los componentes. Permanece abierta la composición exacta del importe de una variante hoja al aplicar los `priceDelta` de los modificadores seleccionados, incluido el efecto de la cantidad del modificador cuando aplique; no se fija una fórmula de agregación.
+- **Signo y Rangos de Precios:** Permanecen deliberadamente abiertos el signo, rangos admisibles y reglas de redondeo de `unitPrice` y `priceDelta`, sin prescribir restricciones de no-negatividad a nivel de dominio.
 - **Persistencia y Tipos Físicos:** Fijación de los tipos de datos físicos definitivos de almacenamiento y persistencia (precisión y escala decimal, almacenamiento en enteros de céntimos o coma flotante).
 - **Moneda y Multimoneda:** Definición del catálogo estándar de monedas admitidas, soporte para entornos multimoneda simultáneos por sucursal frente a imposición de moneda única por tenant comercial.
 

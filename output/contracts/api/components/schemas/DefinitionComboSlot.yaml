@@ -1,0 +1,27 @@
+type: object
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  enabled:
+    type: boolean
+  minSelections:
+    type: integer
+    minimum: 0
+  maxSelections:
+    type: integer
+    minimum: 0
+  options:
+    type: array
+    items:
+      $ref: ./DefinitionComboOption.yaml
+required:
+- id
+- name
+- enabled
+- minSelections
+- maxSelections
+- options

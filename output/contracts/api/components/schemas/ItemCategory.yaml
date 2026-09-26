@@ -1,0 +1,25 @@
+type: object
+description: Categoría de productos hoja; la forma técnica adicional permanece propuesta bajo OPEN-007.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  menuId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  classification:
+    type: string
+    description: Clasificación exclusiva de hoja.
+    enum:
+    - PLATILLO
+    - BEBIDA
+    - POSTRE
+    - COMPLEMENTO
+required:
+- id
+- menuId
+- name

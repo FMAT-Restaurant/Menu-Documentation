@@ -1,0 +1,62 @@
+type: object
+description: Solo items con al menos una unidad estructuralmente elegible aparecen en el catálogo vendible.
+  isAvailable es verdadero si existe al menos una variante o configuración elegible con disponibilidad operacional
+  afirmativa; REVIEW_REQUIRED no modifica esa derivación.
+properties:
+  item:
+    $ref: ./CatalogItemSummary.yaml
+  isStructurallyEligible:
+    type: boolean
+    const: true
+  isAvailable:
+    type: boolean
+  price:
+    $ref: ./CatalogPrice.yaml
+  modifierGroups:
+    type: array
+    items:
+      $ref: ./ModifierGroup.yaml
+  variants:
+    type: array
+    items:
+      $ref: ./CatalogVariant.yaml
+  comboConfigurations:
+    type: array
+    items:
+      $ref: ./CatalogComboConfiguration.yaml
+required:
+- item
+- isStructurallyEligible
+- isAvailable
+- price
+- variants
+- comboConfigurations
+allOf:
+- if:
+    properties:
+      item:
+        properties:
+          itemType:
+            const: COMBO
+  then:
+    properties:
+      variants:
+        maxItems: 0
+      modifierGroups:
+        maxItems: 0
+      comboConfigurations:
+        minItems: 1
+- if:
+    properties:
+      item:
+        properties:
+          itemType:
+            enum: [PREPARED, STOCKED]
+  then:
+    properties:
+      comboConfigurations:
+        maxItems: 0
+      variants:
+        minItems: 1
+      modifierGroups:
+        minItems: 1

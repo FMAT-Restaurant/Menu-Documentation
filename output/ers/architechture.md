@@ -4,7 +4,7 @@
 
 ## Agregados y Límites de Consistencia
 
-El subsistema de Menú modela y gestiona la oferta comercial del restaurante garantizando consistencia transaccional y encapsulamiento estricto. Conforme a las fronteras de bounded contexts delimitadas en la Auditoría 4, el modelo de dominio de Menú está estrictamente desacoplado de las entidades culinarias (recetas, ingredientes físicos, gramajes) y de las entidades de inventario físico (stock en almacén, unidades de medida de compra).
+El subsistema de Menú modela y gestiona la oferta comercial del restaurante garantizando consistencia transaccional y encapsulamiento estricto. Conforme a las fronteras de bounded contexts delimitadas en la Auditoría 4, el modelo de dominio de Menú está estrictamente desacoplado de las entidades culinarias (preparación, ingredientes físicos, gramajes) y de las entidades de inventario físico (stock en almacén, unidades de medida de compra).
 
 Se identifican dos agregados comerciales principales:
 
@@ -47,8 +47,8 @@ flowchart TB
    - Las opciones de modificadores pertenecen al ítem hoja. Las configuraciones de modificadores por variante (`VariantModifierConfig`) se identifican por la tupla `(variantId, modifierOptionId)` y especializan `enabled`, `priceDelta` y `maxQuantity` para la variante (`INV-MENU-002`), mientras que `ModifierGroup` custodia los límites enteros $0 \le \text{minSelections} \le \text{maxSelections}$ y `ModifierOption` aporta la configuración general `generalConfig` con `priceDelta` y `maxQuantity`.
    - Mantiene la trazabilidad de revisiones comerciales inmutables (`commercialRevision`), detectando desalineaciones y registrando causas lógicas de revisión (`pendingReviewCauses`) ante cambios comerciales o culinarios notificados (`REV-001`, `REV-003`). La presencia de revisiones pendientes no bloquea la disponibilidad operacional para la venta.
 3. **Exclusiones Explícitas del Agregado:**
-   - No contiene entidades `Recipe`, `RecipeRevision`, `RecipeComponent` ni directivas de modificación culinaria `IngredientEffect` (ADD/OMIT).
-   - No contiene dependencias directas ni atributos hacia ítems físicos de stock (`inventoryItemId`).
+   - No contiene entidades que representen preparación (ingredientes y cantidades) ni directivas de modificación culinaria (efectos de un modificador).
+   - No contiene dependencias directas ni atributos hacia ítems físicos de stock
 
 ### Agregado ComboConfiguration
 
@@ -92,8 +92,8 @@ Los Value Objects modelan conceptos inmutables del dominio sin identidad propia 
 
 - **Definición:** Estado proyectado de forma independiente desde el servicio de _Orders + Kitchen_ que indica exclusivamente el readiness operacional culinario de cocina, desacoplado de `VariantAvailability` y de la disponibilidad agregada de catálogo.
 - **Valores Permitidos:**
-  - `READY`: La variante cuenta con una receta activa completa y lista para ser despachada operacionalmente en cocina.
-  - `INCOMPLETE`: La variante carece de receta válida o presenta formulación técnica incompleta informada por Orders + Kitchen. Se excluyen explícitamente `reviewStatus` y cualquier revisión administrativa como causa.
+  - `READY`: La variante cuenta con una preparación activa completa y lista para ser despachada operacionalmente en cocina.
+  - `INCOMPLETE`: La variante carece de preparación válida o presenta formulación técnica incompleta informada por Orders + Kitchen. Se excluyen explícitamente `reviewStatus` y cualquier revisión administrativa como causa.
 - **Semántica de Venta:** Cuando una variante requiere preparación culinaria (`PREPARED`), el estado `INCOMPLETE` impide su disponibilidad operacional para la venta. El estado de revisión (`reviewStatus`) y sus causas permanecen estrictamente independientes y una revisión pendiente no bloquea por sí sola la venta.
 - **Inmutabilidad en Menú:** El catálogo de Menú solo consume y proyecta este valor; no puede alterarlo arbitrariamente mediante comandos comerciales.
 
@@ -131,7 +131,7 @@ Para satisfacer las demandas de consulta de alto rendimiento de clientes web, m�
   1. Si existe un registro `VariantModifierConfig` para la tupla `(variantId, modifierOptionId)`, la proyección toma sus valores específicos de `enabled`, `priceDelta` y `maxQuantity`.
   2. En ausencia de dicho registro, la proyección toma por defecto los valores generales de `ModifierOption.generalConfig` (`priceDelta`, `maxQuantity`) y `enabled = true` por defecto en la variante sin requerir un campo `ModifierOption.enabled`.
   3. Expone exclusivamente los valores comerciales efectivos finales (`variantId`, `modifierOptionId`, `enabled`, `priceDelta`, `maxQuantity`).
-  4. **Aislamiento Comercial y Exclusión de Campos Operacionales:** No incluye indicadores de disponibilidad operativa en tiempo real, capacidades máximas operacionales (`availableMaxQuantity`), directivas de preparación física (`ADD`, `OMIT`), recetas ni referencias a almacenes de inventario. La disponibilidad y capacidad operacional se representan de forma desacoplada y exclusiva a través de `ModifierAvailability(variantId, modifierOptionId)`.
+  4. **Aislamiento Comercial y Exclusión de Campos Operacionales:** No incluye indicadores de disponibilidad operativa en tiempo real, capacidades máximas operacionales (`availableMaxQuantity`), directivas de preparación física (`ADD`, `OMIT`), preparación ni referencias a almacenes de inventario. La disponibilidad y capacidad operacional se representan de forma desacoplada y exclusiva a través de `ModifierAvailability(variantId, modifierOptionId)`.
 
 #### VariantAvailability (Read Model de Cocina)
 
@@ -459,12 +459,12 @@ stateDiagram-v2
     state "Dimensión 4: Completitud Culinaria / Readiness (Proyección Cocina)" as D4 {
         [*] --> Incompleto_D4
         Incompleto_D4 : PREPARATION_INCOMPLETE
-        Incompleto_D4 : (Sin receta o en formulación)
+        Incompleto_D4 : (Sin preparación o en formulación)
         Incompleto_D4 : [En variantes PREPARED: Bloquea disponibilidad para venta]
-        Incompleto_D4 --> Listo_D4 : Actualización de proyección (Receta activa lista)
+        Incompleto_D4 --> Listo_D4 : Actualización de proyección (Preparación activa lista)
         Listo_D4 : PREPARATION_READY
-        Listo_D4 : (Receta aprobada y lista operacionalmente)
-        Listo_D4 --> Incompleto_D4 : Receta invalidada o modificada
+        Listo_D4 : (Preparación aprobada y lista operacionalmente)
+        Listo_D4 --> Incompleto_D4 : Preparación invalidada o modificada
     }
 
     state "Dimensión 5: Supervisión y Seguimiento de Revisiones (reviewStatus)" as D5 {
@@ -494,12 +494,12 @@ flowchart TD
     end
 
     subgraph KITCHEN["Bounded Context: Orders + Kitchen"]
-        RecipeMgr["Gestor Culinario (Recetas y Gramajes)"]
+        PreparationMgr["Gestor Culinario (Preparación y Gramajes)"]
         AvailEngine["Motor de Cálculo de Disponibilidad Operacional"]
         KitchenEvent["Familia de Cambios Operacionales y Readiness<br/>(Proyección hacia Menu)"]
 
         InvEvent --> AvailEngine
-        RecipeMgr --> AvailEngine
+        PreparationMgr --> AvailEngine
         AvailEngine --> KitchenEvent
     end
 
@@ -536,7 +536,7 @@ flowchart TD
     classDef clientCtx fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
 
     class CacheIn,CatalogRule,ResolvedMod,ModAvail,ComboEngine,CatalogProj menuCtx;
-    class RecipeMgr,AvailEngine,KitchenEvent kitchenCtx;
+    class PreparationMgr,AvailEngine,KitchenEvent kitchenCtx;
     class InvStock,InvEvent invCtx;
     class POS,OnlineMenu clientCtx;
 ```
@@ -553,9 +553,9 @@ El sistema se estructura en Bounded Contexts estrictamente desacoplados, conserv
 flowchart LR
     Admin["Administrador / Gerente Comercial"] -->|Operaciones de Administración de Catálogo| MenuService["Bounded Context: MENU<br/>- Catálogo Comercial<br/>- Precios Absolutos y Variantes<br/>- Modificadores Comerciales<br/>- Proyecciones de Disponibilidad<br/>- Gestión de Revisiones"]
 
-    MenuService -->|Familia de Cambios Estructurales de Catálogo<br/>(plano separado de domain-events)| IntegrationChannel["Canal de Integración Asíncrono"]
+    MenuService -->|Familia de Cambios Estructurales de Catálogo<br/>| IntegrationChannel["Canal de Integración Asíncrono"]
 
-    IntegrationChannel -->|Notificaciones de Catálogo| KitchenService["Bounded Context: ORDERS + KITCHEN<br/>- Fichas Técnicas / Recetas<br/>- Gramajes y Preparación Culinaria<br/>- Interpretación Física de Modificadores<br/>- Cálculo de Readiness Culinario<br/>- Cálculo de Disponibilidad Operacional<br/>- Comandas y Snapshots de Órdenes"]
+    IntegrationChannel -->|Notificaciones de Catálogo| KitchenService["Bounded Context: ORDERS + KITCHEN<br/>- Fichas Técnicas / Preparación<br/>- Gramajes y Preparación Culinaria<br/>- Interpretación Física de Modificadores<br/>- Cálculo de Readiness Culinario<br/>- Cálculo de Disponibilidad Operacional<br/>- Comandas y Snapshots de Órdenes"]
 
     KitchenService -->|Proyecciones de Disponibilidad, Readiness y Avisos Culinarios<br/>| IntegrationChannel
     IntegrationChannel -->|Consumo de Disponibilidad y Readiness| MenuService
@@ -599,9 +599,10 @@ flowchart LR
    - Cada bounded context mantiene ownership exclusivo sobre sus datos y su estado interno.
    - Ningún otro servicio accede directamente a las estructuras internas de Menú. Las referencias inter-contexto se limitan estrictamente a identificadores lógicos opacos.
    - Los datos externos provenientes de otros bounded contexts son tratados exclusivamente como proyecciones, snapshots o modelos de lectura en caché, sin constituir fuentes autoritativas secundarias.
+   - Menú es propietario de la definición del catálogo comercial, incluidos sus precios y límites de selección. Orders + Kitchen mantiene una proyección propia de esa definición para validar los límites y resolver los precios aplicables a la selección concreta al aceptar una orden. Esta proyección no comparte entidades ni almacenamiento lógico con Menú y no transfiere el ownership del catálogo.
    - La topología e implementación física de persistencia permanece explícitamente abierta; la arquitectura garantiza aislamiento lógico y no acceso directo a estructuras internas sin prescribir si los servicios comparten o separan físicamente bases de datos o tablas de almacenamiento.
 2. **Inexistencia de Entidades Culinarias en Menú:**
-   - El modelo comercial de Menú no contiene entidades de recetas, directivas de modificación física (`ingredient_effects`), ni referencias a insumos de almacén (`inventoryItemId`).
+   - El modelo comercial de Menú no contiene entidades de preparación, directivas de modificación física (`ingredient_effects`), ni referencias a insumos de almacén (`inventoryItemId`). Orders + Kitchen posee la preparación culinaria asociada a cada variante `PREPARED`, incluidas sus preparación e instrucciones y los efectos físicos de sus modificadores.
 3. **Snapshots de Pedidos en Orders + Kitchen:**
-   - Cuando un cliente o terminal POS coloca una orden, el servicio de _Orders + Kitchen_ registra un snapshot inmutable de los ítems seleccionados, incluyendo la revisión comercial observada (`commercialRevision`) y los precios facturados.
-   - _Orders + Kitchen_ valida dicho snapshot contra su propia versión técnica y procesa las recetas vigentes sin requerir bloqueos sobre el agregado de Menú.
+   - Antes de aceptar una orden, _Orders + Kitchen_ valida la selección concreta frente a los límites comerciales definidos por Menú y resuelve los precios aplicables usando su propia proyección del catálogo, sin requerir bloqueos sobre el agregado de Menú.
+   - Al aceptar la orden, _Orders + Kitchen_ registra un snapshot inmutable de los ítems seleccionados, incluyendo la revisión comercial observada (`commercialRevision`) y los precios facturados; conserva la selección aceptada para su procesamiento culinario conforme a la preparación que posee para cada variante `PREPARED`.

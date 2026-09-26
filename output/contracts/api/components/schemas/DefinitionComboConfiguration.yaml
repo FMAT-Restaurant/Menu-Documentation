@@ -1,0 +1,33 @@
+type: object
+description: Precio absoluto y composición comercial, sin estado de revisión ni disponibilidad operacional.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  menuItemId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  description:
+    type: string
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  slots:
+    type: array
+    items:
+      $ref: ./DefinitionComboSlot.yaml
+required:
+- id
+- menuItemId
+- name
+- unitPrice
+- enabled
+- slots

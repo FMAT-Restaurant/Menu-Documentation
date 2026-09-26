@@ -1,0 +1,28 @@
+type: object
+description: Proyección exclusivamente comercial. Usa excepción si existe; en su ausencia usa generalConfig y enabled=true.
+  Sin availability ni availableMaxQuantity.
+properties:
+  variantId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  modifierOptionId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  enabled:
+    type: boolean
+  priceDelta:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  maxQuantity:
+    type: integer
+    minimum: 0
+required:
+- variantId
+- modifierOptionId
+- enabled
+- priceDelta
+- maxQuantity

@@ -944,7 +944,7 @@ RevertStockCommand {
 
 | Responsabilidad | Dónde vive | Mecanismo |
 | :--- | :--- | :--- |
-| **Conocimiento de Recetas y Efectos** | Menu Service | `PreparedVariantDefinition` + `IngredientEffect`. |
+| **Conocimiento de Preparación y Efectos** | Menu Service | `PreparedVariantDefinition` + `IngredientEffect`. |
 | **Monitoreo de Disponibilidad (Semáforo)** | Inventory Service (Proyección) | Escucha eventos de catálogo y proyecta si los insumos base alcanzan. |
 | **Resolución del Plato Real (con Extras/Omisiones)** | Order / Menu Resolution | Aplica modificadores sobre la receta al crear la línea de comanda. |
 | **Registro Histórico / Snapshot** | Order Service | Guarda los insumos netos consumidos por cada línea de pedido. |

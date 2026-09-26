@@ -1,0 +1,19 @@
+type: object
+description: Formato de error HTTP propuesto; la semántica de negocio está definida en la ERS, los códigos técnicos
+  no.
+properties:
+  message:
+    type: string
+  details:
+    type: array
+    items:
+      type: object
+      properties:
+        field:
+          type: string
+        reason:
+          type: string
+      required:
+      - reason
+required:
+- message

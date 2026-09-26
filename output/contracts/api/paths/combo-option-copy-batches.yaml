@@ -1,0 +1,64 @@
+parameters:
+- name: menuId
+  in: path
+  required: true
+  description: Identificador lógico opaco de menuId.
+  schema:
+    type: string
+    minLength: 1
+post:
+  tags:
+  - Copias de combos
+  operationId: copyComboOptionsBatch
+  summary: Copiar opciones de combo a múltiples destinos
+  description: Cada destino declara targetConfigurationId y mapeo sourceSlotId → targetSlotId o directiva de crear
+    slot; faltantes o ambigüedades se rechazan sin inferir coincidencias. La aplicación es atómica por configuración
+    destino, sin parcialidad por slot; destinos distintos pueden tener éxito o error independientemente. La respuesta
+    200 contiene un resultado estructurado por destino, incluidos fallos; el catálogo canónico de errores parciales
+    sigue abierto.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-COM-005
+  - BR-MENU-026
+  - BR-MENU-027
+  - BR-MENU-028
+  responses:
+    '200':
+      description: Copiar opciones de combo a múltiples destinos. Resultado individual por destino, incluidos éxitos
+        y errores.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ComboOptionBatchResult.yaml
+    '400':
+      $ref: ../components/responses/BadRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+  x-open-issues:
+  - OPEN-002
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ComboOptionBatchRequest.yaml
+        example:
+          sourceConfigurationId: configuration-source
+          sourceOptionIds:
+          - option-source
+          destinations:
+          - targetConfigurationId: configuration-a
+            slotMappings:
+            - sourceSlotId: slot-source
+              targetSlotId: slot-a
+          - targetConfigurationId: configuration-b
+            slotMappings:
+            - sourceSlotId: slot-source
+              createNewSlot: true

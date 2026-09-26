@@ -1,0 +1,62 @@
+type: object
+description: No tiene ciclo de vida status ni variantes propias. Precio final de selección de combo = unitPrice
+  absoluto + priceDelta de opciones seleccionadas + deltas efectivos de modificadores seleccionados en componentes;
+  nunca suma unitPrice regular de las variantes componentes.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  menuItemId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  description:
+    type: string
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  commercialRevision:
+    type: integer
+    minimum: 1
+  isStructurallyEligible:
+    type: boolean
+  isAvailable:
+    type: boolean
+  review:
+    $ref: ./ReviewTracking.yaml
+  slots:
+    type: array
+    items:
+      $ref: ./ComboSlot.yaml
+  warnings:
+    type: array
+    description: Advertencias estructuradas de slots incompletos en MenuItem INACTIVE; vacío cuando no aplican.
+    items:
+      $ref: ./Warning.yaml
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time
+required:
+- id
+- menuItemId
+- name
+- unitPrice
+- enabled
+- commercialRevision
+- isStructurallyEligible
+- isAvailable
+- review
+- slots
+- warnings
+- createdAt
+- updatedAt

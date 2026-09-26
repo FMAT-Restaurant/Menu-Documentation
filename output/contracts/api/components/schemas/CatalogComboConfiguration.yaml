@@ -1,0 +1,35 @@
+type: object
+description: Solo configuraciones estructuralmente elegibles. Revisión administrativa y referencia informativa de
+  precio se excluyen del catálogo POS.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  name:
+    type: string
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  isAvailable:
+    type: boolean
+  slots:
+    type: array
+    items:
+      $ref: ./CatalogComboSlot.yaml
+  enabled:
+    type: boolean
+    const: true
+  isStructurallyEligible:
+    type: boolean
+    const: true
+required:
+- id
+- name
+- unitPrice
+- isAvailable
+- slots
+- enabled
+- isStructurallyEligible

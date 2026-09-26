@@ -1,0 +1,12 @@
+type: object
+description: Asignaciones de grupos de variantes a una variante de catálogo. Cada asignación indica que la variante pertenece a un grupo de variantes específico.
+properties:
+  groupId:
+    type: string
+    description: Identificador lógico opaco del grupo de variantes al que pertenece la variante.
+    minLength: 1
+  optionOverrides:
+    type: array
+    items:
+      $ref: ./ModifierOptionOverride.yaml
+required:

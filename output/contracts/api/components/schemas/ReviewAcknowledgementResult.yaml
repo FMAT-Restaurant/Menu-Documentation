@@ -1,0 +1,7 @@
+type: object
+description: Acknowledge no cambia unitPrice, slots, opciones ni commercialRevision.
+properties:
+  review:
+    $ref: ./ReviewTracking.yaml
+required:
+- review

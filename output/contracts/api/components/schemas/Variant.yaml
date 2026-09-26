@@ -1,0 +1,47 @@
+type: object
+description: La variante DEFAULT no tiene valores de dimensión. Variantes PREPARED inactivas pueden figurar en definiciones
+  para Kitchen, no en catálogo vendible. resolvedModifiers incluye cada opción comercial efectiva aplicable.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  menuItemId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  illustrativeImage:
+    type: string
+    description: Imagen ilustrativa de la variante; no es imagen de venta ni de presentación comercial.
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  isDefault:
+    type: boolean
+  isStructurallyEligible:
+    type: boolean
+  review:
+    $ref: ./ReviewTracking.yaml
+  availability:
+    $ref: ./VariantAvailability.yaml
+  createdAt:
+    type: string
+    format: date-time
+  updatedAt:
+    type: string
+    format: date-time
+required:
+- id
+- menuItemId
+- illustrativeImage
+- unitPrice
+- enabled
+- isDefault
+- isStructurallyEligible
+- dimensionSelections
+- review
+- resolvedModifiers

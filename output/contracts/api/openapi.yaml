@@ -1,0 +1,238 @@
+openapi: 3.1.1
+info:
+  title: API síncrona de Menu — propuesta
+  version: 0.1.1
+  description: >-
+    Contratos HTTP propuestos para el bounded context Menu, basados en la ERS 1.3.12
+    y las 50 operaciones de ../proposal.md. Menu custodia catálogo y reglas comerciales;
+    POS consulta la oferta y Orders + Kitchen consulta definiciones. La creación de órdenes,
+    la preparación culinaria y los movimientos físicos de Inventory no pertenecen a esta API.
+x-ers-version: 1.3.12
+x-contract-status: PROPOSAL
+x-open-issues: [OPEN-002, OPEN-007, OPEN-009, OPEN-010, OPEN-011]
+tags:
+  - name: Catálogo
+    description: Oferta vendible para POS y otros canales autorizados.
+  - name: Definiciones de servicio
+    description: Definiciones comerciales para la proyección de Orders + Kitchen.
+  - name: Ítems
+    description: Gestión administrativa de MenuItem.
+  - name: Variantes
+    description: Variantes hoja y migración de DEFAULT.
+  - name: Modificadores
+    description: Configuración comercial de modificadores de items hoja.
+  - name: Combos
+    description: Configuraciones, slots y opciones de combo.
+  - name: Copias de combos
+    description: Clonación, copia explícita y lotes atómicos por destino.
+  - name: Categorías
+    description: Categorías de hoja y combos separadas.
+  - name: Revisiones
+    description: Supervisión y confirmación de revisiones administrativas.
+security:
+  - BearerToken: []
+components:
+  schemas:
+    ApiError:
+      $ref: "./components/schemas/ApiError.yaml"
+    CatalogComboConfiguration:
+      $ref: "./components/schemas/CatalogComboConfiguration.yaml"
+    CatalogComboOption:
+      $ref: "./components/schemas/CatalogComboOption.yaml"
+    CatalogComboSlot:
+      $ref: "./components/schemas/CatalogComboSlot.yaml"
+    CatalogItem:
+      $ref: "./components/schemas/CatalogItem.yaml"
+    CatalogItemSummary:
+      $ref: "./components/schemas/CatalogItemSummary.yaml"
+    CatalogList:
+      $ref: "./components/schemas/CatalogList.yaml"
+    CatalogPrice:
+      $ref: "./components/schemas/CatalogPrice.yaml"
+    CatalogVariant:
+      $ref: "./components/schemas/CatalogVariant.yaml"
+    ComboCategory:
+      $ref: "./components/schemas/ComboCategory.yaml"
+    ComboCategoryCreate:
+      $ref: "./components/schemas/ComboCategoryCreate.yaml"
+    ComboCategoryList:
+      $ref: "./components/schemas/ComboCategoryList.yaml"
+    ComboCategoryPatch:
+      $ref: "./components/schemas/ComboCategoryPatch.yaml"
+    ComboCloneRequest:
+      $ref: "./components/schemas/ComboCloneRequest.yaml"
+    ComboConfiguration:
+      $ref: "./components/schemas/ComboConfiguration.yaml"
+    ComboConfigurationCreate:
+      $ref: "./components/schemas/ComboConfigurationCreate.yaml"
+    ComboConfigurationPatch:
+      $ref: "./components/schemas/ComboConfigurationPatch.yaml"
+    ComboCopyRequest:
+      $ref: "./components/schemas/ComboCopyRequest.yaml"
+    ComboCopyResult:
+      $ref: "./components/schemas/ComboCopyResult.yaml"
+    ComboOption:
+      $ref: "./components/schemas/ComboOption.yaml"
+    ComboOptionBatchRequest:
+      $ref: "./components/schemas/ComboOptionBatchRequest.yaml"
+    ComboOptionBatchResult:
+      $ref: "./components/schemas/ComboOptionBatchResult.yaml"
+    ComboOptionCreate:
+      $ref: "./components/schemas/ComboOptionCreate.yaml"
+    ComboOptionPatch:
+      $ref: "./components/schemas/ComboOptionPatch.yaml"
+    ComboSlot:
+      $ref: "./components/schemas/ComboSlot.yaml"
+    ComboSlotCreate:
+      $ref: "./components/schemas/ComboSlotCreate.yaml"
+    ComboSlotPatch:
+      $ref: "./components/schemas/ComboSlotPatch.yaml"
+    DefinitionComboConfiguration:
+      $ref: "./components/schemas/DefinitionComboConfiguration.yaml"
+    DefinitionComboOption:
+      $ref: "./components/schemas/DefinitionComboOption.yaml"
+    DefinitionComboSlot:
+      $ref: "./components/schemas/DefinitionComboSlot.yaml"
+    DefinitionItem:
+      $ref: "./components/schemas/DefinitionItem.yaml"
+    DefinitionList:
+      $ref: "./components/schemas/DefinitionList.yaml"
+    DefinitionVariant:
+      $ref: "./components/schemas/DefinitionVariant.yaml"
+    DimensionCreate:
+      $ref: "./components/schemas/DimensionCreate.yaml"
+    DimensionPatch:
+      $ref: "./components/schemas/DimensionPatch.yaml"
+    DimensionSelection:
+      $ref: "./components/schemas/DimensionSelection.yaml"
+    GeneralModifierConfig:
+      $ref: "./components/schemas/GeneralModifierConfig.yaml"
+    ItemCategory:
+      $ref: "./components/schemas/ItemCategory.yaml"
+    ItemCategoryCreate:
+      $ref: "./components/schemas/ItemCategoryCreate.yaml"
+    ItemCategoryList:
+      $ref: "./components/schemas/ItemCategoryList.yaml"
+    ItemCategoryPatch:
+      $ref: "./components/schemas/ItemCategoryPatch.yaml"
+    MenuItem:
+      $ref: "./components/schemas/MenuItem.yaml"
+    MenuItemCreate:
+      $ref: "./components/schemas/MenuItemCreate.yaml"
+    MenuItemDetail:
+      $ref: "./components/schemas/MenuItemDetail.yaml"
+    MenuItemList:
+      $ref: "./components/schemas/MenuItemList.yaml"
+    MenuItemPatch:
+      $ref: "./components/schemas/MenuItemPatch.yaml"
+    ModifierAvailability:
+      $ref: "./components/schemas/ModifierAvailability.yaml"
+    ModifierConfigCopyRequest:
+      $ref: "./components/schemas/ModifierConfigCopyRequest.yaml"
+    ModifierConfigCopyResult:
+      $ref: "./components/schemas/ModifierConfigCopyResult.yaml"
+    ModifierGroup:
+      $ref: "./components/schemas/ModifierGroup.yaml"
+    ModifierGroupCreate:
+      $ref: "./components/schemas/ModifierGroupCreate.yaml"
+    ModifierGroupPatch:
+      $ref: "./components/schemas/ModifierGroupPatch.yaml"
+    ModifierOption:
+      $ref: "./components/schemas/ModifierOption.yaml"
+    ModifierOptionCreate:
+      $ref: "./components/schemas/ModifierOptionCreate.yaml"
+    ModifierOptionPatch:
+      $ref: "./components/schemas/ModifierOptionPatch.yaml"
+    PendingReviewCause:
+      $ref: "./components/schemas/PendingReviewCause.yaml"
+    PreparationStatus:
+      $ref: "./components/schemas/PreparationStatus.yaml"
+    ResolvedVariantModifier:
+      $ref: "./components/schemas/ResolvedVariantModifier.yaml"
+    ReviewAcknowledgementRequest:
+      $ref: "./components/schemas/ReviewAcknowledgementRequest.yaml"
+    ReviewAcknowledgementResult:
+      $ref: "./components/schemas/ReviewAcknowledgementResult.yaml"
+    ReviewList:
+      $ref: "./components/schemas/ReviewList.yaml"
+    ReviewTracking:
+      $ref: "./components/schemas/ReviewTracking.yaml"
+    SlotCopyMapping:
+      $ref: "./components/schemas/SlotCopyMapping.yaml"
+    SlotPriceReference:
+      $ref: "./components/schemas/SlotPriceReference.yaml"
+    ValueCreate:
+      $ref: "./components/schemas/ValueCreate.yaml"
+    ValuePatch:
+      $ref: "./components/schemas/ValuePatch.yaml"
+    Variant:
+      $ref: "./components/schemas/Variant.yaml"
+    VariantAvailability:
+      $ref: "./components/schemas/VariantAvailability.yaml"
+    VariantCreate:
+      $ref: "./components/schemas/VariantCreate.yaml"
+    VariantDimension:
+      $ref: "./components/schemas/VariantDimension.yaml"
+    VariantMigrationRequest:
+      $ref: "./components/schemas/VariantMigrationRequest.yaml"
+    VariantMigrationResult:
+      $ref: "./components/schemas/VariantMigrationResult.yaml"
+    VariantModifierConfig:
+      $ref: "./components/schemas/VariantModifierConfig.yaml"
+    VariantModifierConfigInput:
+      $ref: "./components/schemas/VariantModifierConfigInput.yaml"
+    VariantPatch:
+      $ref: "./components/schemas/VariantPatch.yaml"
+    VariantValue:
+      $ref: "./components/schemas/VariantValue.yaml"
+    Warning:
+      $ref: "./components/schemas/Warning.yaml"
+  responses:
+    BadRequest:
+      $ref: "./components/responses/BadRequest.yaml"
+    Conflict:
+      $ref: "./components/responses/Conflict.yaml"
+    Forbidden:
+      $ref: "./components/responses/Forbidden.yaml"
+    NotFound:
+      $ref: "./components/responses/NotFound.yaml"
+    Unauthorized:
+      $ref: "./components/responses/Unauthorized.yaml"
+    Unprocessable:
+      $ref: "./components/responses/Unprocessable.yaml"
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      description: >-
+        Propuesta técnica bajo OPEN-007. x-access-class en cada operación distingue
+        CHANNEL, SERVICE y ADMIN; la ERS no decide emisor, claims ni mecanismo final.
+paths:
+  /api/menus/{menuId}/catalog:
+    $ref: "./paths/catalog.yaml"
+  /api/menus/{menuId}/catalog/{catalogItemId}:
+    $ref: "./paths/catalog-item.yaml"
+  /api/menus/{menuId}/items:
+    $ref: "./paths/items.yaml"
+  /api/menus/{menuId}/items/{itemId}:
+    $ref: "./paths/item.yaml"
+  /api/menus/{menuId}/items/{itemId}/modifier-config-copies:
+    $ref: "./paths/modifier-config-copies.yaml"
+  /api/menus/{menuId}/combos:
+    $ref: "./paths/combos.yaml"
+  /api/menus/{menuId}/combos/{comboId}:
+    $ref: "./paths/combo.yaml"
+  /api/menus/{menuId}/combos/{comboId}/clones:
+    $ref: "./paths/combo-clones.yaml"
+  /api/menus/{menuId}/combos/{comboId}/copies:
+    $ref: "./paths/combo-copies.yaml"
+  /api/menus/{menuId}/combos/option-copy-batches:
+    $ref: "./paths/combo-option-copy-batches.yaml"
+  /api/menus/{menuId}/categories:
+    $ref: "./paths/categories.yaml"
+  /api/menus/{menuId}/reviews:
+    $ref: "./paths/reviews.yaml"
+  /api/menus/{menuId}/items/{itemId}/variants/{variantId}/acknowledgements:
+    $ref: "./paths/variant-review-acknowledgements.yaml"
+  /api/menus/{menuId}/combos/{comboId}/acknowledgements:
+    $ref: "./paths/combo-review-acknowledgements.yaml"

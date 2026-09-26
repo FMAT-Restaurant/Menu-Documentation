@@ -1,0 +1,14 @@
+type: object
+description: 'Retiro no destructivo: enabled=false si la variante fue publicada o referenciada.'
+properties:
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  dimensionSelections:
+    type: array
+    items:
+      $ref: ./DimensionSelection.yaml

@@ -1,0 +1,9 @@
+description: Recurso no encontrado en el menuId indicado.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/ApiError.yaml
+    example:
+      code: NOT_FOUND
+      message: Recurso no encontrado en el menuId indicado.
+x-open-issues: []

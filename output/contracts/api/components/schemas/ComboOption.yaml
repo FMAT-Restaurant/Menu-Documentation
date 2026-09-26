@@ -1,0 +1,41 @@
+type: object
+description: Opciones distintas del mismo slot pueden apuntar a la misma variante. Cada opción seleccionable aporta
+  una unidad de capacidad independientemente de quantity.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  slotId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  itemVariantId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  quantity:
+    type: integer
+    minimum: 1
+  priceDelta:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  displayOrder:
+    type: integer
+    minimum: 0
+  available:
+    type: boolean
+  isStructurallyEligible:
+    type: boolean
+required:
+- id
+- slotId
+- itemVariantId
+- quantity
+- priceDelta
+- enabled
+- displayOrder

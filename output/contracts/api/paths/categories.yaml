@@ -1,0 +1,89 @@
+parameters:
+  - name: menuId
+    in: path
+    required: true
+    description: Identificador UUID de menuId.
+    schema:
+      type: string
+      minLength: 1
+  - name: categoryId
+    in: path
+    required: true
+    description: Identificador UUID de categoryId.
+    schema:
+      type: string
+      minLength: 1
+post:
+  tags:
+    - Categorías
+  operationId: createCategory
+  summary: Crear categoría
+  description: Crea una nueva categoría de un menú.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+    - BR-MENU-019
+  responses:
+    "201":
+      description: Categoría creada.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Category.yaml
+    "400":
+      $ref: ../components/responses/BadRequest.yaml
+    "401":
+      $ref: ../components/responses/Unauthorized.yaml
+    "403":
+      $ref: ../components/responses/Forbidden.yaml
+    "404":
+      $ref: ../components/responses/NotFound.yaml
+    "409":
+      $ref: ../components/responses/Conflict.yaml
+    "422":
+      $ref: ../components/responses/Unprocessable.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/CategoryCreate.yaml
+        example:
+          name: Hamburguesas
+patch:
+  tags:
+    - Categorías
+  operationId: updateCategory
+  summary: Modificar categoría
+  description: Actualiza la categoría de un menú.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+    - BR-MENU-019
+  responses:
+    "200":
+      description: Categoría actualizada.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Category.yaml
+    "400":
+      $ref: ../components/responses/BadRequest.yaml
+    "401":
+      $ref: ../components/responses/Unauthorized.yaml
+    "403":
+      $ref: ../components/responses/Forbidden.yaml
+    "404":
+      $ref: ../components/responses/NotFound.yaml
+    "409":
+      $ref: ../components/responses/Conflict.yaml
+    "422":
+      $ref: ../components/responses/Unprocessable.yaml
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/CategoryPatch.yaml
+        example:
+          name: Menús del día

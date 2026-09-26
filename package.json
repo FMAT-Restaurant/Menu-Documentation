@@ -7,7 +7,11 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "lint:mermaid": "node tools/validate-mermaid.mjs"
+    "lint:mermaid": "node tools/validate-mermaid.mjs",
+    "api:serve": "redocly preview output/contracts/api/openapi.yaml",
+    "api:lint": "redocly lint output/contracts/api/openapi.yaml",
+    "api:lint.generate.ignore.file": "redocly lint output/contracts/api/openapi.yaml --generate-ignore-file",
+    "api:docs": "redocly build-docs output/contracts/api/openapi.yaml"
   },
   "devDependencies": {
     "jsdom": "30.1.1",

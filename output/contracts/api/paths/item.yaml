@@ -1,0 +1,176 @@
+parameters:
+- name: menuId
+  in: path
+  required: true
+  description: Identificador lógico opaco de menuId.
+  schema:
+    type: string
+    minLength: 1
+  example: menu-1
+- name: itemId
+  in: path
+  required: true
+  description: Identificador lógico opaco de itemId.
+  schema:
+    type: string
+    minLength: 1
+  example: item-cafe
+get:
+  tags:
+  - Ítems
+  operationId: getMenuItem
+  summary: Consultar ítem administrativo
+  description: Devuelve la definición comercial íntegra, componentes habilitados y retirados necesarios para trazabilidad,
+    advertencias de borrador, revisión comercial y estados de revisión. El estado administrativo sólo pertenece
+    a MenuItem.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-ITM-001
+  - REQ-MENU-LIF-003
+  - REQ-MENU-REV-002
+  - REQ-MENU-VER-001
+  - BR-MENU-032
+  - BR-MENU-033
+  responses:
+    '200':
+      description: Consultar ítem administrativo. Vista administrativa del ítem propietario, componentes y advertencias.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MenuItemDetail.yaml
+          example:
+            item:
+              id: item-cafe
+              menuId: menu-1
+              code: CAFE-001
+              name: Café de la casa
+              description: Café preparado al momento
+              image: https://example.org/images/cafe.jpg
+              itemType: PREPARED
+              status: ACTIVE
+              commercialRevision: 1
+              commercialVersion: 1_2026-09-24T12:00:00Z
+            variants:
+            - id: variant-default
+              menuItemId: item-cafe
+              unitPrice: 35
+              enabled: true
+              isDefault: true
+              isStructurallyEligible: true
+              dimensionSelections: []
+              review:
+                observedRevision: 0
+                acknowledgedRevision: 0
+                reviewStatus: UP_TO_DATE
+                pendingReviewCauses: []
+              resolvedModifiers: []
+              availability:
+                variantId: variant-default
+                available: true
+                lastUpdatedAt: '2026-09-24T12:00:00Z'
+              preparationStatus:
+                variantId: variant-default
+                status: READY
+                lastUpdatedAt: '2026-09-24T12:00:00Z'
+            variantDimensions: []
+            modifierGroups: []
+            variantModifierConfigs: []
+            comboConfigurations: []
+            warnings: []
+            aggregateReviewStatus: UP_TO_DATE
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+patch:
+  tags:
+  - Ítems
+  operationId: updateMenuItem
+  summary: Modificar ítem o estado administrativo
+  description: Permite cambios comerciales y las transiciones ACTIVE ↔ INACTIVE, ACTIVE/INACTIVE → ARCHIVED y ARCHIVED
+    → INACTIVE. Desarchivar nunca reactiva automáticamente. Activar requiere revalidar variantes o configuraciones
+    elegibles, grupos y slots obligatorios, dependencias y preparación bajo autoridad de Orders + Kitchen. Archivar
+    una hoja se permite aun con combos dependientes; sus opciones se vuelven inelegibles y se reevalúan los combos.
+    Si un slot habilitado ya no alcanza minSelections, su configuración queda inelegible y REVIEW_REQUIRED, sin mutar
+    MenuItem.status del combo ni bloquear el archivado. El archivado conserva el ítem para historia. Cada cambio comercial aceptado crea una revisión
+    inmutable. Mientras el ítem está ARCHIVED no se admiten cambios comerciales; sólo status=INACTIVE puede desarchivarlo
+    explícitamente.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-ITM-002
+  - REQ-MENU-LIF-001
+  - REQ-MENU-LIF-002
+  - REQ-MENU-LIF-003
+  - REQ-MENU-VER-001
+  - REQ-MENU-COM-006
+  - REQ-MENU-VAR-006
+  - BR-MENU-020
+  - BR-MENU-032
+  - INV-MENU-001
+  - INV-MENU-004
+  responses:
+    '200':
+      description: Modificar ítem o estado administrativo. Vista administrativa del ítem propietario, componentes
+        y advertencias.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MenuItemDetail.yaml
+    '400':
+      $ref: ../components/responses/BadRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+  x-open-issues:
+  - OPEN-011
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/MenuItemPatch.yaml
+        example:
+          status: ARCHIVED
+delete:
+  tags:
+  - Ítems
+  operationId: deleteMenuItem
+  summary: Eliminar definitivamente ítem archivado
+  description: Se autoriza únicamente si el ítem ya está ARCHIVED y no tiene dependencias, referencias históricas
+    necesarias para trazabilidad ni restricciones de retención. Cualquier condición incumplida bloquea la eliminación;
+    archivar o deshabilitar componentes no equivale a esta destrucción definitiva.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-LIF-004
+  - BR-MENU-032
+  - INV-MENU-005
+  responses:
+    '204':
+      description: Eliminar definitivamente ítem archivado. Entidad eliminada sin cuerpo de respuesta.
+    '400':
+      $ref: ../components/responses/BadRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+  x-open-issues:
+  - OPEN-011
+  x-http-request-example: DELETE /api/menus/menu-1/items/item-cafe HTTP/1.1

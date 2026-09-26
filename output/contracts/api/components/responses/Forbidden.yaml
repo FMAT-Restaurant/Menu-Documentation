@@ -1,0 +1,10 @@
+description: Credencial sin la clase de acceso requerida.
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/ApiError.yaml
+    example:
+      code: FORBIDDEN
+      message: Credencial sin la clase de acceso requerida.
+x-open-issues:
+- OPEN-007

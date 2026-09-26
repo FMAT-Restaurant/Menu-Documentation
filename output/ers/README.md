@@ -7,10 +7,10 @@
 | Campo               | Valor                                                                                                    |
 | :------------------ | :------------------------------------------------------------------------------------------------------- |
 | Servicio            | Menu                                                                                                     |
-| Versión consolidada | 1.3.11                                                                                                   |
+| Versión consolidada | 1.3.12                                                                                                   |
 | Estado              | Vigente / En revisión con cuestiones abiertas pendientes                                                 |
 | Fuente de verdad    | [`configuration.md`](configuration.md)                                                                   |
-| Alcance             | Catálogo comercial, variantes, combos, modificadores, precios, elegibilidad y proyecciones operacionales |
+| Alcance             | Menu administra catálogo y reglas comerciales; POS captura la selección y Orders + Kitchen la valida y aplica al aceptar la orden. Los NFR de rendimiento miden de extremo a extremo los flujos POS que abarcan Menu y Orders + Kitchen. |
 
 La especificación es normativa y analítica. Define responsabilidades, reglas, límites y cuestiones pendientes; no constituye por sí misma una implementación ni evidencia de pruebas en ejecución.
 
@@ -29,7 +29,7 @@ La especificación es normativa y analítica. Define responsabilidades, reglas, 
 
 | Documento                                                          | Contenido                                                                                                                                                        | Uso principal                                                                                   |
 | :----------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| [`configuration.md`](configuration.md)                             | Identificación, versión 1.3.11, autoridad temporal de las fuentes, regla de prevalencia, alcance y exclusiones.                                                  | Resolver qué versión y qué decisiones tienen autoridad dentro de la especificación consolidada. |
+| [`configuration.md`](configuration.md)                             | Identificación, versión 1.3.12, autoridad temporal de las fuentes, regla de prevalencia, alcance y exclusiones.                                                  | Resolver qué versión y qué decisiones tienen autoridad dentro de la especificación consolidada. |
 | [`context.md`](context.md)                                         | Bounded context Menu, responsabilidades, ownership de datos, límites con POS, Orders + Kitchen, Inventory y Sala, taxonomía, dimensiones ortogonales y glosario. | Entender qué pertenece a Menu y qué corresponde a otros microservicios.                         |
 | [`architechture.md`](architechture.md)                             | Modelo de dominio, agregados `MenuItem` y `ComboConfiguration`, entidades, atributos, value objects, read models, diagramas y patrones de integración.           | Consultar la estructura conceptual y los límites de consistencia del dominio.                   |
 | [`functional-requirements.md`](functional-requirements.md)         | 42 requisitos funcionales `REQ-MENU-*` organizados por catálogo, variantes, precios, modificadores, combos, ciclo de vida, revisiones y disponibilidad.          | Implementar o verificar las obligaciones funcionales del servicio Menu.                         |

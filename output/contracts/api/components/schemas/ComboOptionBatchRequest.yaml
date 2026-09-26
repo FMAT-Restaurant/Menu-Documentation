@@ -1,0 +1,23 @@
+type: object
+description: Cada destino se aplica o rechaza por completo, con posible éxito parcial entre destinos.
+properties:
+  sourceConfigurationId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  sourceOptionIds:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+      minLength: 1
+  destinations:
+    type: array
+    minItems: 1
+    items:
+      $ref: ./ComboCopyRequest.yaml
+required:
+- sourceConfigurationId
+- sourceOptionIds
+- destinations

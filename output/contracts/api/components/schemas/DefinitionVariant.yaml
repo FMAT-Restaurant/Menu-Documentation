@@ -1,0 +1,29 @@
+type: object
+description: Definición comercial para Orders + Kitchen; incluye variante PREPARED inactiva preparada para asociación
+  culinaria, sin disponibilidad operacional.
+properties:
+  id:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  menuItemId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  unitPrice:
+    type: number
+    description: Magnitud monetaria lógica. Moneda, precisión, signo y redondeo pendientes en OPEN-010.
+    x-open-issues:
+    - OPEN-010
+  enabled:
+    type: boolean
+  isDefault:
+    type: boolean
+required:
+- id
+- menuItemId
+- unitPrice
+- enabled
+- isDefault
+- dimensionSelections
+- resolvedModifiers

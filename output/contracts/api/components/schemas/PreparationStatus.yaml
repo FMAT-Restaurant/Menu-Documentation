@@ -1,0 +1,19 @@
+type: object
+description: Readiness operacional de Orders + Kitchen; INCOMPLETE no significa revisión pendiente.
+properties:
+  variantId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  status:
+    type: string
+    enum:
+    - READY
+    - INCOMPLETE
+  lastUpdatedAt:
+    type: string
+    format: date-time
+required:
+- variantId
+- status
+- lastUpdatedAt

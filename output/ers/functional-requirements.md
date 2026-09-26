@@ -128,7 +128,7 @@ Esta sección establece las obligaciones normativas del servicio Menu derivadas 
 
 ### REQ-MENU-MOD-002 — Opciones de Modificador y Configuración General Comercial
 
-- **Obligación:** El servicio Menu deberá permitir definir opciones de modificador (`ModifierOption`) dentro de un `ModifierGroup` con nombre y una estructura anidada de configuración comercial general (`generalConfig`) que contiene el delta de precio (`priceDelta`) y el límite de cantidad máxima (`maxQuantity`), sin exponer dichos atributos como campos planos directos de `ModifierOption`. La configuración comercial de Menu no incluye recetas, ingredientes, gramajes ni efectos sobre insumos físicos.
+- **Obligación:** El servicio Menu deberá permitir definir opciones de modificador (`ModifierOption`) dentro de un `ModifierGroup` con nombre y una estructura anidada de configuración comercial general (`generalConfig`) que contiene el delta de precio (`priceDelta`) y el límite de cantidad máxima (`maxQuantity`), sin exponer dichos atributos como campos planos directos de `ModifierOption`. La configuración comercial de Menu no incluye Preparación, ingredientes, gramajes ni efectos sobre insumos físicos.
 - **Tipo:** Funcional.
 - **Fuente Autorizada:** `Req-F-Aproved.md` (REQ-MENU-014); refinado por `Auditoria-4.md` (Secciones 9 y 11).
 - **Verificación:** Demostración: Definir una opción comercial con su ajuste de precio y límite de cantidad anidados en `generalConfig`; comprobar que el modelo de Menu almacena exclusivamente atributos comerciales sin directivas de insumos.
@@ -155,7 +155,7 @@ Esta sección establece las obligaciones normativas del servicio Menu derivadas 
 - **Obligación:** El servicio Menu deberá materializar para cada `MenuItemVariant` publicada y cada `ModifierOption` aplicable una proyección de lectura comercial efectiva `ResolvedVariantModifier` que contenga de forma plana y exclusiva: `variantId`, `modifierOptionId`, `enabled`, `priceDelta` y `maxQuantity`, resolviendo la especialización de `VariantModifierConfig` cuando exista o recurriendo a los valores anidados en `generalConfig` en su defecto. Esta proyección es estrictamente comercial; no incluye disponibilidad operacional, límites operativos disponibles (`availableMaxQuantity`) ni efectos físicos de preparación e ingredientes, representándose los datos operacionales únicamente a través de `ModifierAvailability` y en Orders + Kitchen.
 - **Tipo:** Funcional.
 - **Fuente Autorizada:** `Req-F-Aproved.md` (REQ-MENU-038); refinado por `Auditoria-4.md` (Sección 12).
-- **Verificación:** Inspección: Publicar un item con una opción general y una excepción por variante; constatar que la proyección resuelta contiene exclusivamente los valores comerciales efectivos sin campos de disponibilidad operacional ni de insumos o recetas.
+- **Verificación:** Inspección: Publicar un item con una opción general y una excepción por variante; constatar que la proyección resuelta contiene exclusivamente los valores comerciales efectivos sin campos de disponibilidad operacional ni de insumos o Preparación.
 - **Trazabilidad:** Refinado por `Auditoria-4.md` para desacoplar la proyección comercial de efectos culinarios y de disponibilidad física.
 
 ---
@@ -280,7 +280,7 @@ Esta sección establece las obligaciones normativas del servicio Menu derivadas 
 - **Tipo:** Funcional.
 - **Fuente Autorizada:** `Req-F-Aproved.md` (REQ-MENU-031); refinado por `Auditoria-4.md` (Secciones 6, 31, 35).
 - **Verificación:** Prueba: Modificar el precio de una variante y verificar incremento de revisión; simular cambios de disponibilidad operacional y comprobar que no se incrementa la versión comercial.
-- **Trazabilidad:** Refinado por `Auditoria-4.md` para excluir recetas y vincular exclusivamente a definiciones comerciales.
+- **Trazabilidad:** Refinado por `Auditoria-4.md` para excluir Preparación y vincular exclusivamente a definiciones comerciales.
 
 ---
 
@@ -289,13 +289,13 @@ Esta sección establece las obligaciones normativas del servicio Menu derivadas 
 ### REQ-MENU-REV-001 — Detección de Necesidad de Revisión (REVIEW_REQUIRED) por Cambios Comerciales y Culinarios
 
 - **Obligación:** El servicio Menu deberá gestionar el estado de revisión lógica (`reviewStatus`) y representar lógicamente las causas pendientes de revisión distinguiendo con precisión los dos targets aplicables:
-  1. **`MenuItemVariant` (Target inicial de revisión culinaria):** Menu marcará la `MenuItemVariant` en `REVIEW_REQUIRED` y registrará una causa lógica de revisión culinaria (`CULINARY`) cuando Orders + Kitchen notifique una alteración en la preparación (e.g., alteraciones de receta o composición técnica, referidas de forma ilustrativa como `RecipeChanged` o `IngredientEffectChanged`), conservando la identidad del cambio (`changeId`) y el motivo (`COMPOSITION` o `STATUS`). Una nueva revisión de receta no producirá aviso de revisión en Menu hasta que la `MenuItemVariant` la adopte explícitamente.
+  1. **`MenuItemVariant` (Target inicial de revisión culinaria):** Menu marcará la `MenuItemVariant` en `REVIEW_REQUIRED` y registrará una causa lógica de revisión culinaria (`CULINARY`) cuando Orders + Kitchen notifique una alteración en la preparación (e.g., alteraciones culiniarias o composición técnica, referidas de forma ilustrativa como `PreparationChanged` o `IngredientEffectChanged`), conservando la identidad del cambio (`changeId`) y el motivo (`COMPOSITION` o `STATUS`). Una nueva revisión de preparación no producirá aviso de revisión en Menu hasta que la `MenuItemVariant` la adopte explícitamente.
   2. **`ComboConfiguration` (Target de revisión comercial o culinaria propagada):** Menu marcará una `ComboConfiguration` como `REVIEW_REQUIRED` cuando una `ComboOption` configurada —incluida una opción deshabilitada que continúa siendo dependencia configurada— apunte a una `MenuItemVariant` hoja cuyo cambio no atendido presente causas con uno o más motivos `PRICE`, `COMPOSITION`, `MODIFIERS` o `STATUS`, o cuando se propague una causa culinaria desde la variante hacia el combo dependiente.
      En ambos targets, los cambios cosméticos, los cambios en variantes no referenciadas y las fluctuaciones operacionales de disponibilidad no generarán estado de revisión. Una revisión pendiente no bloqueará automáticamente la disponibilidad operacional para venta.
 - **Tipo:** Funcional.
 - **Fuente Autorizada:** `Req-F-Aproved.md` (REQ-MENU-033); refinado por `Auditoria-4.md` (Secciones 30, 31, 34, 35).
-- **Verificación:** Prueba: Modificar precio de una variante componente y comprobar que el combo pasa a `REVIEW_REQUIRED`, incluso si la `ComboOption` que la referencia está deshabilitada; verificar que una nueva revisión de receta no produce aviso hasta que la `MenuItemVariant` la adopte explícitamente; simular aviso de cambio culinario desde Kitchen y verificar que la variante y sus combos dependientes reflejan revisión; simular cambios de stock, cambios cosméticos o modificaciones en variantes no referenciadas y comprobar ausencia de aviso.
-- **Trazabilidad:** Refinado por `Auditoria-4.md` para distinguir causas comerciales y culinarias, formalizar la representación lógica de causas pendientes, declarar que una `ComboOption` configurada continúa siendo dependencia aunque esté deshabilitada y establecer que una nueva revisión de receta no produce aviso hasta que la `MenuItemVariant` la adopte explícitamente (`BR-MENU-031`).
+- **Verificación:** Prueba: Modificar precio de una variante componente y comprobar que el combo pasa a `REVIEW_REQUIRED`, incluso si la `ComboOption` que la referencia está deshabilitada; verificar que una nueva revisión de preparación no produce aviso hasta que la `MenuItemVariant` la adopte explícitamente; simular aviso de cambio culinario desde Kitchen y verificar que la variante y sus combos dependientes reflejan revisión; simular cambios de stock, cambios cosméticos o modificaciones en variantes no referenciadas y comprobar ausencia de aviso.
+- **Trazabilidad:** Refinado por `Auditoria-4.md` para distinguir causas comerciales y culinarias, formalizar la representación lógica de causas pendientes, declarar que una `ComboOption` configurada continúa siendo dependencia aunque esté deshabilitada y establecer que una nueva revisión de preparación no produce aviso hasta que la `MenuItemVariant` la adopte explícitamente (`BR-MENU-031`).
 
 ### REQ-MENU-REV-002 — Visibilidad Administrativa del Estado de Revisión
 
@@ -351,17 +351,17 @@ Esta sección establece las obligaciones normativas del servicio Menu derivadas 
 
 ## Publicación, Proyecciones, Readiness y Disponibilidad
 
-### REQ-MENU-AVL-001 — Publicación Conceptual y Notificación de Catálogo
+### REQ-MENU-AVL-001 — Publicación Conceptual del Catálogo
 
-- **Obligación:** El servicio Menu deberá exponer su catálogo comercial hacia POS y otros canales de venta autorizados, y emitir notificaciones conceptuales ante cambios comerciales efectivos en la definición del menú (precios, estructura de variantes/combos o estados administrativos) para permitir el refresco de las proyecciones de catálogo en dichos consumidores.
+- **Obligación:** El servicio Menu deberá definir, custodiar y exponer su catálogo comercial a POS y otros canales de venta autorizados. Los cambios comerciales efectivos en sus precios, variantes, combos o estados administrativos deberán quedar conceptualmente disponibles para POS y Orders + Kitchen, de modo que ambos puedan mantener sus respectivas proyecciones del catálogo. POS consume la oferta vendible y puede aplicar localmente las restricciones comerciales para dar respuesta inmediata durante la selección. Orders + Kitchen mantiene su propia interpretación o proyección local de las definiciones de Menu y, al aceptar una orden, aplica las reglas de selección y precio definidas por Menu. Menu valida la integridad y elegibilidad estructural de la configuración del catálogo, pero no valida la selección transaccional del cliente. Esta delimitación es conceptual; la forma de disponibilización o actualización de esas proyecciones queda abierta.
 - **Tipo:** Funcional.
 - **Fuente Autorizada:** `Req-F-Aproved.md` (REQ-MENU-022); refinado por `Auditoria-4.md` (Secciones 28 y 39).
-- **Verificación:** Demostración: Ejecutar cambios comerciales y constatar la emisión de la notificación conceptual de cambio para la sincronización de las proyecciones de catálogo en POS y otros consumidores autorizados.
-- **Trazabilidad:** Refinado por `Auditoria-4.md` para documentar la notificación como familia conceptual.
+- **Verificación:** Demostración: Constatar que los cambios efectivos de catálogo quedan conceptualmente disponibles para mantener las proyecciones de POS y Orders + Kitchen; que POS puede usar las restricciones para retroalimentar la selección; y que Orders + Kitchen las aplica junto con los precios comerciales al aceptar la orden, mientras Menu conserva la validación de la definición comercial.
+- **Trazabilidad:** Refinado por `Auditoria-4.md` para precisar los consumidores relevantes del catálogo y distinguir la validación de la configuración comercial de la aplicación de sus reglas a una selección transaccional.
 
 ### REQ-MENU-AVL-002 — Recepción y Proyección de Disponibilidad Operacional Desacoplada
 
-- **Obligación:** El servicio Menu deberá reflejar la disponibilidad operacional a partir de las evaluaciones y notificaciones publicadas por Orders + Kitchen pertenecientes a la familia conceptual de cambios de disponibilidad operacional (ilustradas de manera no normativa en Auditoria-4.md bajo nombres como `VariantAvailabilityChanged` y `ModifierAvailabilityChanged`). Menu **no calculará físicamente la disponibilidad** a partir de recetas ni interactuará directamente con Inventory. Un cambio de disponibilidad operacional no alterará el estado administrativo (`status`), la elegibilidad estructural ni el precio comercial (`unitPrice`), y no generará una nueva versión comercial inmutable de `MenuItem`.
+- **Obligación:** El servicio Menu deberá reflejar la disponibilidad operacional a partir de las evaluaciones y notificaciones publicadas por Orders + Kitchen pertenecientes a la familia conceptual de cambios de disponibilidad operacional (ilustradas de manera no normativa en Auditoria-4.md bajo nombres como `VariantAvailabilityChanged` y `ModifierAvailabilityChanged`). Menu **no calculará físicamente la disponibilidad** a partir de Preparación ni interactuará directamente con Inventory. Un cambio de disponibilidad operacional no alterará el estado administrativo (`status`), la elegibilidad estructural ni el precio comercial (`unitPrice`), y no generará una nueva versión comercial inmutable de `MenuItem`.
 - **Tipo:** Funcional.
 - **Fuente Autorizada:** `Req-F-Aproved.md` (REQ-MENU-041); refinado por `Auditoria-4.md` (Secciones 24 y 25).
 - **Verificación:** Demostración: Recibir actualización de disponibilidad desde Kitchen; comprobar que Menu proyecta la señal operacional localmente mientras que `status`, elegibilidad, precio y versión comercial se mantienen inalterados.

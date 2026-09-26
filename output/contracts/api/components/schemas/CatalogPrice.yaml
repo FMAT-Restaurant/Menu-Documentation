@@ -1,0 +1,17 @@
+type: object
+description: FIXED si una unidad elegible o todas comparten precio; FROM si difieren. Un item sin unidad elegible
+  se excluye del catálogo y no expone precio numérico. La disponibilidad no modifica este precio.
+properties:
+  presentation:
+    type: string
+    enum:
+    - FIXED
+    - FROM
+  amount:
+    type: number
+    description: Precio absoluto de la única unidad elegible o mínimo de las unidades elegibles.
+    x-open-issues:
+    - OPEN-010
+required:
+- presentation
+- amount

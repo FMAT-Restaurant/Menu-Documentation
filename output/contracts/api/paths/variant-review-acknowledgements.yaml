@@ -1,0 +1,67 @@
+parameters:
+- name: menuId
+  in: path
+  required: true
+  description: Identificador lógico opaco de menuId.
+  schema:
+    type: string
+    minLength: 1
+- name: itemId
+  in: path
+  required: true
+  description: Identificador lógico opaco de itemId.
+  schema:
+    type: string
+    minLength: 1
+- name: variantId
+  in: path
+  required: true
+  description: Identificador lógico opaco de variantId.
+  schema:
+    type: string
+    minLength: 1
+post:
+  tags:
+  - Revisiones
+  operationId: acknowledgeVariantReview
+  summary: Confirmar revisión culinaria observada de variante
+  description: Confirma exclusivamente la observedRevision indicada de la variante, actualiza acknowledgedRevision
+    y liquida las causas atendidas. Si apareció una revisión posterior, ésta queda pendiente y no se borra por una
+    confirmación obsoleta. La confirmación no altera precio comercial, disponibilidad ni genera revisión de MenuItem.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-REV-001
+  - REQ-MENU-REV-003
+  - REQ-MENU-REV-006
+  - BR-MENU-031
+  responses:
+    '200':
+      description: Confirmar revisión culinaria observada de variante. Estado de revisión tras confirmar la revisión
+        observada.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/ReviewAcknowledgementResult.yaml
+    '400':
+      $ref: ../components/responses/BadRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+  x-open-issues:
+  - OPEN-007
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/ReviewAcknowledgementRequest.yaml
+        example:
+          observedRevision: 8

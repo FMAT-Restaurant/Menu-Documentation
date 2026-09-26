@@ -5,7 +5,7 @@ Los requisitos no funcionales documentados en esta sección reproducen los compr
 ## Presupuesto de Rendimiento de Aceptación (ADR-004)
 
 - **Identificador:** `NFR-MENU-PERF-01`
-- **Declaración:** El servicio Menu deberá dimensionarse y optimizarse para satisfacer el presupuesto de rendimiento bajo las condiciones operativas nominales y de ráfaga establecidas para los terminales de venta en cada sucursal de restaurante.
+- **Declaración:** Los flujos de punto de venta que consumen el catálogo de Menu y gestionan órdenes en Orders + Kitchen deberán satisfacer el presupuesto de rendimiento bajo las condiciones operativas nominales y de ráfaga establecidas para cada sucursal de restaurante. Los objetivos se evalúan de extremo a extremo y no constituyen tiempos objetivo de endpoints individuales de Menu.
 - **Fuente:** `Decisiones-cierre-invariantes.md` (ADR-004); `Consultoria-1.md`.
 - **Criterio:** Validación mediante pruebas de carga automatizadas con datasets representativos del restaurante.
 
@@ -13,38 +13,44 @@ Los requisitos no funcionales documentados en esta sección reproducen los compr
 
 - **Identificador:** `NFR-MENU-PERF-02`
 - **Condiciones de Carga Nominal por Restaurante:**
-  - **Concurrencia:** Hasta **40 clientes POS concurrentes** activos simultáneamente por sucursal.
+  - **Concurrencia:** Hasta **40 clientes POS/KDS concurrentes** activos simultáneamente por sucursal.
   - **Tasa de Solicitudes:** **30 solicitudes por segundo (req/s) sostenidas** durante un periodo continuo de **30 minutos**.
   - **Mezcla de Carga Reproducible:**
-    - 30% Búsqueda, filtrado o cambio de categoría del menú.
-    - 20% Consulta de disponibilidad proyectada.
-    - 20% Recálculo de precio y validación de configuración comercial.
-    - 20% Edición de selecciones de comanda.
-    - 10% Envío de comanda a cocina.
-  - **Tasa de Error Interno:** Inferior al **0.1% (<0.1%)** de las solicitudes bajo carga nominal.
-  - **Integridad:** Cero (**0**) órdenes aceptadas perdidas, duplicadas o corrompidas.
+    - 30% Búsqueda, filtrado o cambio de categoría del menú (responsabilidad de Menu).
+    - 20% Consulta de disponibilidad proyectada en el catálogo (Menu sirve la proyección basada en disponibilidad y readiness operacionales originados por Orders + Kitchen; Menu no calcula existencias ni preparación).
+    - 20% Validación de selección comercial y resolución del importe aplicable al aceptar la orden (responsabilidad de Orders + Kitchen, aplicando las reglas comerciales definidas por Menu).
+    - 20% Edición de selecciones de comanda (responsabilidad de Orders + Kitchen).
+    - 10% Envío de comanda a cocina y aceptación de la orden (responsabilidad de Orders + Kitchen).
+  - **Tasa de Error Interno:** Inferior al **0.1% (<0.1%)** de las solicitudes ofrecidas bajo carga nominal. Las solicitudes de selección deliberadamente inválida se prueban por separado y no se incluyen en el denominador de errores internos.
+  - **Integridad:** Cero (**0**) órdenes aceptadas perdidas, duplicadas o corrompidas; la aceptación y persistencia de la orden son responsabilidad de Orders + Kitchen.
+
+El perfil describe de extremo a extremo los flujos POS que abarcan el catálogo administrado por Menu y la gestión de órdenes de Orders + Kitchen. Menu es responsable de definir y validar administrativamente la configuración comercial, mantener los precios y sus reglas, y servir en el catálogo la proyección de disponibilidad basada en la disponibilidad y readiness operacionales originados por Orders + Kitchen. Menu no calcula existencias ni preparación. Orders + Kitchen es responsable de originar esas señales operacionales, validar la selección elegida al aceptar una orden, resolver el importe aplicable, editar y conservar la selección de la comanda, aceptar la orden y hacerla visible en cocina. El POS puede dar retroalimentación inmediata mientras el usuario selecciona opciones; esa retroalimentación no constituye la aceptación autoritativa de la orden. Estas responsabilidades no asignan a Menu la selección hecha por el cliente ni a Orders + Kitchen la propiedad de las reglas comerciales.
+
+Para las variantes hoja PREPARED y STOCKED, `MenuItemVariant.unitPrice` es un precio absoluto asignado directamente: no se calcula a partir de Preparación, ingredientes ni existencias. La configuración de modificadores aporta los `priceDelta` comerciales efectivos. La regla exacta para agregar los deltas de modificadores seleccionados al precio de una variante hoja permanece abierta en OPEN-010. Para un combo, el importe final sigue BR-MENU-008: el precio absoluto de `ComboConfiguration` más los `priceDelta` de las opciones seleccionadas y los modificadores seleccionados en sus componentes; no se suman los precios regulares `MenuItemVariant.unitPrice` de esos componentes.
 
 ## Objetivos de Latencia por Clase de Operación
 
-Las duraciones se miden desde la acción física en el cliente POS hasta el resultado observable en pantalla, incluyendo red local:
+Las duraciones son objetivos de extremo a extremo: se miden desde la acción física en el cliente POS hasta el resultado observable en pantalla, incluyendo red local y procesamiento. No representan latencias de endpoints individuales de Menu. La responsabilidad indicada es la de la clase de operación; las mediciones incluyen el flujo POS completo cuando participan ambos servicios:
 
-| Clase de Operación                                                            | Objetivo Percentil 95 (p95) | Objetivo Percentil 99 (p99) | Límite Crítico Inaceptable |
-| :---------------------------------------------------------------------------- | :-------------------------: | :-------------------------: | :------------------------: |
-| **Feedback táctil UI** (toque de selección, modificador)                      |        **≤ 100 ms**         |              -              |          > 200 ms          |
-| **Búsqueda / Filtro / Categoría de Menú**                                     |        **≤ 200 ms**         |         **≤ 1.0 s**         |          > 500 ms          |
-| **Consulta de Disponibilidad Proyectada**                                     |        **≤ 300 ms**         |         **≤ 1.0 s**         |          > 750 ms          |
-| **Validación de Configuración y Precio**                                      |        **≤ 300 ms**         |         **≤ 1.0 s**         |          > 500 ms          |
-| **Edición de Selección en Comanda**                                           |        **≤ 300 ms**         |         **≤ 1.0 s**         |          > 750 ms          |
-| **Solicitud de creación a Orders + Kitchen (`Enviar a cocina` → ACK Orders)** |        **≤ 500 ms**         |         **≤ 1.0 s**         |          > 2.0 s           |
+| Clase de Operación                                                                        | Responsabilidad principal | Objetivo Percentil 95 (p95) | Objetivo Percentil 99 (p99) | Límite Crítico Inaceptable |
+| :---------------------------------------------------------------------------------------- | :-----------------------: | :-------------------------: | :-------------------------: | :------------------------: |
+| **Feedback táctil UI** (toque de selección, modificador; retroalimentación no autoritativa) |            POS            |        **≤ 100 ms**         |              -              |          > 200 ms          |
+| **Búsqueda / Filtro / Categoría de Menú**                                                  |           Menu            |        **≤ 200 ms**         |         **≤ 1.0 s**         |          > 500 ms          |
+| **Consulta de Disponibilidad Proyectada**                                                  | Menu sirve; Orders + Kitchen origina señales |        **≤ 300 ms**         |         **≤ 1.0 s**         |          > 750 ms          |
+| **Validación de Selección Comercial y Resolución del Importe Aplicable**                   |     Orders + Kitchen      |        **≤ 300 ms**         |         **≤ 1.0 s**         |          > 500 ms          |
+| **Edición de Selección en Comanda**                                                        |     Orders + Kitchen      |        **≤ 300 ms**         |         **≤ 1.0 s**         |          > 750 ms          |
+| **Envío de comanda y aceptación (`Enviar a cocina` → ACK Orders)**                        |     Orders + Kitchen      |        **≤ 500 ms**         |         **≤ 1.0 s**         |          > 2.0 s           |
+| **Visibilidad de la orden en KDS desde su envío**                                         |     Orders + Kitchen      |        **≤ 1.0 s**          |         **≤ 2.0 s**         |              -             |
 
 ## Capacidad ante Ráfagas (Burst)
 
 - **Identificador:** `NFR-MENU-PERF-03`
-- **Condición de Ráfaga Intensa:** Tasa de **100 solicitudes por segundo (req/s)** durante una ventana de **60 segundos**, aplicada inmediatamente después de la prueba de perfil nominal.
+- **Condición de Ráfaga Intensa:** Tasa de **100 solicitudes por segundo (req/s)** durante una ventana de **60 segundos**, con los mismos clientes y mezcla de carga del perfil nominal, aplicada inmediatamente después de esa prueba. La evaluación es de extremo a extremo sobre los flujos POS que abarcan Menu y Orders + Kitchen.
 - **Criterios de Aceptación:**
-  1. **Disponibilidad del Servicio:** El servicio no deberá colapsar ni reiniciar procesos durante la ráfaga.
-  2. **Integridad:** Cero (**0**) solicitudes confirmadas perdidas o corrompidas.
-  3. No se exige mantener los percentiles de latencia nominales durante la ventana de ráfaga, y no existe un plazo de recuperación preestablecido en las fuentes.
+  1. **Disponibilidad:** Los servicios que participan en el flujo evaluado no deberán colapsar ni reiniciar procesos durante la ráfaga.
+  2. **Integridad:** Cero (**0**) órdenes aceptadas perdidas, duplicadas o corrompidas. Orders + Kitchen es responsable de la aceptación y persistencia de las órdenes.
+  3. Cada solicitud fallida o pendiente se contabiliza. Al terminar la ráfaga, toda orden aceptada deberá tener su resultado persistido y reintentar solicitudes pendientes no deberá duplicar efectos.
+  4. No se exige mantener los percentiles de latencia nominales durante la ventana de ráfaga y no existe un plazo de recuperación preestablecido.
 
 ## Concurrencia e Integridad Transaccional
 

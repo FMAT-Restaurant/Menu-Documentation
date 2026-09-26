@@ -1,0 +1,43 @@
+type: object
+description: Vista administrativa de definición completa; componentes deshabilitados y causas históricas visibles
+  cuando corresponda.
+properties:
+  item:
+    $ref: ./MenuItem.yaml
+  variants:
+    type: array
+    items:
+      $ref: ./Variant.yaml
+  variantDimensions:
+    type: array
+    items:
+      $ref: ./VariantDimension.yaml
+  modifierGroups:
+    type: array
+    items:
+      $ref: ./ModifierGroup.yaml
+  variantModifierConfigs:
+    type: array
+    items:
+      $ref: ./VariantModifierConfig.yaml
+  comboConfigurations:
+    type: array
+    items:
+      $ref: ./ComboConfiguration.yaml
+  warnings:
+    type: array
+    items:
+      $ref: ./Warning.yaml
+  aggregateReviewStatus:
+    type: string
+    enum:
+    - UP_TO_DATE
+    - REVIEW_REQUIRED
+required:
+- item
+- variants
+- variantDimensions
+- modifierGroups
+- variantModifierConfigs
+- comboConfigurations
+- warnings

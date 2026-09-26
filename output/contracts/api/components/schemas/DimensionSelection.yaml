@@ -1,0 +1,14 @@
+type: object
+description: Cada dimensión del item aporta como máximo un valor; no se aceptan valores de otro item.
+properties:
+  dimensionId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+  valueId:
+    type: string
+    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+    minLength: 1
+required:
+- dimensionId
+- valueId

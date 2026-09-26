@@ -1,0 +1,10 @@
+type: object
+properties:
+  items:
+    type: array
+    items:
+      $ref: ./MenuItemDetail.yaml
+  nextCursor:
+    type: string
+required:
+- items

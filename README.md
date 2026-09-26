@@ -60,8 +60,3 @@ La arquitectura de la especificación de interfaz se documenta en [`docs/ui-spec
 ### `.stitch/`: sistema visual
 
 Contiene el sistema visual y los metadatos utilizados para mantener consistencia entre los mockups: viewport objetivo, tipografía, escala cromática, superficies, bordes y demás tokens de diseño.
-
-## Licencia y uso
-
-> [!NOTE]
-> No se ha definido una licencia de distribución en este repositorio. El contenido debe tratarse como material de especificación y diseño del proyecto FMAT Restaurant hasta que se establezcan formalmente las condiciones de uso.

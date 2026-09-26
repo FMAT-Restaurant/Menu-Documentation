@@ -1,0 +1,150 @@
+parameters:
+- name: menuId
+  in: path
+  required: true
+  description: Identificador lógico opaco de menuId.
+  schema:
+    type: string
+    minLength: 1
+get:
+  tags:
+  - Ítems
+  operationId: listMenuItems
+  summary: Listar ítems administrativos
+  description: Devuelve ítems de todos los estados, incluidos INACTIVE y ARCHIVED, con sus componentes, advertencias,
+    revisión comercial y estado de revisión independiente de disponibilidad. Cursor y límite de paginación son una
+    propuesta técnica pendiente de OPEN-007.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-ITM-001
+  - REQ-MENU-ITM-002
+  - REQ-MENU-LIF-003
+  - REQ-MENU-VER-001
+  - REQ-MENU-REV-002
+  responses:
+    '200':
+      description: Listar ítems administrativos. Ítems administrativos con sus componentes y estados.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MenuItemList.yaml
+          example:
+            items:
+            - item:
+                id: item-cafe
+                menuId: menu-1
+                code: CAFE-001
+                name: Café de la casa
+                description: Café preparado al momento
+                image: https://example.org/images/cafe.jpg
+                itemType: PREPARED
+                status: ACTIVE
+                commercialRevision: 1
+                commercialVersion: 1_2026-09-24T12:00:00Z
+              variants:
+              - id: variant-default
+                menuItemId: item-cafe
+                unitPrice: 35
+                enabled: true
+                isDefault: true
+                isStructurallyEligible: true
+                dimensionSelections: []
+                review:
+                  observedRevision: 0
+                  acknowledgedRevision: 0
+                  reviewStatus: UP_TO_DATE
+                  pendingReviewCauses: []
+                resolvedModifiers: []
+                availability:
+                  variantId: variant-default
+                  available: true
+                  lastUpdatedAt: '2026-09-24T12:00:00Z'
+                preparationStatus:
+                  variantId: variant-default
+                  status: READY
+                  lastUpdatedAt: '2026-09-24T12:00:00Z'
+              variantDimensions: []
+              modifierGroups: []
+              variantModifierConfigs: []
+              comboConfigurations: []
+              warnings: []
+              aggregateReviewStatus: UP_TO_DATE
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '404':
+      $ref: ../components/responses/NotFound.yaml
+  parameters:
+  - name: cursor
+    in: query
+    required: false
+    description: Cursor de continuación opaco propuesto; su codificación queda abierta en OPEN-007.
+    schema:
+      type: string
+    example: next-page-token
+  - name: limit
+    in: query
+    required: false
+    description: Cantidad solicitada de resultados por página; política de máximo pendiente en OPEN-007.
+    schema:
+      type: integer
+      minimum: 1
+    example: 25
+  x-open-issues:
+  - OPEN-007
+  x-query-contract-status: Propuesta técnica pendiente de OPEN-007.
+post:
+  tags:
+  - Ítems
+  operationId: createMenuItem
+  summary: Crear ítem comercial
+  description: Crea un MenuItem PREPARED, STOCKED o COMBO con tipo inmutable y estado inicial ACTIVE o INACTIVE.
+    ACTIVE exige validar capacidad vendible y dependencias; INACTIVE permite definición incompleta y devuelve advertencias
+    estructuradas. La nueva definición genera su revisión comercial inmutable. Menu no almacena ingredientes, preparación
+    ni identificadores de inventario.
+  x-consumer: Administración de Menú (UI)
+  x-access-class: ADMIN
+  x-ers-refs:
+  - REQ-MENU-ITM-001
+  - REQ-MENU-LIF-002
+  - REQ-MENU-LIF-003
+  - REQ-MENU-VER-001
+  - BR-MENU-001
+  - BR-MENU-009
+  - BR-MENU-010
+  - INV-MENU-001
+  - INV-MENU-004
+  responses:
+    '201':
+      description: Crear ítem comercial. Vista administrativa del ítem propietario, componentes y advertencias.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/MenuItemDetail.yaml
+    '400':
+      $ref: ../components/responses/BadRequest.yaml
+    '401':
+      $ref: ../components/responses/Unauthorized.yaml
+    '403':
+      $ref: ../components/responses/Forbidden.yaml
+    '409':
+      $ref: ../components/responses/Conflict.yaml
+    '422':
+      $ref: ../components/responses/Unprocessable.yaml
+  x-open-issues:
+  - OPEN-011
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/MenuItemCreate.yaml
+        example:
+          code: CAFE-001
+          name: Café de la casa
+          description: Café preparado al momento
+          image: https://example.org/images/cafe.jpg
+          itemType: PREPARED
+          status: INACTIVE

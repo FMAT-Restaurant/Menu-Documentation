@@ -1,0 +1,13 @@
+type: object
+properties:
+  item:
+    $ref: ./MenuItemDetail.yaml
+  targetVariantIds:
+    type: array
+    items:
+      type: string
+      description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
+      minLength: 1
+required:
+- item
+- targetVariantIds
