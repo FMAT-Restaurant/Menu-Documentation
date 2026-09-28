@@ -1,55 +1,53 @@
 # ERS del servicio Menu
 
-Índice de la especificación técnica, funcional y de arquitectura de dominio del servicio **Menu** para el sistema de comandas y gestión de restaurantes.
+Índice de los requisitos, reglas de dominio y criterios de calidad del servicio **Menu** para el catálogo de un restaurante. El modelo conceptual vigente se describe en [`../../docs/md/domain-model.md`](../../docs/md/domain-model.md).
 
 ## Estado documental
 
-| Campo               | Valor                                                                                                    |
-| :------------------ | :------------------------------------------------------------------------------------------------------- |
-| Servicio            | Menu                                                                                                     |
-| Versión consolidada | 1.3.12                                                                                                   |
-| Estado              | Vigente / En revisión con cuestiones abiertas pendientes                                                 |
-| Fuente de verdad    | [`configuration.md`](configuration.md)                                                                   |
-| Alcance             | Menu administra catálogo y reglas comerciales; POS captura la selección y Orders + Kitchen la valida y aplica al aceptar la orden. Los NFR de rendimiento miden de extremo a extremo los flujos POS que abarcan Menu y Orders + Kitchen. |
+| Campo | Valor |
+| :--- | :--- |
+| Servicio | Menu |
+| Versión | 2.1.0 |
+| Estado | Vigente / En revisión con cuestiones abiertas pendientes |
+| Configuración de referencia | [`configuration.md`](configuration.md) |
+| Alcance | Menu administra la identidad comercial del catálogo, sus ofertas, composición, recetas y personalizaciones. Inventario mantiene la identidad y existencias de sus artículos; el modelo de órdenes registra elecciones y determina el precio final. |
 
-La especificación es normativa y analítica. Define responsabilidades, reglas, límites y cuestiones pendientes; no constituye por sí misma una implementación ni evidencia de pruebas en ejecución.
+La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
 ## Ruta de lectura recomendada
 
-1. [`configuration.md`](configuration.md) para conocer la versión, la autoridad de las fuentes, la regla de prevalencia y el alcance general.
-2. [`context.md`](context.md) para entender el bounded context Menu, sus responsabilidades, los límites de ownership y el lenguaje del dominio.
-3. [`architechture.md`](architechture.md) para revisar agregados, entidades, value objects, proyecciones, diagramas y límites de integración.
-4. [`functional-requirements.md`](functional-requirements.md) para consultar las obligaciones funcionales verificables.
-5. [`non-functional-requirements.md`](non-functional-requirements.md) para consultar rendimiento, concurrencia, integridad y resiliencia.
-6. [`business-rules.md`](business-rules.md) para consultar las reglas de negocio e invariantes que restringen el modelo.
-7. [`open.md`](open.md) para identificar las decisiones de integración, persistencia y transporte que permanecen abiertas.
-8. [`traceability.md`](traceability.md) para consultar la cobertura y las relaciones entre requisitos, reglas e invariantes.
+1. [`configuration.md`](configuration.md) para consultar la versión y las reglas documentales de autoridad.
+2. [`../../docs/md/domain-model.md`](../../docs/md/domain-model.md) para consultar el modelo conceptual vigente y sus relaciones.
+3. [`context.md`](context.md) para entender el alcance de Menú/Catálogo, su lenguaje y sus límites con Inventario y Órdenes.
+4. [`architechture.md`](architechture.md) para revisar la arquitectura, entidades y diagramas del servicio.
+5. [`functional-requirements.md`](functional-requirements.md) para consultar las 30 capacidades funcionales verificables.
+6. [`non-functional-requirements.md`](non-functional-requirements.md) para consultar los criterios de rendimiento y operación.
+7. [`business-rules.md`](business-rules.md) para consultar las 30 reglas de negocio y 9 invariantes del dominio.
+8. [`open.md`](open.md) para identificar las 8 decisiones de requisitos aún pendientes.
+9. [`traceability.md`](traceability.md) para consultar las relaciones entre requisitos, reglas, invariantes y criterios no funcionales.
 
 ## Mapa de documentos
 
-| Documento                                                          | Contenido                                                                                                                                                        | Uso principal                                                                                   |
-| :----------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
-| [`configuration.md`](configuration.md)                             | Identificación, versión 1.3.12, autoridad temporal de las fuentes, regla de prevalencia, alcance y exclusiones.                                                  | Resolver qué versión y qué decisiones tienen autoridad dentro de la especificación consolidada. |
-| [`context.md`](context.md)                                         | Bounded context Menu, responsabilidades, ownership de datos, límites con POS, Orders + Kitchen, Inventory y Sala, taxonomía, dimensiones ortogonales y glosario. | Entender qué pertenece a Menu y qué corresponde a otros microservicios.                         |
-| [`architechture.md`](architechture.md)                             | Modelo de dominio, agregados `MenuItem` y `ComboConfiguration`, entidades, atributos, value objects, read models, diagramas y patrones de integración.           | Consultar la estructura conceptual y los límites de consistencia del dominio.                   |
-| [`functional-requirements.md`](functional-requirements.md)         | 42 requisitos funcionales `REQ-MENU-*` organizados por catálogo, variantes, precios, modificadores, combos, ciclo de vida, revisiones y disponibilidad.          | Implementar o verificar las obligaciones funcionales del servicio Menu.                         |
-| [`non-functional-requirements.md`](non-functional-requirements.md) | 5 requisitos no funcionales `NFR-MENU-*`, objetivos de latencia, perfil de carga, ráfagas, outbox externo y resiliencia.                                         | Definir objetivos de aceptación de ingeniería y límites operacionales.                          |
-| [`business-rules.md`](business-rules.md)                           | 34 reglas `BR-MENU-*` y 5 invariantes `INV-MENU-*` sobre identidad, variantes, precios, combos, disponibilidad, revisiones y eliminación.                        | Validar restricciones de dominio e invariantes de integridad.                                   |
-| [`open.md`](open.md)                                               | Cuestiones `OPEN-002`, `OPEN-007`, `OPEN-009`, `OPEN-010` y `OPEN-011`, con decisiones confirmadas y alcance técnico pendiente.                                  | Identificar decisiones que no deben inventarse durante el diseño o la implementación.           |
-| [`traceability.md`](traceability.md)                               | Matriz individual de los 86 elementos normativos y sus relaciones entre requisitos, reglas e invariantes.                                                        | Auditar cobertura, procedencia y consistencia documental.                                       |
+| Documento | Contenido | Uso principal |
+| :--- | :--- | :--- |
+| [`configuration.md`](configuration.md) | Identificación, versión, autoridad de fuentes y alcance documental. | Resolver la versión y las reglas de prevalencia documentales. |
+| [`../../docs/md/domain-model.md`](../../docs/md/domain-model.md) | Modelo conceptual de Menú/Catálogo, composición, contenido, recetas, personalizaciones y límites de dominio. | Interpretar las entidades y relaciones vigentes. |
+| [`context.md`](context.md) | Responsabilidad de Menú/Catálogo, ownership, límites entre contextos y glosario. | Entender qué datos y decisiones pertenecen a cada contexto. |
+| [`architechture.md`](architechture.md) | Modelo del servicio, entidades, relaciones, diagramas y límites arquitectónicos. | Consultar la organización arquitectónica del servicio. |
+| [`functional-requirements.md`](functional-requirements.md) | 30 requisitos `REQ-MENU-*` para categorías, entradas, ofertas, composición, recetas y personalizaciones. | Implementar o revisar las capacidades funcionales solicitadas. |
+| [`non-functional-requirements.md`](non-functional-requirements.md) | Criterios `NFR-MENU-*` de carga, latencia y comportamiento operativo. | Evaluar los objetivos de calidad definidos para el servicio y sus flujos completos. |
+| [`business-rules.md`](business-rules.md) | 30 reglas `BR-MENU-*` y 9 invariantes `INV-MENU-*`. | Validar las restricciones comerciales y la integridad del modelo. |
+| [`open.md`](open.md) | 8 cuestiones de requisitos que requieren una decisión explícita. | Evitar fijar valores o comportamientos que aún no están determinados. |
+| [`traceability.md`](traceability.md) | Matrices de los requisitos, reglas, invariantes y criterios no funcionales. | Auditar cobertura e integridad de las referencias normativas. |
 
 ## Límites de responsabilidad destacados
 
-- **Menu** administra la oferta comercial: `MenuItem`, `MenuItemVariant`, `ComboConfiguration`, `ComboSlot`, `ComboOption`, modificadores comerciales, precios, elegibilidad y proyecciones de catálogo.
-- **POS** representa la UI o terminal de venta: consume el catálogo publicado por Menu, captura los artículos y configuraciones elegidos y solicita a Orders + Kitchen la creación de la comanda.
-- **Orders + Kitchen** crea y custodia órdenes, comandas y snapshots inmutables de venta; también es responsable de preparación y disponibilidad operacional.
-- **Inventory** custodia existencias y movimientos físicos de inventario.
-- **Sala** es un microservicio independiente para reservaciones, mesas y operaciones relacionadas; no representa la UI del POS.
-
-El contrato técnico que utiliza la UI/POS para enviar la selección a Orders + Kitchen permanece abierto en [`open.md`](open.md), principalmente bajo `OPEN-007`, y no forma parte de la responsabilidad del servicio Menu.
+- **Menú/Catálogo** define la identidad comercial de las entradas, sus ofertas vendibles, composiciones, contenido, recetas reutilizables, personalizaciones y precios declarados.
+- **Inventario** es propietario de la identidad y las existencias de `InventoryItem`; Menú/Catálogo mantiene referencias a esos artículos.
+- **Órdenes** registra las elecciones concretas de una orden y determina el precio final de acuerdo con las definiciones comerciales del catálogo.
 
 ## Convenciones de navegación
 
-- Los identificadores `REQ-MENU-*`, `NFR-MENU-*`, `BR-MENU-*` e `INV-MENU-*` son normativos y deben conservarse al referenciar requisitos, reglas o invariantes.
-- Las decisiones aún no determinadas se identifican con `OPEN-*`; no deben completarse mediante suposiciones técnicas no respaldadas.
-- Para comprobar la cobertura de identificadores y sus relaciones, consultar [`traceability.md`](traceability.md).
+- `REQ-MENU-*`, `NFR-MENU-*`, `BR-MENU-*` e `INV-MENU-*` identifican contenido normativo y deben conservarse en sus referencias.
+- `OPEN-*` identifica preguntas que requieren una decisión antes de fijar el comportamiento correspondiente.
+- La matriz de [`traceability.md`](traceability.md) permite localizar las relaciones entre cada identificador normativo.

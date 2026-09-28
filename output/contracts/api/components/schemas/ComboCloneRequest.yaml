@@ -1,9 +1,0 @@
-type: object
-description: Clonación completa, con nuevos IDs para configuración, slots y opciones.
-properties:
-  targetItemId:
-    type: string
-    description: Identificador lógico opaco; la ERS no fija UUID ni formato físico.
-    minLength: 1
-required:
-- targetItemId

@@ -1,0 +1,161 @@
+RecipeLibraryInput:
+  type: object
+  additionalProperties: false
+  required: [name]
+  properties:
+    name: { type: string, minLength: 1 }
+RecipeLibraryPatch:
+  type: object
+  additionalProperties: false
+  required: [name]
+  properties:
+    name: { type: string, minLength: 1 }
+RecipeLibrary:
+  type: object
+  additionalProperties: false
+  required: [id, name]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    name: { type: string }
+RecipeLibraryList:
+  type: array
+  items: { $ref: '#/RecipeLibrary' }
+RecipeInput:
+  type: object
+  additionalProperties: false
+  required: [name, yieldQuantity, yieldUnit, status, ingredients]
+  properties:
+    name: { type: string, minLength: 1 }
+    description: { type: string }
+    yieldQuantity:
+      type: number
+      description: Rendimiento; rango y precisión siguen en OPEN-006.
+    yieldUnit: { type: string, minLength: 1 }
+    status:
+      $ref: './common.yaml#/RecipeStatus'
+      description: Estado explícito; no se presupone estado inicial.
+    ingredients:
+      type: array
+      minItems: 1
+      items: { $ref: '#/ComponentIngredient' }
+Recipe:
+  type: object
+  additionalProperties: false
+  required: [id, libraryId, revision, scope, name, yieldQuantity, yieldUnit, status, ingredients, availableRevisions]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    libraryId: { $ref: './common.yaml#/Identifier' }
+    revision: { $ref: './common.yaml#/Revision' }
+    scope: { const: LIBRARY }
+    name: { type: string }
+    description: { type: string }
+    yieldQuantity: { type: number }
+    yieldUnit: { type: string }
+    status: { $ref: './common.yaml#/RecipeStatus' }
+    ingredients:
+      type: array
+      minItems: 1
+      items: { $ref: '#/ComponentIngredient' }
+    availableRevisions:
+      type: array
+      uniqueItems: true
+      description: Metadato de consulta calculado al responder; incluye la revisión devuelta y puede ampliarse sin modificar la fotografía histórica.
+      items: { $ref: './common.yaml#/Revision' }
+RecipeList:
+  type: array
+  items: { $ref: '#/Recipe' }
+InlineRecipe:
+  type: object
+  additionalProperties: false
+  required: [id, revision, scope, name, yieldQuantity, yieldUnit, status, ingredients]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    scope: { const: INLINE }
+    name: { type: string, minLength: 1 }
+    description: { type: string }
+    revision:
+      $ref: './common.yaml#/Revision'
+      description: Identificador local conservado dentro de la revisión de oferta que publica esta receta.
+    yieldQuantity: { type: number }
+    yieldUnit: { type: string, minLength: 1 }
+    status: { $ref: './common.yaml#/RecipeStatus' }
+    ingredients:
+      type: array
+      minItems: 1
+      items: { $ref: '#/ComponentIngredient' }
+ComponentIngredient:
+  description: Línea identificable que apunta exclusivamente a un artículo externo o una receta reutilizable. Las referencias de recetas no forman ciclos.
+  oneOf:
+    - $ref: '#/InventoryIngredient'
+    - $ref: '#/RecipeIngredient'
+InventoryIngredient:
+  type: object
+  additionalProperties: false
+  required: [id, partKey, targetType, inventoryItemId, quantity, unit]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    partKey: { type: string, minLength: 1, description: Clave inequívoca dentro de la receta. }
+    displayName: { type: string }
+    targetType: { const: INVENTORY_ITEM }
+    inventoryItemId: { $ref: './common.yaml#/Identifier' }
+    quantity: { type: number, description: Rango y precisión siguen en OPEN-006. }
+    unit: { type: string, minLength: 1 }
+RecipeIngredient:
+  type: object
+  additionalProperties: false
+  required: [id, partKey, targetType, recipeId, recipeRevision, quantity, unit]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    partKey: { type: string, minLength: 1 }
+    displayName: { type: string }
+    targetType: { const: RECIPE }
+    recipeId: { $ref: './common.yaml#/Identifier' }
+    recipeRevision: { $ref: './common.yaml#/Revision' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+RecipeAdjustment:
+  description: Ajuste administrativo local a un PreparationSource; las líneas afectadas deben ser compatibles con la operación.
+  oneOf:
+    - $ref: '#/AddIngredientAdjustment'
+    - $ref: '#/RemoveIngredientAdjustment'
+    - $ref: '#/OverrideQuantityAdjustment'
+    - $ref: '#/ReplaceInventoryItemAdjustment'
+AddIngredientAdjustment:
+  type: object
+  additionalProperties: false
+  required: [id, operation, inventoryItemId, quantity, unit]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    operation: { const: ADD }
+    inventoryItemId: { $ref: './common.yaml#/Identifier' }
+    quantity: { type: number, exclusiveMinimum: 0 }
+    unit: { type: string, minLength: 1 }
+RemoveIngredientAdjustment:
+  type: object
+  additionalProperties: false
+  required: [id, operation, targetPartKey]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    operation: { const: REMOVE }
+    targetPartKey: { type: string, minLength: 1 }
+OverrideQuantityAdjustment:
+  type: object
+  additionalProperties: false
+  required: [id, operation, targetPartKey, quantity]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    operation: { const: OVERRIDE_QUANTITY }
+    targetPartKey: { type: string, minLength: 1 }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+ReplaceInventoryItemAdjustment:
+  type: object
+  additionalProperties: false
+  required: [id, operation, targetPartKey, inventoryItemId]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    operation: { const: REPLACE_INVENTORY_ITEM }
+    targetPartKey: { type: string, minLength: 1, description: Debe designar una línea directa de InventoryItem. }
+    inventoryItemId: { $ref: './common.yaml#/Identifier' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }

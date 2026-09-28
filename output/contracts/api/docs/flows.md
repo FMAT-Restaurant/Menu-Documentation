@@ -1,25 +1,39 @@
-# Secuencias administrativas complementarias
+# Flujos comerciales representados
 
-Las operaciones, payloads, resultados y errores se definen en [`../openapi.yaml`](../openapi.yaml). Este documento explica la relación entre operaciones sin reemplazar sus contratos.
+Este documento complementa las descripciones de operaciones y esquemas del [contrato OpenAPI](../openapi.yaml). Los URI, códigos y formas de intercambio aquí descritos forman parte del contrato aceptado.
 
-## Creación, borrador y activación
+## Publicar una oferta
 
-`POST /api/menus/{menuId}/items` admite `ACTIVE` o `INACTIVE`. Una creación `ACTIVE` requiere una definición comercial completa y estructuralmente elegible en la misma operación; en caso contrario se rechaza sin crear un item activo parcial. Un item `INACTIVE` puede completarse después mediante operaciones de componentes. Si su grupo obligatorio o slot habilitado tiene capacidad menor que `minSelections`, el guardado devuelve advertencias estructuradas con entidad, mínimo y capacidad calculada. `PATCH /items/{itemId}` a `ACTIVE` revalida la capacidad y las dependencias; las señales operacionales de Orders + Kitchen siguen siendo una dimensión distinta. Desarchivar produce `INACTIVE`, y una activación posterior requiere otra solicitud explícita.
+1. Crear una categoría y una entrada mediante `POST /menus/{menuId}/categories` y `POST /menus/{menuId}/entries`. La entrada nace `INACTIVE` y sus categorías son del mismo menú.
+2. Crear una oferta con `POST /menus/{menuId}/entries/{entryId}/offers`. La solicitud declara `basePrice`, imagen y una `Composition` completa; la oferta nace `INACTIVE`.
+3. Completar la composición con al menos un slot y una opción por slot. Con `selectable: false` se incluyen todos los slots. Con `selectable: true`, `requiredSlots` se incluyen siempre y los límites `minSelections`/`maxSelections` cuentan solo los restantes. Una opción incluida concreta el contenido del slot.
+4. Solicitar `ACTIVE` para la oferta mediante `PATCH /menus/{menuId}/entries/{entryId}/offers/{offerId}`. La composición debe ser válida. OPEN-008 mantiene pendiente si cada slot necesita una opción activa o basta con una opción estructuralmente definida.
+5. Solicitar `ACTIVE` para la entrada mediante `PATCH /menus/{menuId}/entries/{entryId}`. Debe tener al menos una oferta válida. Las consultas `/catalog` exponen solo entradas y ofertas publicables.
 
-## Migración de variante DEFAULT
+Archivar una entrada es reversible. Desde `ARCHIVED`, la transición permitida es a `INACTIVE`; activar requiere una solicitud posterior.
 
-`POST /items/{itemId}/variant-migrations` sustituye la variante técnica sin dimensiones por variantes con selecciones de dimensiones ya pertenecientes al item. La operación aplica una sola revisión comercial y no publica estados intermedios. Rechaza combinaciones duplicadas o valores ajenos al item. El efecto sobre referencias históricas conserva las identidades que deban mantenerse según la ERS.
+## Eliminar una entrada archivada
 
-Archivar un ítem hoja o deshabilitar una variante no se bloquea por combos dependientes. Se excluyen de nuevas ventas las opciones afectadas y se reevalúa cada configuración dependiente: si algún slot habilitado ya no alcanza `minSelections`, la configuración queda inelegible y `REVIEW_REQUIRED`, mientras `MenuItem.status` del combo permanece intacto.
+1. `DELETE /menus/{menuId}/entries/{entryId}` exige que la entrada esté `ARCHIVED`. La operación localiza las referencias vigentes a cualquiera de sus ofertas, incluidas las opciones ya inactivas, tanto en `CatalogOfferSource` como en `AddOption` con destino `CATALOG_OFFER`.
+2. En un solo lote, desactiva cada `ComponentOption` que contiene alguna referencia afectada. Sustituye cada referencia por contenido local `INLINE` con una copia de la composición completa de la revisión de oferta fijada por esa referencia. La copia conserva slots, alternativas y personalizaciones. Si contiene referencias a otras ofertas de la entrada que se elimina, también las materializa recursivamente, sin ciclos. Una `AddOption` convertida conserva sus demás atributos, incluido `priceDelta`.
+3. Cada oferta que contiene opciones afectadas obtiene una nueva revisión vigente. Después de convertir todas las referencias, se eliminan la entrada y sus ofertas vigentes. La operación responde `200` con las ofertas eliminadas, las ofertas revisadas y las opciones desactivadas. Si alguna conversión falla o no se preservan las invariantes, no se aplica ningún cambio.
 
-## Copias de modificadores y combos
+Las revisiones históricas publicadas permanecen inmutables. `GET /catalog-offers/{offerId}/revisions/{offerRevision}` permite consultar las fotografías históricas necesarias incluso después de eliminar la entrada y sus ofertas vigentes. La desactivación de una `ComponentOption` no desactiva automáticamente la oferta que la contiene.
 
-`POST /items/{itemId}/modifier-config-copies` copia excepciones comerciales entre variantes del mismo item usando `FAIL` o `REPLACE`; la operación aplica todo o nada. `POST /combo-configurations/{configurationId}/clones` crea configuración, slots y opciones con nuevas identidades. `POST /combo-configurations/{configurationId}/copies` exige por cada slot origen un `targetSlotId` explícito o una directiva explícita de nuevo slot; no infiere correspondencia por nombre, posición u orden.
+## Orígenes y personalizaciones
 
-`POST /combo-option-copy-batches` exige `targetConfigurationId` y mapeo de slots para **cada destino**. Cada configuración destino se aplica completa o se rechaza completa; el lote puede combinar destinos aplicados y rechazados. La respuesta enumera el resultado por destino. Los códigos finales y la política técnica de concurrencia permanecen en `OPEN-002`.
+Cada `ComponentOption` tiene identidad contextual, estado propio y exactamente un `source`: `INLINE`, `INVENTORY_ITEM`, `PREPARATION` o `CATALOG_OFFER`. Una opción `INACTIVE` no se ofrece como nueva elección. `INLINE` contiene una receta local o una copia local de la composición completa de una oferta. `PREPARATION` referencia una revisión de receta reutilizable; sus `adjustments` son locales a esa aparición. `CATALOG_OFFER` fija la revisión de la oferta hija. Las referencias entre ofertas y recetas no pueden formar ciclos.
 
-Las configuraciones de Menu describen modificadores comerciales de variantes hoja. Si una orden selecciona una variante como componente de combo, sus modificadores se aplican solo a esa instancia física; los de componentes repetidos se resuelven por instancia, sin deduplicación ni bonificación implícita (`BR-MENU-016`, `BR-MENU-029`). La captura de esas selecciones y la aplicación autoritativa al aceptar la orden corresponden a Orders + Kitchen y no aparecen como comandos de esta API.
+`Personalizations` pertenece a esa aparición concreta. Los modificadores y reemplazos señalan líneas directas de InventoryItem de su receta efectiva; no alcanzan subrecetas ni ofertas hijas. Las adiciones pueden apuntar a un artículo de Inventario, una receta reutilizable, una oferta o una composición local `INLINE` conservada tras convertir una referencia. Las instrucciones son descriptivas y no alteran cantidades físicas. La validez estructural de la receta no depende del stock externo.
 
-## Confirmación de revisión
+`basePrice` es el importe fijo de la oferta completa. Los `priceDelta` permanecen junto a las personalizaciones que los declaran y pueden ser negativos, cero o positivos; no cambian `basePrice`. El contrato no calcula precio final de una orden ni añade automáticamente el precio base de una oferta hija.
 
-`GET /reviews` muestra los targets `MenuItemVariant` y `ComboConfiguration`, sus causas y el estado agregado del item COMBO. El cliente confirma el `observedRevision` que leyó mediante el endpoint de `review-acknowledgements` correspondiente. Si apareció una revisión posterior, la confirmación no debe liquidar causas nuevas y la solicitud se rechaza por conflicto. Confirmar una configuración no cambia su precio, slots, opciones ni revisión comercial. La disponibilidad y readiness no generan por sí mismos una revisión administrativa.
+## Cambios y revisiones
+
+`POST /menus/{menuId}/entries/{entryId}/offers/{offerId}/revisions` crea una nueva definición comercial completa; `PUT .../composition` crea otra revisión cuando cambia el contenido de la composición y conserva la revisión si se reenvía la misma representación. `GET /catalog-offers/{offerId}/revisions/{offerRevision}` recupera una fotografía histórica, también cuando su oferta vigente pertenecía a una entrada eliminada. El estado administrativo actual de una oferta se consulta en su recurso vigente, separado de la fotografía comercial de una revisión.
+
+`POST /recipe-libraries/{libraryId}/recipes/{recipeId}/revisions` crea una revisión de receta. `GET /recipe-libraries/{libraryId}/recipes/{recipeId}?revision=...` permite recuperar una revisión concreta. Las composiciones que conservan una revisión anterior siguen apuntando a ella hasta que una acción administrativa actualice expresamente su referencia y cree una nueva revisión de oferta. Las referencias históricas no se reescriben retroactivamente.
+
+## Alcance del rendimiento
+
+NFR-MENU-PERF-01..03 definen evaluación E2E con POS y aceptación de orden, perfil nominal y ráfaga. No fijan latencias para cada operación de Menu. OPEN-009 conserva pendiente la mezcla de solicitudes y el dataset representativo de la evaluación.

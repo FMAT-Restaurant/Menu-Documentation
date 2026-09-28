@@ -1,9 +1,0 @@
-type: object
-description: Confirma exactamente la revisión observada por administración; si avanzó concurrentemente, se rechaza
-  sin borrar causas nuevas.
-properties:
-  observedRevision:
-    type: integer
-    minimum: 0
-required:
-- observedRevision

@@ -1,134 +1,104 @@
-# Matriz de Trazabilidad
+# Trazabilidad de requisitos, reglas e invariantes
 
-## Propósito y alcance
-
-Esta matriz relaciona, uno a uno, los identificadores normativos contenidos en los tres artefactos consolidados del servicio Menu:
-
-- [functional-requirements.md](functional-requirements.md): 42 requisitos funcionales.
-- [non-functional-requirements.md](non-functional-requirements.md): 5 requisitos no funcionales.
-- [business-rules.md](business-rules.md): 34 reglas de negocio y 5 invariantes de integridad.
-
-La declaración completa y el criterio de verificación de cada elemento permanecen en su documento de origen. Esta matriz concentra la identificación, la procedencia y las relaciones entre requisitos, reglas e invariantes. Una celda `—` significa que el documento de origen no declara una relación normativa directa; no representa un requisito faltante.
-
-## Resumen de cobertura
-
-| Artefacto                        |                   Elementos trazados | Cobertura                             |
-| :------------------------------- | -----------------------------------: | :------------------------------------ |
-| `functional-requirements.md`     |            42 requisitos funcionales | 100% de los identificadores presentes |
-| `non-functional-requirements.md` |          5 requisitos no funcionales | 100% de los identificadores presentes |
-| `business-rules.md`              | 34 reglas de negocio + 5 invariantes | 100% de los identificadores presentes |
-| **Total**                        |          **86 elementos normativos** | **100%**                              |
+Esta matriz relaciona los requisitos funcionales con las reglas e invariantes que restringen su cumplimiento. Las cuestiones abiertas no se tratan como decisiones adoptadas. Los identificadores se definen en [`functional-requirements.md`](functional-requirements.md), [`non-functional-requirements.md`](non-functional-requirements.md) y [`business-rules.md`](business-rules.md).
 
 ## Matriz de requisitos funcionales
 
-| ID                 | Elemento                                                                     | Fuente autorizada documentada                                                                              | Reglas e invariantes relacionadas                                                         |
-| :----------------- | :--------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| `REQ-MENU-ITM-001` | Definición del `MenuItem` comercial                                          | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | `BR-MENU-001`, `BR-MENU-009`, `BR-MENU-010`, `BR-MENU-018`, `BR-MENU-019`                 |
-| `REQ-MENU-ITM-002` | Transición de estado administrativo                                          | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`; `Consultoria-3.md`                                 | `BR-MENU-032`                                                                             |
-| `REQ-MENU-VAR-001` | Presentación vendible de item hoja y variante `DEFAULT`                      | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | `BR-MENU-005`, `BR-MENU-006`, `INV-MENU-001`, `INV-MENU-002`                              |
-| `REQ-MENU-VAR-002` | Definición de dimensión de variante                                          | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | —                                                                                         |
-| `REQ-MENU-VAR-003` | Valor de dimensión de variante                                               | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | —                                                                                         |
-| `REQ-MENU-VAR-004` | Definición de variantes vendibles                                            | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | `BR-MENU-002`, `BR-MENU-003`, `BR-MENU-004`                                               |
-| `REQ-MENU-VAR-005` | Migración atómica de variante predeterminada                                 | `Req-F-Aproved.md`; `Auditoria-3.md`                                                                       | —                                                                                         |
-| `REQ-MENU-VAR-006` | Elegibilidad estructural de variante hoja                                    | `Req-F-Aproved.md`; `Auditoria-4.md`; `Consultoria-3.md`                                                   | —                                                                                         |
-| `REQ-MENU-VAR-007` | Habilitación, deshabilitación y retiro de variantes hoja                     | `Consultoria-3.md`                                                                                         | `BR-MENU-033`                                                                             |
-| `REQ-MENU-PRC-001` | Precio absoluto autoritativo de la variante                                  | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | `BR-MENU-007`                                                                             |
-| `REQ-MENU-PRC-002` | Proyección del precio de catálogo                                            | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | —                                                                                         |
-| `REQ-MENU-PRC-003` | Exclusión de catálogo sin unidades elegibles                                 | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | —                                                                                         |
-| `REQ-MENU-MOD-001` | Definición de grupos de modificadores en item hoja                           | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | `BR-MENU-013`, `INV-MENU-004`                                                             |
-| `REQ-MENU-MOD-002` | Opciones de modificador y configuración general comercial                    | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `BR-MENU-013`, `BR-MENU-015`                                                              |
-| `REQ-MENU-MOD-003` | Especialización comercial de modificador por variante                        | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `BR-MENU-014`                                                                             |
-| `REQ-MENU-MOD-004` | Copia administrativa de configuraciones de modificadores                     | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-MOD-005` | Proyección de modificadores efectivos comerciales                            | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-COM-001` | Configuración de combo                                                       | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`; `Consultoria-3.md`                                 | `BR-MENU-008`, `BR-MENU-017`                                                              |
-| `REQ-MENU-COM-002` | Definición del espacio de selección (`ComboSlot`)                            | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`                                                     | `BR-MENU-011`, `INV-MENU-004`                                                             |
-| `REQ-MENU-COM-003` | Opciones de combo vinculadas a la variante hoja                              | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`; `Consultoria-3.md`                                 | `BR-MENU-008`, `BR-MENU-012`, `BR-MENU-016`, `BR-MENU-029`, `BR-MENU-030`, `INV-MENU-002` |
-| `REQ-MENU-COM-004` | Copia administrativa de configuración de combo                               | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `BR-MENU-026`                                                                             |
-| `REQ-MENU-COM-005` | Asignación múltiple de opciones con atomicidad por destino                   | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `BR-MENU-026`, `BR-MENU-027`, `BR-MENU-028`                                               |
-| `REQ-MENU-COM-006` | Elegibilidad estructural de configuración de combo                           | `Req-F-Aproved.md`; `Auditoria-4.md`; `Consultoria-3.md`                                                   | `BR-MENU-034`, `INV-MENU-004`                                                             |
-| `REQ-MENU-COM-007` | Habilitación local y retiro de componentes de combo                          | `Consultoria-3.md`                                                                                         | `BR-MENU-033`                                                                             |
-| `REQ-MENU-LIF-001` | Archivado reversible de `MenuItem` y reevaluación no obstructiva             | `Auditoria-3.md`; `Auditoria-4.md`; `Consultoria-3.md`; modifica `Req-F-Aproved.md` REQ-MENU-026 y ADR-005 | `BR-MENU-020`, `BR-MENU-032`                                                              |
-| `REQ-MENU-LIF-002` | Guardado de definiciones incompletas en contexto inactivo                    | `Req-F-Aproved.md`; `Auditoria-3.md`; `Auditoria-4.md`; ADR-005                                            | `INV-MENU-004`                                                                            |
-| `REQ-MENU-LIF-003` | Advertencias de capacidad faltante                                           | `Req-F-Aproved.md`; ADR-005; `Consultoria-3.md`                                                            | —                                                                                         |
-| `REQ-MENU-LIF-004` | Eliminación definitiva restringida de `MenuItem`                             | `Consultoria-3.md`                                                                                         | `BR-MENU-032`, `INV-MENU-005`                                                             |
-| `REQ-MENU-VER-001` | Generación de revisión inmutable de `MenuItem`                               | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `INV-MENU-003`                                                                            |
-| `REQ-MENU-REV-001` | Detección de necesidad de revisión por cambios comerciales y culinarios      | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `BR-MENU-031`                                                                             |
-| `REQ-MENU-REV-002` | Visibilidad administrativa del estado de revisión                            | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-REV-003` | Seguimiento desacoplado mediante `observedRevision` y `acknowledgedRevision` | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-REV-004` | Conservación de la configuración comercial al confirmar revisión             | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-REV-005` | Referencia visual del slot y precios informativos                            | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-REV-006` | No disparación de revisión por disponibilidad operacional                    | `Auditoria-4.md`                                                                                           | —                                                                                         |
-| `REQ-MENU-AVL-001` | Menu define y valida catálogo; sus cambios efectivos quedan conceptualmente disponibles para POS y Orders + Kitchen. POS da retroalimentación local; Orders + Kitchen aplica los límites y precios de Menu a la selección al aceptar la orden. | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | `BR-MENU-007`, `BR-MENU-008`, `BR-MENU-013`                                               |
-| `REQ-MENU-AVL-002` | Recepción y proyección desacoplada de disponibilidad operacional             | `Req-F-Aproved.md`; `Auditoria-4.md`                                                                       | —                                                                                         |
-| `REQ-MENU-AVL-003` | Recepción y proyección de readiness de preparación                           | `Auditoria-4.md`                                                                                           | —                                                                                         |
-| `REQ-MENU-AVL-004` | Proyección de disponibilidad granular de variante                            | `Auditoria-4.md`                                                                                           | `BR-MENU-022`                                                                             |
-| `REQ-MENU-AVL-005` | Proyección de disponibilidad de modificadores                                | `Auditoria-4.md`                                                                                           | `BR-MENU-021`                                                                             |
-| `REQ-MENU-AVL-006` | Propagación de disponibilidad a opciones, slots y configuraciones de combo   | `Auditoria-4.md`; `Consultoria-3.md`                                                                       | `BR-MENU-023`, `BR-MENU-024`, `BR-MENU-034`                                               |
-| `REQ-MENU-AVL-007` | Derivación de disponibilidad agregada de `MenuItem` para catálogo            | `Auditoria-4.md`                                                                                           | `BR-MENU-025`                                                                             |
+| Requisito | Tema | Reglas relacionadas | Invariantes relacionadas | Criterios no funcionales relacionados |
+| :--- | :--- | :--- | :--- | :--- |
+| `REQ-MENU-CAT-001` | Administración de categorías | `BR-MENU-001` | `INV-MENU-001` | — |
+| `REQ-MENU-CAT-002` | Consulta del catálogo publicable | `BR-MENU-004`, `BR-MENU-006` | `INV-MENU-002` | `NFR-MENU-PERF-02` |
+| `REQ-MENU-ENTRY-001` | Creación de una entrada | `BR-MENU-002`, `BR-MENU-003` | `INV-MENU-001` | — |
+| `REQ-MENU-ENTRY-002` | Edición de una entrada | `BR-MENU-002` | `INV-MENU-001` | — |
+| `REQ-MENU-ENTRY-003` | Estado y archivado de una entrada | `BR-MENU-003`, `BR-MENU-004` | `INV-MENU-002` | — |
+| `REQ-MENU-ENTRY-004` | Eliminación de una entrada archivada | `BR-MENU-003`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-008`, `INV-MENU-009` | — |
+| `REQ-MENU-OFFER-001` | Creación de ofertas para una entrada | `BR-MENU-005`, `BR-MENU-006` | `INV-MENU-001` | — |
+| `REQ-MENU-OFFER-002` | Identidad de entrada y presentación vendible | `BR-MENU-002`, `BR-MENU-005` | — | — |
+| `REQ-MENU-OFFER-003` | Precio base declarado | `BR-MENU-007`, `BR-MENU-027` | `INV-MENU-007` | — |
+| `REQ-MENU-OFFER-004` | Activación de una oferta | `BR-MENU-006` | `INV-MENU-002` | — |
+| `REQ-MENU-OFFER-005` | Referencia a una oferta reutilizada | `BR-MENU-028`, `BR-MENU-029` | `INV-MENU-008` | — |
+| `REQ-MENU-COMP-001` | Composición de una oferta | `BR-MENU-006` | `INV-MENU-002`, `INV-MENU-004` | — |
+| `REQ-MENU-COMP-002` | Inclusión de posiciones | `BR-MENU-008`, `BR-MENU-009`, `BR-MENU-010` | `INV-MENU-003` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
+| `REQ-MENU-COMP-003` | Alternativas de contenido por posición | `BR-MENU-011` | `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
+| `REQ-MENU-COMP-004` | Cantidad incluida por posición | `BR-MENU-012` | `INV-MENU-004` | — |
+| `REQ-MENU-COMP-005` | Tiempo sugerido de servicio | `BR-MENU-013` | — | — |
+| `REQ-MENU-COMP-006` | Ubicación espacial descriptiva | `BR-MENU-013`, `BR-MENU-014` | — | — |
+| `REQ-MENU-CONT-001` | Alternativas de contenido | `BR-MENU-015`, `BR-MENU-016`, `BR-MENU-017` | `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
+| `REQ-MENU-CONT-002` | Uso directo de un artículo de Inventario | `BR-MENU-018`, `BR-MENU-019` | `INV-MENU-005` | — |
+| `REQ-MENU-CONT-003` | Preparación definida en una alternativa | `BR-MENU-017`, `BR-MENU-020` | `INV-MENU-005` | — |
+| `REQ-MENU-CONT-004` | Otra oferta como contenido | `BR-MENU-007`, `BR-MENU-015`, `BR-MENU-028`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-008`, `INV-MENU-009` | — |
+| `REQ-MENU-REC-001` | Biblioteca de recetas reutilizables | `BR-MENU-018`, `BR-MENU-019`, `BR-MENU-020` | `INV-MENU-005`, `INV-MENU-008` | — |
+| `REQ-MENU-REC-002` | Uso y ajuste local de una receta | `BR-MENU-020`, `BR-MENU-021` | `INV-MENU-005` | — |
+| `REQ-MENU-REC-003` | Edición de recetas sin cambio retroactivo | `BR-MENU-020` | `INV-MENU-008` | — |
+| `REQ-MENU-PERS-001` | Personalizaciones de una alternativa | `BR-MENU-015`, `BR-MENU-022` | `INV-MENU-006` | — |
+| `REQ-MENU-PERS-002` | Cambios a ingredientes de una receta | `BR-MENU-022`, `BR-MENU-023` | `INV-MENU-005`, `INV-MENU-006` | — |
+| `REQ-MENU-PERS-003` | Opciones para agregar contenido | `BR-MENU-022`, `BR-MENU-024`, `BR-MENU-027`, `BR-MENU-030` | `INV-MENU-006`, `INV-MENU-007`, `INV-MENU-009` | — |
+| `REQ-MENU-PERS-004` | Sustitución de un ingrediente | `BR-MENU-022`, `BR-MENU-025`, `BR-MENU-027` | `INV-MENU-005`, `INV-MENU-006`, `INV-MENU-007` | — |
+| `REQ-MENU-PERS-005` | Instrucciones de preparación | `BR-MENU-022`, `BR-MENU-026` | `INV-MENU-006` | — |
+| `REQ-MENU-PERS-006` | Ajustes de precio de personalizaciones | `BR-MENU-027` | `INV-MENU-007` | — |
 
-## Matriz de requisitos no funcionales
+## Matriz de criterios no funcionales
 
-| ID                 | Elemento                                                         | Procedencia documentada                                                                                   | Relación y criterio de aceptación                                                                                                                                                                                                           |
-| :----------------- | :--------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NFR-MENU-PERF-01` | Presupuesto de rendimiento de aceptación                         | `Decisiones-cierre-invariantes.md` ADR-004; `Consultoria-1.md`                                            | Enmarca `NFR-MENU-PERF-02` y `NFR-MENU-PERF-03`. Se valida mediante pruebas de carga automatizadas con datasets representativos.                                                                                                            |
-| `NFR-MENU-PERF-02` | Perfil nominal POS de extremo a extremo: carga y responsabilidades por contexto | Fuentes de rendimiento declaradas en el documento: `Consultoria-1.md` y ADR-004                           | Hasta 40 clientes POS/KDS concurrentes, 30 req/s durante 30 minutos, error interno menor a 0.1% y cero órdenes aceptadas perdidas, duplicadas o corrompidas; incluye búsqueda y disponibilidad en Menu, retroalimentación local en POS y validación de selección, resolución de precio, edición y aceptación de órdenes en Orders + Kitchen. Latencias por clase; no es SLO de endpoints individuales de Menu. |
-| `NFR-MENU-PERF-03` | Perfil POS de extremo a extremo ante ráfagas                    | Fuentes de rendimiento declaradas en el documento: `Consultoria-1.md` y ADR-004                           | 100 req/s durante 60 segundos, con los mismos clientes y mezcla nominal en flujos POS que abarcan Menu y Orders + Kitchen; cero órdenes aceptadas perdidas, duplicadas o corrompidas, sin colapso ni reinicio y con responsabilidades por contexto según el perfil nominal. No es un SLO de endpoints individuales de Menu ni exige conservar la latencia nominal durante la ráfaga. |
-| `NFR-MENU-CONS-01` | Delimitación de outbox e integración transaccional               | ADR-003; `Consultoria-2.md`                                                                               | El outbox y la entrega física hacia Inventory son responsabilidad de Orders, no de Menu. Relación directa con `REQ-MENU-AVL-001` y sus notificaciones conceptuales asíncronas.                                                              |
-| `NFR-MENU-RESI-01` | Resiliencia y desacoplamiento de disponibilidad operacional      | Fuentes de resiliencia y disponibilidad declaradas en el documento: `Consultoria-2.md` y `Auditoria-4.md` | La desconexión o demora de eventos de Orders + Kitchen no modifica navegación, precios, configuración, estado administrativo ni elegibilidad persistida; protege especialmente `REQ-MENU-AVL-002`, `REQ-MENU-VAR-006` y `REQ-MENU-PRC-002`. |
+| Identificador | Tema | Requisitos funcionales relacionados | Cuestiones pendientes relacionadas |
+| :--- | :--- | :--- | :--- |
+| `NFR-MENU-PERF-01` | Alcance y método de evaluación del presupuesto de rendimiento | `REQ-MENU-CAT-002`, `REQ-MENU-COMP-002`, `REQ-MENU-COMP-003`, `REQ-MENU-CONT-001` | — |
+| `NFR-MENU-PERF-02` | Carga nominal y latencias de consulta y validación | `REQ-MENU-CAT-002`, `REQ-MENU-COMP-002`, `REQ-MENU-COMP-003`, `REQ-MENU-CONT-001` | `OPEN-009` |
+| `NFR-MENU-PERF-03` | Capacidad ante ráfagas | `REQ-MENU-CAT-002`, `REQ-MENU-COMP-002`, `REQ-MENU-COMP-003`, `REQ-MENU-CONT-001` | `OPEN-009` |
 
 ## Matriz de reglas de negocio
 
-| ID            | Regla                                                               | Requisitos funcionales relacionados                        |
-| :------------ | :------------------------------------------------------------------ | :--------------------------------------------------------- |
-| `BR-MENU-001` | Identidad y tipo de `MenuItem`                                      | `REQ-MENU-ITM-001`                                         |
-| `BR-MENU-002` | Unicidad de dimensión en variante                                   | `REQ-MENU-VAR-004`                                         |
-| `BR-MENU-003` | Pertenencia estricta de dimensiones                                 | `REQ-MENU-VAR-004`                                         |
-| `BR-MENU-004` | Unicidad de combinación de variante                                 | `REQ-MENU-VAR-004`                                         |
-| `BR-MENU-005` | Variante técnica `DEFAULT`                                          | `REQ-MENU-VAR-001`                                         |
-| `BR-MENU-006` | Exclusividad item frente a variante                                 | `REQ-MENU-VAR-001`                                         |
-| `BR-MENU-007` | Precio absoluto asignado directamente a variante hoja              | `REQ-MENU-PRC-001`                                         |
-| `BR-MENU-008` | Precio de combo: unitPrice absoluto de configuración + deltas de opciones y modificadores seleccionados; excluye unitPrice de variantes componentes | `REQ-MENU-COM-001`, `REQ-MENU-COM-003`                     |
-| `BR-MENU-009` | Clasificación comercial `PREPARED` en Menu                          | `REQ-MENU-ITM-001`                                         |
-| `BR-MENU-010` | Clasificación comercial `STOCKED` en Menu                           | `REQ-MENU-ITM-001`                                         |
-| `BR-MENU-011` | Límites de selección de `ComboSlot`                                 | `REQ-MENU-COM-002`                                         |
-| `BR-MENU-012` | Selección de `ComboOption`                                          | `REQ-MENU-COM-003`                                         |
-| `BR-MENU-013` | Límites de modificadores en item hoja                               | `REQ-MENU-MOD-001`, `REQ-MENU-MOD-002`                     |
-| `BR-MENU-014` | Especialización comercial de modificadores                          | `REQ-MENU-MOD-003`                                         |
-| `BR-MENU-015` | Ownership culinario de efectos de modificador                       | `REQ-MENU-MOD-002`                                         |
-| `BR-MENU-016` | Confinamiento de modificadores en combos                            | `REQ-MENU-COM-003`                                         |
-| `BR-MENU-017` | Ausencia de modificadores en combo                                  | `REQ-MENU-COM-001`                                         |
-| `BR-MENU-018` | Clasificación comercial exclusiva de hoja                           | `REQ-MENU-ITM-001`                                         |
-| `BR-MENU-019` | Separación de categorías                                            | `REQ-MENU-ITM-001`                                         |
-| `BR-MENU-020` | Reevaluación de dependencias al archivar o deshabilitar componentes | `REQ-MENU-LIF-001`                                         |
-| `BR-MENU-021` | No bloqueo por modificador opcional no disponible                   | `REQ-MENU-AVL-005`                                         |
-| `BR-MENU-022` | Bloqueo operacional de variante por grupo obligatorio o readiness   | `REQ-MENU-AVL-004`                                         |
-| `BR-MENU-023` | Herencia de disponibilidad en `ComboOption`                         | `REQ-MENU-AVL-006`                                         |
-| `BR-MENU-024` | Capacidad disponible de `ComboSlot` y combo                         | `REQ-MENU-AVL-006`                                         |
-| `BR-MENU-025` | Disponibilidad agregada de `MenuItem` por existencia                | `REQ-MENU-AVL-007`                                         |
-| `BR-MENU-026` | Identidad y mapeo explícito de slots                                | `REQ-MENU-COM-004`, `REQ-MENU-COM-005`                     |
-| `BR-MENU-027` | Atomicidad por destino y éxito parcial                              | `REQ-MENU-COM-005`                                         |
-| `BR-MENU-028` | Ausencia de rollback parcial por slot                               | `REQ-MENU-COM-005`                                         |
-| `BR-MENU-029` | Independencia de modificadores repetidos en combos                  | `REQ-MENU-COM-003`                                         |
-| `BR-MENU-030` | Multiplicidad de opciones hacia la misma variante                   | `REQ-MENU-COM-003`                                         |
-| `BR-MENU-031` | Condiciones de detección de necesidad de revisión                   | `REQ-MENU-REV-001`                                         |
-| `BR-MENU-032` | Ciclo de vida de `MenuItem` y eliminación definitiva                | `REQ-MENU-ITM-002`, `REQ-MENU-LIF-001`, `REQ-MENU-LIF-004` |
-| `BR-MENU-033` | Habilitación de componentes y retiro con conservación histórica     | `REQ-MENU-VAR-007`, `REQ-MENU-COM-007`                     |
-| `BR-MENU-034` | Diferenciación entre slot deshabilitado y capacidad insuficiente    | `REQ-MENU-COM-006`, `REQ-MENU-AVL-006`                     |
+| Identificador | Tema | Requisitos funcionales relacionados |
+| :--- | :--- | :--- |
+| `BR-MENU-001` | Clasificación por categorías | `REQ-MENU-CAT-001`, `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-002` |
+| `BR-MENU-002` | Identidad comercial de la entrada | `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-002`, `REQ-MENU-OFFER-002` |
+| `BR-MENU-003` | Ciclo de vida de la entrada | `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-003`, `REQ-MENU-ENTRY-004` |
+| `BR-MENU-004` | Publicación de una entrada | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003` |
+| `BR-MENU-005` | Pertenencia y etiqueta de la oferta | `REQ-MENU-OFFER-001`, `REQ-MENU-OFFER-002` |
+| `BR-MENU-006` | Composición de una oferta | `REQ-MENU-CAT-002`, `REQ-MENU-OFFER-001`, `REQ-MENU-OFFER-004`, `REQ-MENU-COMP-001` |
+| `BR-MENU-007` | Precio base fijo | `REQ-MENU-OFFER-003`, `REQ-MENU-CONT-004` |
+| `BR-MENU-008` | Inclusión automática de espacios | `REQ-MENU-COMP-002` |
+| `BR-MENU-009` | Espacios obligatorios y elegibles | `REQ-MENU-COMP-002` |
+| `BR-MENU-010` | Límites de elección de espacios | `REQ-MENU-COMP-002` |
+| `BR-MENU-011` | Selección del contenido | `REQ-MENU-COMP-003` |
+| `BR-MENU-012` | Cantidad e identidad de espacios | `REQ-MENU-COMP-004` |
+| `BR-MENU-013` | Curso y ubicación | `REQ-MENU-COMP-005`, `REQ-MENU-COMP-006` |
+| `BR-MENU-014` | Región descriptiva | `REQ-MENU-COMP-006` |
+| `BR-MENU-015` | Alternativa contextual | `REQ-MENU-OFFER-002`, `REQ-MENU-CONT-001`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-001` |
+| `BR-MENU-016` | Estado de una alternativa | `REQ-MENU-CONT-001` |
+| `BR-MENU-017` | Un solo origen de contenido | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003` |
+| `BR-MENU-018` | Ownership de Inventario | `REQ-MENU-CONT-002`, `REQ-MENU-REC-001` |
+| `BR-MENU-019` | Líneas de receta | `REQ-MENU-CONT-002`, `REQ-MENU-REC-001` |
+| `BR-MENU-020` | Biblioteca y revisiones de receta | `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-REC-003` |
+| `BR-MENU-021` | Ajustes administrativos locales | `REQ-MENU-REC-002` |
+| `BR-MENU-022` | Alcance de las personalizaciones | `REQ-MENU-PERS-001`, `REQ-MENU-PERS-002`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-005` |
+| `BR-MENU-023` | Modificación o retiro de ingredientes | `REQ-MENU-PERS-002` |
+| `BR-MENU-024` | Contenido adicional | `REQ-MENU-PERS-003` |
+| `BR-MENU-025` | Sustitución de ingrediente | `REQ-MENU-PERS-004` |
+| `BR-MENU-026` | Instrucciones de preparación | `REQ-MENU-PERS-005` |
+| `BR-MENU-027` | Ajustes de precio declarados | `REQ-MENU-OFFER-003`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-006` |
+| `BR-MENU-028` | Referencias recursivas | `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-004` |
+| `BR-MENU-029` | Revisión de ofertas referenciadas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-004` |
+| `BR-MENU-030` | Eliminación y conversión de referencias vigentes | `REQ-MENU-ENTRY-004`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-003` |
 
 ## Matriz de invariantes de integridad
 
-| ID             | Invariante                                                                                 | Requisitos funcionales relacionados                                            |
-| :------------- | :----------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
-| `INV-MENU-001` | Variante obligatoria en estado activo                                                      | `REQ-MENU-VAR-001`                                                             |
-| `INV-MENU-002` | `variantId` no nulo                                                                        | `REQ-MENU-VAR-001`, `REQ-MENU-COM-003`                                         |
-| `INV-MENU-003` | Inmutabilidad de versiones comerciales                                                     | `REQ-MENU-VER-001`                                                             |
-| `INV-MENU-004` | Capacidad vendible en estado activo                                                        | `REQ-MENU-LIF-002`, `REQ-MENU-MOD-001`, `REQ-MENU-COM-002`, `REQ-MENU-COM-006` |
-| `INV-MENU-005` | Eliminación definitiva de `MenuItem` condicionada a `ARCHIVED` y ausencia de restricciones | `REQ-MENU-LIF-004`                                                             |
+| Identificador | Invariante | Requisitos funcionales relacionados |
+| :--- | :--- | :--- |
+| `INV-MENU-001` | Pertenencia al menú | `REQ-MENU-CAT-001`, `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-002`, `REQ-MENU-OFFER-001` |
+| `INV-MENU-002` | Publicación válida | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003`, `REQ-MENU-OFFER-004`, `REQ-MENU-COMP-001` |
+| `INV-MENU-003` | Integridad de selección | `REQ-MENU-COMP-002` |
+| `INV-MENU-004` | Contenido determinado | `REQ-MENU-COMP-001`, `REQ-MENU-COMP-003`, `REQ-MENU-COMP-004`, `REQ-MENU-CONT-001` |
+| `INV-MENU-005` | Referencia íntegra de contenido de Inventario y receta | `REQ-MENU-CONT-002`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-PERS-002`, `REQ-MENU-PERS-004` |
+| `INV-MENU-006` | Personalizaciones aisladas | `REQ-MENU-PERS-001`, `REQ-MENU-PERS-002`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-005` |
+| `INV-MENU-007` | Separación de precio | `REQ-MENU-OFFER-003`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-006` |
+| `INV-MENU-008` | Referencias acíclicas e históricas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-004`, `REQ-MENU-REC-001`, `REQ-MENU-REC-003` |
+| `INV-MENU-009` | Eliminación sin referencias vigentes colgantes | `REQ-MENU-ENTRY-004`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-003` |
 
 ## Criterio de mantenimiento
 
-Cuando se agregue, retire o cambie un identificador normativo en cualquiera de los tres documentos fuente, esta matriz deberá actualizarse en la misma modificación documental. La consistencia mínima exigida es:
+Cuando se cree o cambie un identificador normativo, esta matriz debe actualizarse junto con el documento que lo define. La revisión debe confirmar que:
 
-1. Cada identificador de los tres documentos fuente aparece exactamente una vez en la sección de matriz que le corresponde.
-2. Cada relación `REQ`–`BR` o `REQ`–`INV` apunta a un identificador existente en los documentos fuente.
-3. Las relaciones no determinadas se mantienen como `—` hasta que una fuente autorizada las establezca; no se deben inferir contratos o decisiones técnicas para completar la matriz.
+1. Cada requisito, criterio no funcional, regla e invariante definido aparece una vez como entrada propia en su matriz.
+2. Cada relación apunta a identificadores existentes.
+3. Las relaciones muestran solo vínculos respaldados por las declaraciones y criterios publicados.
+4. Las cuestiones abiertas permanecen identificadas en [`open.md`](open.md) hasta que una decisión autorizada las resuelva.

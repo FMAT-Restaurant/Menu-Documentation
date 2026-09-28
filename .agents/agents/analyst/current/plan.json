@@ -1,1 +1,234 @@
-{}
+{
+  "change_id": "accept-http-api-contract",
+  "objective": "Marcar como aceptada la interfaz HTTP actual en output/contracts, quitando su condición nominal de propuesta y regenerando el OpenAPI dist, sin cerrar cuestiones OPEN de la ERS ni alterar decisiones aprobadas.",
+  "decisions": [
+    {
+      "id": "D1",
+      "decision": "Renombrar output/contracts/proposal.md a output/contracts/api-contract.md. El nombre actual seguiría presentando como propuesta un contrato ya aprobado; copiar todo el contenido y sus decisiones al nuevo archivo, actualizar enlaces y borrar el original solo después de verificar la copia."
+    },
+    {
+      "id": "D2",
+      "decision": "La aceptación incluye las rutas, representaciones, métodos, códigos HTTP, paginación/defaults y semánticas DELETE revisadas tal como constan ahora. Cambiar estado y redacción sin rediseñar esas decisiones."
+    },
+    {
+      "id": "D3",
+      "decision": "Mantener abiertas las decisiones que la ERS conserva como OPEN, incluidas autenticación/autorización, concurrencia, alcance compartido o por menú de RecipeLibrary (OPEN-003), monedas/precisión/redondeo, unidades/precisión de cantidades, imágenes y las demás cuestiones OPEN. La ruta global de RecipeLibrary queda aceptada, pero no resuelve su alcance."
+    }
+  ],
+  "permitted_writes": [
+    "output/contracts/api-contract.md",
+    "output/contracts/proposal.md",
+    "output/contracts/api/openapi.yaml",
+    "output/contracts/api/components/parameters.yaml",
+    "output/contracts/api/components/responses/errors.yaml",
+    "output/contracts/api/paths/catalog.yaml",
+    "output/contracts/api/paths/categories.yaml",
+    "output/contracts/api/paths/entries.yaml",
+    "output/contracts/api/paths/offers.yaml",
+    "output/contracts/api/paths/recipes.yaml",
+    "output/contracts/api/README.md",
+    "output/contracts/api/docs/flows.md",
+    "output/contracts/api/docs/traceability.md",
+    "output/contracts/api/docs/auth-integration.md",
+    "output/contracts/api/dist/openapi.yaml",
+    "output/contracts/api/components/schemas/common.yaml"
+  ],
+  "invariants": [
+    "Conservar el contenido, las 25 operaciones y las decisiones HTTP actualmente aprobadas; no modificar la estructura de esquemas (salvo las dos descripciones autorizadas en common.yaml), payloads, métodos, rutas, códigos, defaults ni semántica.",
+    "Mantener intactos los archivos ERS y del modelo de dominio. La ERS sigue siendo la autoridad para reglas del dominio.",
+    "No resolver ni inferir decisiones marcadas OPEN. En particular, la ausencia de security en OpenAPI no determina que la API sea anónima o pública.",
+    "Mantener la semántica vigente de DELETE de entrada archivada: conversión de referencias vigentes y eliminación definitiva según el contrato aceptado; conservar sin cambios las revisiones históricas y los demás detalles aprobados.",
+    "Actualizar referencias internas al documento renombrado y no dejar enlaces a output/contracts/proposal.md.",
+    "Regenerar output/contracts/api/dist/openapi.yaml desde el OpenAPI modular después de los cambios; no editar el bundle antes de actualizar sus fuentes.",
+    "En output/contracts/api/components/schemas/common.yaml, limitar el cambio a las descripciones de Identifier y Error.code; conservar intactos type, constraints, estructura y no fijar catálogo exhaustivo."
+  ],
+  "affected_files": [
+    {
+      "path": "output/contracts/api-contract.md",
+      "operation": "CREATE",
+      "instructions": [
+        "Crear como copia íntegra de output/contracts/proposal.md antes de eliminar el original.",
+        "Cambiar título, estado, encabezados, introducción, tabla de operaciones, paginación, trazabilidad y otras frases para presentar el contrato como aceptado; retirar etiquetas [Propuesta] y términos propuesta/candidato/a cuando atribuyan incertidumbre a decisiones ya aceptadas.",
+        "Conservar rutas, métodos, comportamientos, representaciones, paginación/defaults, códigos HTTP, semánticas DELETE, trazabilidad y referencias a OPEN sin cambios de significado.",
+        "Aclarar que RecipeLibrary usa la ruta global aceptada mientras el alcance compartido o por menú permanece abierto bajo OPEN-003."
+      ],
+      "acceptance": [
+        "El contenido sustantivo del original queda preservado, excepto la redacción de estado y los enlaces necesarios.",
+        "No quedan frases que describan como candidata o pendiente de aceptación una decisión HTTP ya aprobada.",
+        "Las cuestiones OPEN continúan explícitamente pendientes."
+      ]
+    },
+    {
+      "path": "output/contracts/proposal.md",
+      "operation": "DELETE",
+      "instructions": [
+        "Eliminar únicamente después de copiar y adaptar el contenido íntegro en output/contracts/api-contract.md y actualizar los enlaces entrantes."
+      ],
+      "acceptance": [
+        "El archivo nuevo conserva todo el contenido sustantivo y no hay referencias internas restantes al nombre proposal.md."
+      ]
+    },
+    {
+      "path": "output/contracts/api/openapi.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Actualizar info.title, info.version y info.description para reflejar el contrato aceptado; retirar el sufijo -propuesta de la versión, conservando 2.1.0.",
+        "Cambiar la descripción del servidor /api/v1 para presentarlo como raíz aceptada.",
+        "Retirar la afirmación de que métodos, URI, cuerpos, códigos o formatos esperan aceptación.",
+        "Describir la incertidumbre de autenticación/autorización sin fijar política ni inferir acceso público; no introducir securitySchemes/security."
+      ],
+      "acceptance": [
+        "Las 16 rutas, referencias modulares, operaciones, esquemas y respuestas mantienen sus definiciones actuales.",
+        "Metadata sin etiquetas propuesta/candidata y con las decisiones OPEN claramente sin resolver."
+      ]
+    },
+    {
+      "path": "output/contracts/api/components/parameters.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Quitar [Propuesta] de las descripciones de Page, PageSize, Cursor y Limit, conservando exactamente sus reglas actuales."
+      ],
+      "acceptance": [
+        "Página base 1, defaults, rangos, cursor opaco y comportamiento de continuación permanecen iguales."
+      ]
+    },
+    {
+      "path": "output/contracts/api/components/responses/errors.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Quitar [Propuesta] de las descripciones de errores de paginación."
+      ],
+      "acceptance": [
+        "Códigos, esquemas y condiciones documentadas de error no cambian."
+      ]
+    },
+    {
+      "path": "output/contracts/api/paths/catalog.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Retirar [Propuesta] y la etiqueta candidata de búsqueda textual, manteniendo el mecanismo de cursor/filtros aceptado."
+      ],
+      "acceptance": [
+        "Parámetros, operationId, responses y comportamiento de catálogo se conservan."
+      ]
+    },
+    {
+      "path": "output/contracts/api/paths/categories.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Retirar [Propuesta] de la descripción de paginación."
+      ],
+      "acceptance": [
+        "La paginación base 1, default 20 y máximo 100 se mantienen exactamente."
+      ]
+    },
+    {
+      "path": "output/contracts/api/paths/entries.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Retirar [Propuesta] de la descripción de paginación."
+      ],
+      "acceptance": [
+        "La paginación base 1, default 20 y máximo 100 se mantienen exactamente."
+      ]
+    },
+    {
+      "path": "output/contracts/api/paths/offers.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Retirar [Propuesta] de la descripción de paginación."
+      ],
+      "acceptance": [
+        "La paginación y las definiciones de operaciones permanecen iguales."
+      ]
+    },
+    {
+      "path": "output/contracts/api/paths/recipes.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Presentar la ruta global /recipe-libraries como ruta aceptada y retirar [Propuesta] de las descripciones de paginación.",
+        "Mantener explícito que OPEN-003 deja sin resolver el alcance de RecipeLibrary; no elegir entre biblioteca global/compartida o alcance por menú."
+      ],
+      "acceptance": [
+        "La ruta, operaciones y paginación permanecen iguales; únicamente cambia la redacción de aceptación.",
+        "El alcance de RecipeLibrary sigue OPEN."
+      ]
+    },
+    {
+      "path": "output/contracts/api/README.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Cambiar título, introducción, filas de índice y párrafo final para describir la API como contrato aceptado.",
+        "Enlazar output/contracts/api-contract.md, retirar menciones de ruta/servidor candidato, interfaz candidata, formas propuestas y referencias a proposal.md.",
+        "Conservar explícitamente pendientes autenticación/autorización y concurrencia, además de los OPEN de dominio pertinentes."
+      ],
+      "acceptance": [
+        "Todos los enlaces locales resuelven al documento renombrado o a sus destinos existentes.",
+        "README no contradice la aceptación ni cierra cuestiones OPEN."
+      ]
+    },
+    {
+      "path": "output/contracts/api/docs/flows.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Describir URI, códigos y formas de intercambio como elementos del contrato aceptado y retirar 'transición propuesta'.",
+        "Mantener intactas las transiciones de dominio y sus requisitos."
+      ],
+      "acceptance": [
+        "La semántica de los flujos existentes no cambia."
+      ]
+    },
+    {
+      "path": "output/contracts/api/docs/traceability.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Cambiar título y redacción para enlazar la trazabilidad con el contrato aceptado y output/contracts/api-contract.md.",
+        "Retirar que rutas y transporte son candidatos; conservar la distinción entre autoridad normativa de la ERS y decisiones de transporte del contrato.",
+        "Reformular la fila OPEN-003 para indicar que la URI global está aceptada y el alcance compartido o por menú continúa sin resolver."
+      ],
+      "acceptance": [
+        "Identificadores y enlaces a requisitos se conservan; la matriz no marca ninguna decisión OPEN como cerrada."
+      ]
+    },
+    {
+      "path": "output/contracts/api/docs/auth-integration.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Reemplazar referencias a propuesta por contrato o especificación aceptada.",
+        "Explicar que autenticación, autorización, identidad, permisos y alcance permanecen sin definir según la ERS; no afirmar que la API sea pública/anónima ni añadir mecanismo o política.",
+        "Conservar los puntos de integración y actualizar la instrucción de versión futura para referirse al contrato."
+      ],
+      "acceptance": [
+        "No se agrega ni se implica una decisión de seguridad."
+      ]
+    },
+    {
+      "path": "output/contracts/api/components/schemas/common.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "En Identifier.description, retirar «propuesto» y conservar que el identificador es opaco y no implica formato compartido entre contextos.",
+        "En Error.properties.code.description, retirar «propuesto» y la cláusula de que el catálogo se definirá al acordar el contrato; usar una descripción neutral del código técnico sin fijar un catálogo exhaustivo.",
+        "Cambiar solo estas dos descripciones; no cambiar type, minLength, required, properties, estructura ni restricciones del schema."
+      ],
+      "acceptance": [
+        "Las dos descripciones no presentan el contrato como propuesta pendiente.",
+        "El diff de este archivo se limita a las descripciones de Identifier y Error.code; tipos, restricciones y estructura permanecen idénticos.",
+        "No se define un catálogo exhaustivo de códigos."
+      ]
+    },
+    {
+      "path": "output/contracts/api/dist/openapi.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Regenerar al final a partir de output/contracts/api/openapi.yaml y todos sus archivos modulares, usando el bundler OpenAPI del proyecto.",
+        "No introducir ediciones manuales que no estén presentes en las fuentes."
+      ],
+      "acceptance": [
+        "El bundle contiene la metadata y descripciones aceptadas de las fuentes.",
+        "No contiene restos de [Propuesta], candidato/a ni «propuesto» en las descripciones de Identifier y Error.code, ni frases que declaren pendientes las decisiones HTTP ya aprobadas.",
+        "Las referencias internas quedan resueltas y se conservan las cuestiones OPEN sin inventar decisiones."
+      ]
+    }
+  ],
+  "blockers": []
+}

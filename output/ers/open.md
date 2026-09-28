@@ -1,54 +1,46 @@
-# Decisiones de Diseño, Integración y Cuestiones Abiertas
+# Cuestiones abiertas del modelo de catálogo
 
-Esta sección consolida las decisiones de diseño adoptadas en cumplimiento de la Auditoría 4 y Consultoría 3, documentando el estado de las cuestiones abiertas de integración técnica. Dado que el subsistema presenta contratos técnicos pendientes de definición formal por los equipos de infraestructura y transporte, el documento mantiene el estado de "Vigente / En Revisión con Cuestiones Abiertas Pendientes" sin declarar una aprobación cerrada:
+Esta sección registra decisiones de requisitos que no quedan determinadas por el modelo vigente. No asigna respuestas por inferencia.
 
-| Identificador | Título de la cuestión                                                                                        | Alcance resuelto en Auditoría 4 y Consultoría 3                                                                                                                                                                                                                                                                                                                                                   | Alcance técnico pendiente (OPEN)                                                                                                                                                                                                                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OPEN-002      | Copia de ComboSlot y Atomicidad en Copia Masiva de Combos                                                    | Semántica de clonación con nuevos IDs, mapeo explícito y éxito parcial por destino.                                                                                                                                                                                                                                                                                                               | Códigos de error y política de concurrencia en transacciones masivas.                                                                                                                                                                                                                                                       |
-| OPEN-007      | Contratos Técnicos de Integración, Mecanismos de Invalidación, Transporte y Topología Física de Persistencia | Aislamiento de Menu frente a Inventory, consumo del catálogo por POS, envío de la selección elegida a Orders + Kitchen, consumo asíncrono de disponibilidad y topología abierta.                                                                                                                                                                                                                  | Contrato técnico UI/POS → Orders + Kitchen para enviar artículos y configuraciones elegidos; contrato separado Menu ↔ Orders + Kitchen para proyecciones de disponibilidad/readiness; protocolos RPC/Event, tópicos, esquemas de envelopes, correlación, versionado, idempotencia, Inbox/Outbox, cachés y topología física. |
-| OPEN-009      | Porciones Culinarias y Modificadores Repetidos dentro de Ranuras de Combo                                    | Delimitación: porciones son de Cocina; Menu gestiona opciones con `priceDelta`.                                                                                                                                                                                                                                                                                                                   | Restricción de ítems repetidos en ranuras con `maxSelections > 1` a nivel de datos.                                                                                                                                                                                                                                         |
-| OPEN-010      | Tipos Numéricos, Restricciones Cuantitativas y Moneda Canónica                                               | Invariantes lógicas de selección cuantitativa `0 <= min <= max`, `maxQuantity >= 0` y `quantity >= 1` (ADR-005).                                                                                                                                                                                                                                                                                  | Signo y rangos de precios (`unitPrice`, `priceDelta`), precisión, moneda y almacenamiento físico de datos.                                                                                                                                                                                                                  |
-| OPEN-011      | Mecanismos Técnicos de Retención Histórica, Políticas de Purga y Condiciones Adicionales de Guardado         | Modelo lógico: `MenuItem.status` = `ARCHIVED` desarchivable a `INACTIVE`, componentes usan `enabled: boolean` distinguiendo retiro con conservación histórica de destrucción física; eliminación definitiva solo desde `ARCHIVED` bajo el predicado canónico de ausencia total de dependencias, referencias históricas necesarias para trazabilidad y restricciones de retención (Consultoría 3). | Mecanismos técnicos de persistencia histórica (soft delete, tablas históricas, tombstones), plazos normativos/fiscales de custodia y condiciones adicionales de guardado.                                                                                                                                                   |
+| Identificador | Cuestión | Alcance establecido | Decisión pendiente |
+| :--- | :--- | :--- | :--- |
+| OPEN-001 | Importes de precios | Cada oferta tiene un precio base propio; las personalizaciones que corresponda pueden declarar un `priceDelta`. El precio final de la orden se determina fuera del catálogo. | Moneda aplicable, precisión, redondeo y rangos admisibles de `basePrice` y `priceDelta`. |
+| OPEN-002 | Oferta predeterminada | Una entrada puede referenciar una oferta predeterminada mediante `defaultOfferId`. | Si la referencia determina una presentación inicial para consulta o selección, y cómo se resuelve cuando la oferta deja de estar activa. |
+| OPEN-003 | Alcance de reutilización de recetas | Las recetas reutilizables se agrupan en una `RecipeLibrary` y pueden usarse desde distintas ofertas. | Si una biblioteca puede compartirse entre varios menús o si su alcance corresponde a un solo menú. |
+| OPEN-005 | Restricciones de imágenes | Las entradas y ofertas tienen una imagen propia. | Formatos, dimensiones, tamaño máximo y comportamiento ante archivos no admitidos. |
+| OPEN-006 | Cantidades y unidades | La cantidad de contenido directo de Inventario es positiva y compatible con la unidad del artículo. Los slots y las líneas de receta expresan cantidades, y las líneas identifican una unidad. | Rangos y precisión de cantidades en slots y recetas, reglas para valores fraccionarios y reglas de unidades de receta. |
+| OPEN-007 | Valores del curso sugerido | Un slot puede expresar un curso como sugerencia de servicio; se contemplan entrada, plato fuerte, postre y bebida. | Si esos valores forman una lista cerrada o si se permiten otros cursos configurables. |
+| OPEN-008 | Alternativas activas en composiciones activas | Las alternativas de contenido tienen estado activo o inactivo, y una oferta activa requiere una composición válida. | Si una composición válida exige que cada slot tenga al menos una alternativa activa o si basta con una alternativa estructuralmente definida. |
+| OPEN-009 | Distribución de carga del perfil nominal | El perfil establece concurrencia, tasa sostenida, duración y clases de operación del catálogo y validación de selecciones. | Proporción de solicitudes entre las clases y la distribución representativa que se usará en la evaluación. |
 
----
+## OPEN-001 — Importes de precios
 
-## [OPEN-002] Copia de ComboSlot y Atomicidad de Copia Masiva
+Definir las reglas de moneda, precisión, redondeo y rangos para los precios base de las ofertas y los ajustes de precio declarados por personalizaciones. La política debe permitir expresar ajustes que aumenten, reduzcan o no cambien el importe cuando corresponda al tipo de personalización.
 
-- Especificación del catálogo canónico de códigos de error estructurados para fallos parciales en lotes (e.g., conflictos de concurrencia, capacidades de ranura no satisfechas o desalineación de revisiones).
-- Política de aislamiento transaccional y control de concurrencia ante operaciones masivas prolongadas.
+## OPEN-002 — Oferta predeterminada
 
----
+Precisar para qué consultas o procesos se utiliza la oferta predeterminada de una entrada y qué resultado se presenta si la oferta referenciada está inactiva o no está disponible como elección vigente.
 
-## [OPEN-007] Contratos Técnicos Externos, Invalidación y Transporte
+## OPEN-003 — Alcance de reutilización de recetas
 
-- Selección formal del middleware de transporte para eventos de dominio (evaluando alternativas asíncronas como Kafka, RabbitMQ o servicios gestionados de mensajería en la nube).
-- Nomenclatura, esquemas y versionado de los tópicos o canales de mensajería.
-- Estructura formal del envelope de eventos (evaluando la adopción de CloudEvents frente a especificaciones corporativas).
-- Estrategia de sincronización e invalidación de proyecciones en terminales de Punto de Venta (WebSockets, Server-Sent Events o sondeo condicional).
-- Contrato técnico que la UI/POS utilizará para enviar a Orders + Kitchen los artículos y configuraciones elegidos, incluyendo su protocolo, payload, validaciones y manejo de errores. Esta definición queda fuera de la responsabilidad de Menu.
-- Política de idempotencia de consumidores, deduplicación mediante Inbox o almacén de mensajes procesados, correlación de solicitudes, control de versiones obsoletas y uso de Transactional Outbox para la publicación de mensajes.
-- Definición de la topología e implementación física definitiva de persistencia y almacenamiento de datos entre bounded contexts.
+Determinar si `RecipeLibrary` es compartida por varios menús o pertenece a un único menú, incluidas las consecuencias administrativas de reutilizar y publicar una receta en ese alcance.
 
----
+## OPEN-005 — Restricciones de imágenes
 
-## [OPEN-009] Porciones de Componentes y Modificadores Repetidos en Combos
+Especificar formatos, dimensiones, tamaño máximo y comportamiento de la interfaz y del catálogo ante archivos no admitidos.
 
-- Definición de la regla de validación de comanda y persistencia para permitir o prohibir la selección repetida de una misma `ComboOption` concreta cuando un slot admite `maxSelections > 1` (e.g., seleccionar dos veces exactamente la misma bebida frente a requerir opciones diferenciadas).
-- Modelado de identificadores de instancia de ítem dentro de la comanda para soportar personalizaciones divergentes sobre opciones repetidas dentro de una misma ranura.
+## OPEN-006 — Cantidades y unidades
 
----
+Fijar los rangos y la precisión de `CompositionSlot.quantity` y de las cantidades de receta, así como las reglas para cantidades fraccionarias y las unidades usadas en líneas de receta.
 
-## [OPEN-010] Restricciones Cuantitativas, Moneda y Tipos Lógicos
+## OPEN-007 — Valores del curso sugerido
 
-- **Semántica del Precio Base y Composición del Importe:** Conforme a BR-MENU-007, `MenuItemVariant.unitPrice` es un precio unitario absoluto asignado directamente; no se deriva de Preparación, ingredientes ni existencias. Conforme a BR-MENU-008, el importe final de un combo se calcula con el precio absoluto de `ComboConfiguration`, más los `priceDelta` de las opciones seleccionadas y los modificadores seleccionados en sus componentes, sin sumar los precios regulares `MenuItemVariant.unitPrice` de los componentes. Permanece abierta la composición exacta del importe de una variante hoja al aplicar los `priceDelta` de los modificadores seleccionados, incluido el efecto de la cantidad del modificador cuando aplique; no se fija una fórmula de agregación.
-- **Signo y Rangos de Precios:** Permanecen deliberadamente abiertos el signo, rangos admisibles y reglas de redondeo de `unitPrice` y `priceDelta`, sin prescribir restricciones de no-negatividad a nivel de dominio.
-- **Persistencia y Tipos Físicos:** Fijación de los tipos de datos físicos definitivos de almacenamiento y persistencia (precisión y escala decimal, almacenamiento en enteros de céntimos o coma flotante).
-- **Moneda y Multimoneda:** Definición del catálogo estándar de monedas admitidas, soporte para entornos multimoneda simultáneos por sucursal frente a imposición de moneda única por tenant comercial.
+Confirmar si el conjunto de cursos sugeridos se limita a entrada, plato fuerte, postre y bebida o si cada menú puede definir valores adicionales.
 
----
+## OPEN-008 — Alternativas activas en composiciones activas
 
-## [OPEN-011] Mecanismos Técnicos de Retención Histórica, Políticas de Purga y Condiciones Adicionales de Guardado
+Precisar si para que una oferta pueda activarse cada slot debe disponer de al menos una alternativa activa, considerando por separado los slots siempre incluidos y los slots elegibles.
 
-- **Mecanismos Técnicos de Persistencia Histórica:** Selección del patrón técnico de implementación en la capa de datos para componentes retirados y registros de auditoría (e.g., borrado lógico / _soft delete_ con marcas temporales, tablas históricas append-only desacopladas, particionamiento de catálogo o registros _tombstone_).
-- **Políticas de Purga y Plazos Normativos/Fiscales:** Determinación de las ventanas temporales de retención obligatoria de datos transaccionales y comerciales conforme a regulaciones fiscales y mercantiles aplicables, así como los protocolos de purga definitiva automatizada una vez vencidos dichos plazos.
-- **Condiciones Técnicas Adicionales de Guardado:** Formalización de directivas de validación extendida al persistir borradores en estado inactivo ante migraciones masivas o importación asíncrona de catálogos externos.
+## OPEN-009 — Distribución de carga del perfil nominal
+
+Definir la proporción de solicitudes entre consulta del catálogo y validación de selecciones, además de los datos representativos con los que se ejecutará la evaluación de carga nominal.

@@ -1,1 +1,14 @@
-{}
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": ["output/contracts/api/dist/openapi.yaml"],
+  "deleted_files": [],
+  "verified_files": [
+    "output/contracts/api/dist/openapi.yaml"
+  ],
+  "blockers": [],
+  "notes": [
+    "Se regeneró el bundle desde output/contracts/api/openapi.yaml con redocly bundle; el bundler informó éxito.",
+    "No se realizaron ediciones manuales al bundle ni se ejecutaron pruebas."
+  ]
+}

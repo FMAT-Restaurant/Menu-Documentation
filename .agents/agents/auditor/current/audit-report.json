@@ -1,1 +1,6 @@
-{}
+{
+  "verdict": "PASS",
+  "summary": "El contrato aceptado y su bundle conservan las mismas 25 operaciones, métodos, respuestas y parámetros de paginación; info.version es 2.1.0, las referencias apuntan a api-contract.md, y autenticación/autorización, concurrencia y cuestiones OPEN siguen pendientes.",
+  "issues": [],
+  "next_action": "NONE"
+}

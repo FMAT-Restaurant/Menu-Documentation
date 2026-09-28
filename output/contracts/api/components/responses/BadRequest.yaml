@@ -1,9 +1,0 @@
-description: Solicitud mal formada, campo obligatorio omitido o mapeo ambiguo.
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ApiError.yaml
-    example:
-      code: BAD_REQUEST
-      message: Solicitud mal formada, campo obligatorio omitido o mapeo ambiguo.
-x-open-issues: []

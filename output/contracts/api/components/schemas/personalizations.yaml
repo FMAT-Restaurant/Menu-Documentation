@@ -1,0 +1,183 @@
+Personalizations:
+  type: object
+  additionalProperties: false
+  description: Conjunto propio de una sola aparición ComponentOption; sus referencias se validan contra la receta efectiva de esa aparición.
+  required: [id]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    name: { type: string }
+    recipeModifierGroups:
+      type: array
+      items: { $ref: '#/RecipeModifierGroup' }
+    addOptionGroups:
+      type: array
+      items: { $ref: '#/AddOptionGroup' }
+    replaceOptionGroups:
+      type: array
+      items: { $ref: '#/ReplaceOptionGroup' }
+    preparationInstructionGroups:
+      type: array
+      items: { $ref: '#/PreparationInstructionGroup' }
+RecipeModifierGroup:
+  type: object
+  additionalProperties: false
+  required: [id, name, modifiers]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    name: { type: string, minLength: 1 }
+    minSelections: { type: integer, minimum: 0 }
+    maxSelections: { type: integer, minimum: 0 }
+    modifiers:
+      type: array
+      minItems: 1
+      description: Límites deben ajustarse a estas alternativas; no se admiten cambios contradictorios de una línea.
+      items: { $ref: '#/RecipeModifier' }
+RecipeModifier:
+  description: Apunta a una línea directa de InventoryItem de la receta efectiva, nunca a subrecetas u ofertas hijas.
+  oneOf:
+    - $ref: '#/RemoveRecipeModifier'
+    - $ref: '#/QuantityRecipeModifier'
+RemoveRecipeModifier:
+  type: object
+  additionalProperties: false
+  required: [id, modifierName, targetPartKey, removable, priceDelta]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    modifierName: { type: string, minLength: 1 }
+    targetPartKey: { type: string, minLength: 1 }
+    recipeIngredientName: { type: string }
+    removable: { const: true, description: Declara retiro de la línea. }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+QuantityRecipeModifier:
+  type: object
+  additionalProperties: false
+  required: [id, modifierName, targetPartKey, quantityDelta, removable, priceDelta]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    modifierName: { type: string, minLength: 1 }
+    targetPartKey: { type: string, minLength: 1 }
+    recipeIngredientName: { type: string }
+    quantityDelta: { type: number }
+    unit: { type: string, minLength: 1 }
+    removable: { const: false, description: Declara cambio de cantidad mediante quantityDelta. }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+AddOptionGroup:
+  type: object
+  additionalProperties: false
+  required: [id, name, minSelections, maxSelections, addOptions]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    name: { type: string, minLength: 1 }
+    minSelections: { type: integer, minimum: 0 }
+    maxSelections: { type: integer, minimum: 0 }
+    addOptions:
+      type: array
+      minItems: 1
+      description: Selección de adiciones en una opción ya incorporada; no altera inclusión de slots.
+      items: { $ref: '#/AddOption' }
+AddOption:
+  description: Exactamente un destino adicional o una composición local copiada, con su importe propio.
+  oneOf:
+    - $ref: '#/InventoryAddOption'
+    - $ref: '#/PreparationAddOption'
+    - $ref: '#/CatalogOfferAddOption'
+    - $ref: '#/InlineCompositionAddOption'
+InventoryAddOption:
+  type: object
+  additionalProperties: false
+  required: [id, displayName, targetType, inventoryItemId, priceDelta]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    displayName: { type: string, minLength: 1 }
+    targetType: { const: INVENTORY_ITEM }
+    inventoryItemId: { $ref: './common.yaml#/Identifier' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+PreparationAddOption:
+  type: object
+  additionalProperties: false
+  required: [id, displayName, targetType, recipeId, recipeRevision, priceDelta]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    displayName: { type: string, minLength: 1 }
+    targetType: { const: PREPARATION }
+    recipeId: { $ref: './common.yaml#/Identifier' }
+    recipeRevision: { $ref: './common.yaml#/Revision' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+CatalogOfferAddOption:
+  type: object
+  additionalProperties: false
+  required: [id, displayName, targetType, catalogOfferId, offerRevision, priceDelta]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    displayName: { type: string, minLength: 1 }
+    targetType: { const: CATALOG_OFFER }
+    catalogOfferId: { $ref: './common.yaml#/Identifier' }
+    offerRevision: { $ref: './common.yaml#/Revision' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+InlineCompositionAddOption:
+  type: object
+  additionalProperties: false
+  required: [id, displayName, targetType, compositionSnapshot, priceDelta]
+  description: Copia local de la Composition de la revisión fijada de una oferta, sin referencia vigente a ella.
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    displayName: { type: string, minLength: 1 }
+    targetType: { const: INLINE }
+    compositionSnapshot: { $ref: './composition.yaml#/CompositionSnapshot' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+ReplaceOptionGroup:
+  type: object
+  additionalProperties: false
+  required: [id, name, targetPartKey, replaceOptions]
+  description: La parte objetivo debe ser una línea directa InventoryItem de la receta efectiva.
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    name: { type: string, minLength: 1 }
+    targetPartKey: { type: string, minLength: 1 }
+    recipeIngredientName: { type: string }
+    replaceOptions:
+      type: array
+      minItems: 1
+      items: { $ref: '#/ReplaceOption' }
+ReplaceOption:
+  type: object
+  additionalProperties: false
+  required: [id, displayName, inventoryItemId, priceDelta]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    displayName: { type: string, minLength: 1 }
+    inventoryItemId: { $ref: './common.yaml#/Identifier' }
+    quantity: { type: number }
+    unit: { type: string, minLength: 1 }
+    priceDelta: { $ref: './common.yaml#/Amount' }
+PreparationInstructionGroup:
+  type: object
+  additionalProperties: false
+  required: [id, name, preparationInstructions]
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    name: { type: string, minLength: 1 }
+    minSelections: { type: integer, minimum: 0 }
+    maxSelections: { type: integer, minimum: 0 }
+    preparationInstructions:
+      type: array
+      minItems: 1
+      items: { $ref: '#/PreparationInstruction' }
+PreparationInstruction:
+  type: object
+  additionalProperties: false
+  required: [id, displayName, instruction]
+  description: Instrucción descriptiva; no cambia por sí misma cantidades físicas.
+  properties:
+    id: { $ref: './common.yaml#/Identifier' }
+    displayName: { type: string, minLength: 1 }
+    instruction: { type: string, minLength: 1 }
+    targetPartKey: { type: string, minLength: 1 }

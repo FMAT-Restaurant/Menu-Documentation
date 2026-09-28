@@ -1,0 +1,70 @@
+MenuId:
+  name: menuId
+  in: path
+  required: true
+  description: Menú propietario de categorías y entradas.
+  schema: { $ref: './schemas/common.yaml#/Identifier' }
+CategoryId:
+  name: categoryId
+  in: path
+  required: true
+  schema: { $ref: './schemas/common.yaml#/Identifier' }
+EntryId:
+  name: entryId
+  in: path
+  required: true
+  schema: { $ref: './schemas/common.yaml#/Identifier' }
+OfferId:
+  name: offerId
+  in: path
+  required: true
+  schema: { $ref: './schemas/common.yaml#/Identifier' }
+OfferRevision:
+  name: offerRevision
+  in: path
+  required: true
+  schema: { $ref: './schemas/common.yaml#/Revision' }
+LibraryId:
+  name: libraryId
+  in: path
+  required: true
+  schema: { $ref: './schemas/common.yaml#/Identifier' }
+RecipeId:
+  name: recipeId
+  in: path
+  required: true
+  schema: { $ref: './schemas/common.yaml#/Identifier' }
+Page:
+  name: page
+  in: query
+  required: false
+  description: 'Página numerada base 1; si se omite, se consulta la página 1.'
+  schema: { type: integer, minimum: 1, default: 1 }
+  examples:
+    primeraPagina: { summary: Primera página, value: 1 }
+    paginaSiguiente: { summary: Página siguiente, value: 2 }
+PageSize:
+  name: pageSize
+  in: query
+  required: false
+  description: 'Elementos por página; valor predeterminado 20 y rango permitido de 1 a 100.'
+  schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  examples:
+    predeterminado: { summary: Tamaño predeterminado, value: 20 }
+    pequeno: { summary: Página pequeña para recorrer más páginas, value: 1 }
+Cursor:
+  name: cursor
+  in: query
+  required: false
+  description: 'Token opaco devuelto en pagination.nextCursor. Se omite en la primera consulta; para continuar, se conservan los mismos filtros y limit.'
+  schema: { type: string, minLength: 1 }
+  example: eyJvZmZzZXQiOjF9
+Limit:
+  name: limit
+  in: query
+  required: false
+  description: 'Máximo de entradas por respuesta; valor predeterminado 20 y rango permitido de 1 a 100.'
+  schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  examples:
+    predeterminado: { summary: Límite predeterminado, value: 20 }
+    pequeno: { summary: Página pequeña para mostrar la continuación, value: 1 }

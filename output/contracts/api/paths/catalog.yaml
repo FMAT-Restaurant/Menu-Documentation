@@ -1,120 +1,62 @@
-parameters:
-- name: menuId
-  in: path
-  required: true
-  description: Identificador lógico opaco de menuId.
-  schema:
-    type: string
-    minLength: 1
-get:
-  tags:
-  - Catálogo
-  operationId: listCatalog
-  summary: Consultar catálogo vendible
-  description: 'Devuelve únicamente ítems con unidades estructuralmente elegibles. El precio visible se deriva de
-    precios absolutos de variantes o configuraciones elegibles: valor fijo si todos coinciden y «Desde» si difieren.
-    La indisponibilidad operacional afecta isAvailable, pero no elimina una unidad elegible ni cambia su precio.
-    Incluye restricciones comerciales para selección en POS; Orders + Kitchen valida la selección al aceptar la
-    orden. Los filtros itemCategoryId y comboCategoryId son mutuamente excluyentes; el contrato de búsqueda, paginación
-    e invalidación es provisional (OPEN-007).'
-  x-consumer: POS (UI) y otros canales de venta autorizados
-  x-access-class: CHANNEL
-  x-ers-refs:
-  - REQ-MENU-PRC-002
-  - REQ-MENU-PRC-003
-  - REQ-MENU-AVL-001
-  - REQ-MENU-AVL-002
-  - REQ-MENU-AVL-003
-  - REQ-MENU-AVL-007
-  - BR-MENU-021
-  - BR-MENU-022
-  - BR-MENU-025
-  responses:
-    '200':
-      description: Consultar catálogo vendible. Lista de oferta vendible y sus señales agregadas.
-      content:
-        application/json:
-          schema:
-            $ref: ../components/schemas/CatalogList.yaml
-          example:
-            items:
-            - item:
-                id: item-cafe
-                menuId: menu-1
-                code: CAFE-001
-                name: Café de la casa
-                description: Café preparado al momento
-                image: https://example.org/images/cafe.jpg
-                itemType: PREPARED
-              isStructurallyEligible: true
-              isAvailable: true
-              price:
-                presentation: FIXED
-                amount: 35
-              variants:
-              - id: variant-default
-                unitPrice: 35
-                dimensionSelections: []
-                modifierGroups: []
-                resolvedModifiers: []
-                isAvailable: true
-                availability:
-                  variantId: variant-default
-                  available: true
-                  lastUpdatedAt: '2026-09-24T12:00:00Z'
-                preparationStatus:
-                  variantId: variant-default
-                  status: READY
-                  lastUpdatedAt: '2026-09-24T12:00:00Z'
-              comboConfigurations: []
-    '401':
-      $ref: ../components/responses/Unauthorized.yaml
-    '403':
-      $ref: ../components/responses/Forbidden.yaml
-    '404':
-      $ref: ../components/responses/NotFound.yaml
-  x-open-issues:
-  - OPEN-007
+collection:
   parameters:
-  - name: q
-    in: query
-    required: false
-    description: Término de búsqueda textual propuesto; los campos de búsqueda no están fijados por la ERS.
-    schema:
-      type: string
-    example: café
-  - name: itemCategoryId
-    in: query
-    required: false
-    description: Filtra ítems hoja por ItemCategory. No combinar con comboCategoryId.
-    schema:
-      type: string
-      minLength: 1
-    example: category-drinks
-  - name: comboCategoryId
-    in: query
-    required: false
-    description: Filtra combos por ComboCategory. No combinar con itemCategoryId.
-    schema:
-      type: string
-      minLength: 1
-    example: category-menus
-  - name: cursor
-    in: query
-    required: false
-    description: Cursor de continuación opaco propuesto; su codificación queda abierta en OPEN-007.
-    schema:
-      type: string
-    example: next-page-token
-  - name: limit
-    in: query
-    required: false
-    description: Cantidad solicitada de resultados por página; política de máximo pendiente en OPEN-007.
-    schema:
-      type: integer
-      minimum: 1
-    example: 25
-  x-query-contract-status: Propuesta técnica pendiente de OPEN-007.
-  x-mutually-exclusive-query-parameters:
-  - - itemCategoryId
-    - comboCategoryId
+    - $ref: '../components/parameters.yaml#/MenuId'
+  get:
+    tags: [Catálogo]
+    operationId: listPublishedCatalog
+    summary: Consultar catálogo publicable
+    description: |
+      Presenta solo entradas ACTIVE con ofertas ACTIVE que satisfacen las reglas
+      de publicación. Cada entrada mantiene su brandName y cada oferta su
+      presentationTag, basePrice y composición. Las opciones INACTIVE no se
+      ofrecen como elecciones nuevas. No decide OPEN-002 sobre defaultOfferId.
+      Usa limit y un cursor opaco: omite cursor al iniciar y envía
+      pagination.nextCursor para continuar con los mismos filtros y limit. Un
+      nextCursor nulo indica que no hay otra página; no se calcula un total.
+      REQ-MENU-CAT-002; BR-MENU-004/006/016; INV-MENU-002.
+    parameters:
+      - name: q
+        in: query
+        description: Búsqueda textual sobre identidad comercial.
+        schema: { type: string }
+        example: pollo
+      - name: categoryId
+        in: query
+        description: Filtra por categoría del mismo menú.
+        schema: { $ref: '../components/schemas/common.yaml#/Identifier' }
+        example: cat-1
+      - $ref: '../components/parameters.yaml#/Cursor'
+      - $ref: '../components/parameters.yaml#/Limit'
+    responses:
+      '200':
+        description: Entradas publicables con sus ofertas vendibles.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/pagination.yaml#/PublishedCatalogPage' }
+            examples:
+              primeraPagina: { $ref: '../components/examples.yaml#/PublishedCatalogPageFirst' }
+              paginaSiguiente: { $ref: '../components/examples.yaml#/PublishedCatalogPageNext' }
+              sinCoincidencias: { $ref: '../components/examples.yaml#/PublishedCatalogPageEmpty' }
+      '400': { $ref: '../components/responses/errors.yaml#/CursorPaginationBadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+entry:
+  parameters:
+    - $ref: '../components/parameters.yaml#/MenuId'
+    - $ref: '../components/parameters.yaml#/EntryId'
+  get:
+    tags: [Catálogo]
+    operationId: getPublishedCatalogEntry
+    summary: Consultar detalle publicable de entrada
+    description: |
+      Devuelve una entrada publicable y sus ofertas vigentes; si la entrada
+      o sus ofertas no son publicables, no expone un detalle comercial vigente.
+      REQ-MENU-CAT-002 y REQ-MENU-OFFER-002.
+    responses:
+      '200':
+        description: Entrada publicable.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/catalog.yaml#/PublishedEntry' }
+            examples:
+              entradaPublicable: { $ref: '../components/examples.yaml#/PublishedEntry' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }

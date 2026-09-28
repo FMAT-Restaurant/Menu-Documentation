@@ -1,0 +1,224 @@
+libraries:
+  get:
+    tags: [Recetas]
+    operationId: listRecipeLibraries
+    summary: Listar bibliotecas de recetas
+    description: |
+      Consulta bibliotecas administradas por Menu. La ruta global
+      /recipe-libraries está aceptada; OPEN-003 mantiene sin resolver si el
+      alcance de RecipeLibrary es global/compartido o por menú.
+      page inicia en 1 y pageSize usa 20 por omisión, con máximo de 100;
+      la respuesta informa page, pageSize, totalItems y totalPages.
+      REQ-MENU-REC-001.
+    parameters:
+      - $ref: '../components/parameters.yaml#/Page'
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Bibliotecas disponibles.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/pagination.yaml#/RecipeLibraryPage' }
+            examples:
+              primeraPagina: { $ref: '../components/examples.yaml#/RecipeLibraryPageFirst' }
+              paginaSiguiente: { $ref: '../components/examples.yaml#/RecipeLibraryPageNext' }
+              sinBibliotecas: { $ref: '../components/examples.yaml#/RecipeLibraryPageEmpty' }
+      '400': { $ref: '../components/responses/errors.yaml#/OffsetPaginationBadRequest' }
+  post:
+    tags: [Recetas]
+    operationId: createRecipeLibrary
+    summary: Crear biblioteca de recetas
+    description: La pertenencia entre menús sigue pendiente en OPEN-003. REQ-MENU-REC-001.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/recipes.yaml#/RecipeLibraryInput' }
+          examples:
+            nuevaBiblioteca: { $ref: '../components/examples.yaml#/RecipeLibraryInput' }
+    responses:
+      '201':
+        description: Biblioteca creada.
+        headers:
+          Location:
+            required: true
+            description: URI de la biblioteca creada; libraryId corresponde al id del cuerpo.
+            schema: { type: string, format: uri-reference }
+            example: /api/v1/recipe-libraries/library-1
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/recipes.yaml#/RecipeLibrary' }
+            examples:
+              creada: { $ref: '../components/examples.yaml#/RecipeLibrary' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
+library:
+  parameters:
+    - $ref: '../components/parameters.yaml#/LibraryId'
+  patch:
+    tags: [Recetas]
+    operationId: patchRecipeLibrary
+    summary: Editar nombre de biblioteca
+    description: |
+      Sustituye únicamente name; id y el alcance de la biblioteca no se
+      modifican. El cuerpo requiere name, no admite null ni otros campos.
+      Repetir el mismo nombre deja la representación igual. El alcance entre
+      menús sigue pendiente. REQ-MENU-REC-001; OPEN-003.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/recipes.yaml#/RecipeLibraryPatch' }
+          examples:
+            renombrar: { $ref: '../components/examples.yaml#/RecipeLibraryPatch' }
+    responses:
+      '200':
+        description: Biblioteca actualizada.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/recipes.yaml#/RecipeLibrary' }
+            examples:
+              renombrada: { $ref: '../components/examples.yaml#/RecipeLibraryEdited' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
+recipes:
+  parameters:
+    - $ref: '../components/parameters.yaml#/LibraryId'
+  get:
+    tags: [Recetas]
+    operationId: listLibraryRecipes
+    summary: Listar recetas reutilizables
+    description: |
+      Incluye definiciones de biblioteca, estado y revisión vigente.
+      page inicia en 1 y pageSize usa 20 por omisión, con máximo de 100;
+      la respuesta informa page, pageSize, totalItems y totalPages.
+      REQ-MENU-REC-001/003.
+    parameters:
+      - $ref: '../components/parameters.yaml#/Page'
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Recetas de la biblioteca.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/pagination.yaml#/RecipePage' }
+            examples:
+              primeraPagina: { $ref: '../components/examples.yaml#/RecipePageFirst' }
+              paginaSiguiente: { $ref: '../components/examples.yaml#/RecipePageNext' }
+              sinRecetas: { $ref: '../components/examples.yaml#/RecipePageEmpty' }
+      '400': { $ref: '../components/responses/errors.yaml#/OffsetPaginationBadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+  post:
+    tags: [Recetas]
+    operationId: createLibraryRecipe
+    summary: Crear receta reutilizable
+    description: |
+      Define rendimiento, estado explícito y una o más líneas identificables.
+      Cada línea apunta a InventoryItem o a otra receta reutilizable. Se
+      rechazan ciclos. El cliente proporciona id y partKey de cada línea; el
+      servidor asigna id y revision de la receta. Una definición inválida o
+      una referencia que cree un ciclo devuelve 422. REQ-MENU-REC-001;
+      BR-MENU-018/019/020/028;
+      INV-MENU-005/008.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/recipes.yaml#/RecipeInput' }
+          examples:
+            recetaInicial: { $ref: '../components/examples.yaml#/RecipeInput' }
+            conSubreceta: { $ref: '../components/examples.yaml#/RecipeWithSubrecipeInput' }
+    responses:
+      '201':
+        description: Receta creada con revisión identificable.
+        headers:
+          Location:
+            required: true
+            description: URI consultable de la receta creada; libraryId y recipeId corresponden al cuerpo.
+            schema: { type: string, format: uri-reference }
+            example: /api/v1/recipe-libraries/library-1/recipes/recipe-1
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/recipes.yaml#/Recipe' }
+            examples:
+              creada: { $ref: '../components/examples.yaml#/Recipe' }
+              conSubreceta: { $ref: '../components/examples.yaml#/RecipeWithSubrecipe' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
+recipe:
+  parameters:
+    - $ref: '../components/parameters.yaml#/LibraryId'
+    - $ref: '../components/parameters.yaml#/RecipeId'
+  get:
+    tags: [Recetas]
+    operationId: getLibraryRecipe
+    summary: Consultar receta y sus revisiones identificables
+    description: |
+      Sin parámetro revision devuelve la vigente. Con revision devuelve esa
+      fotografía conservada; availableRevisions enumera los identificadores
+      existentes y consultables al momento de la consulta, sin ser parte
+      inmutable de la fotografía. Una revisión inexistente devuelve 404.
+      REQ-MENU-REC-003; BR-MENU-020; INV-MENU-008.
+    parameters:
+      - name: revision
+        in: query
+        description: Revisión histórica opcional de la misma receta.
+        schema: { $ref: '../components/schemas/common.yaml#/Revision' }
+    responses:
+      '200':
+        description: Receta en la revisión solicitada o vigente.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/recipes.yaml#/Recipe' }
+            examples:
+              vigente: { $ref: '../components/examples.yaml#/RecipeRevised' }
+              historica: { $ref: '../components/examples.yaml#/RecipeHistorical' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+revisions:
+  parameters:
+    - $ref: '../components/parameters.yaml#/LibraryId'
+    - $ref: '../components/parameters.yaml#/RecipeId'
+  post:
+    tags: [Recetas]
+    operationId: createLibraryRecipeRevision
+    summary: Crear revisión de receta reutilizable
+    description: |
+      Publica una nueva definición identificable sin alterar revisiones
+      previas ni referencias que las fijaron. Las ofertas se actualizan mediante
+      una nueva revisión de su composición. El cliente conserva los id y
+      partKey de líneas que representan la misma aparición y asigna nuevos a
+      líneas añadidas; el servidor asigna la nueva revision de la receta. Una
+      definición inválida o una referencia que cree un ciclo devuelve 422.
+      REQ-MENU-REC-003;
+      BR-MENU-020/028; INV-MENU-008.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/recipes.yaml#/RecipeInput' }
+          examples:
+            nuevaDefinicion: { $ref: '../components/examples.yaml#/RecipeRevisionInput' }
+    responses:
+      '201':
+        description: Nueva revisión vigente de receta.
+        headers:
+          Location:
+            required: true
+            description: URI consultable de la revisión creada; libraryId, recipeId y revision corresponden al cuerpo.
+            schema: { type: string, format: uri-reference }
+            example: /api/v1/recipe-libraries/library-1/recipes/recipe-1?revision=rev-2
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/recipes.yaml#/Recipe' }
+            examples:
+              nuevaRevision: { $ref: '../components/examples.yaml#/RecipeRevised' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
