@@ -30,12 +30,27 @@ CategoryPageEmpty:
     items: []
     pagination: { page: 1, pageSize: 20, totalItems: 0, totalPages: 0 }
 EntryInput:
-  summary: Crear identidad comercial sin ofertas
+  summary: Metadatos JSON de una entrada
   value:
     brandName: Bowl de pollo
     description: Bowl con proteína y guarnición.
-    imageRef: img-entry-1
     categoryIds: [cat-1]
+EntryCreateMultipart:
+  summary: Metadatos y archivo de imagen de una entrada
+  value:
+    entry:
+      brandName: Bowl de pollo
+      description: Bowl con proteína y guarnición.
+      categoryIds: [cat-1]
+    image: bowl.webp
+EntryImagePatchMultipart:
+  summary: Reemplazar solo la imagen de la entrada
+  value: { image: bowl-especial.webp }
+EntryEditWithImageMultipart:
+  summary: Editar metadatos y reemplazar imagen
+  value:
+    entry: { brandName: Bowl de pollo especial }
+    image: bowl-especial.webp
 EntryCreated:
   summary: La entrada recién creada no contiene ofertas
   value:
@@ -122,12 +137,19 @@ CompositionSelectable:
             status: ACTIVE
             source: { type: INVENTORY_ITEM, inventoryItemId: inv-2, quantity: 1, unit: porción }
 OfferInput:
-  summary: Oferta con composición completa
+  summary: Metadatos de oferta con composición completa
   value:
     presentationTag: Individual
     basePrice: 120
-    offerImageRef: img-offer-1
     composition: *composition
+OfferCreateMultipart:
+  summary: Metadatos y archivo de imagen de la oferta
+  value:
+    offer:
+      presentationTag: Individual
+      basePrice: 120
+      composition: *composition
+    image: oferta-individual.webp
 Offer:
   summary: Oferta creada inactiva
   value: &offer
@@ -295,8 +317,15 @@ OfferRevisionInput:
   value:
     presentationTag: Individual
     basePrice: 125
-    offerImageRef: img-offer-1
     composition: *composition
+OfferRevisionMultipart:
+  summary: Nueva revisión con reemplazo de imagen
+  value:
+    offer:
+      presentationTag: Individual
+      basePrice: 125
+      composition: *composition
+    image: oferta-individual-actualizada.webp
 OfferRevised:
   summary: Nueva revisión vigente; referencias a rev-1 se conservan
   value:

@@ -34,21 +34,32 @@ collection:
       categorías deben pertenecer al mismo menú. La entrada recién creada aún
       no tiene ofertas: offers es [] y defaultOfferId se omite porque todavía
       no existe una oferta propia a la que pueda apuntar. La creación no publica
-      la entrada. REQ-MENU-ENTRY-001;
+      la entrada. Recibe multipart/form-data con una parte entry (JSON de
+      metadatos) y una parte image (archivo JPEG, PNG o WebP). Una imagen que
+      no se puede decodificar o excede 10 MiB o 4096 px de ancho o alto se
+      rechaza con 422; un formato no admitido se rechaza con 415 y no se crea
+      la entrada. La respuesta conserva
+      imageRef. REQ-MENU-ENTRY-001;
       BR-MENU-001/002/003; INV-MENU-001.
     requestBody:
       required: true
       content:
-        application/json:
-          schema: { $ref: '../components/schemas/catalog.yaml#/EntryInput' }
+        multipart/form-data:
+          schema: { $ref: '../components/schemas/catalog.yaml#/EntryCreateMultipart' }
+          encoding:
+            entry:
+              contentType: application/json
+            image:
+              contentType: image/jpeg, image/png, image/webp
           examples:
             entradaInicial:
-              summary: Identidad comercial y categorías del mismo menú
+              summary: Metadatos y archivo de imagen para una entrada
               value:
-                brandName: Hamburguesa de la casa
-                description: Hamburguesa preparada al momento.
-                imageRef: img-hamburguesa
-                categoryIds: [cat-principales]
+                entry:
+                  brandName: Hamburguesa de la casa
+                  description: Hamburguesa preparada al momento.
+                  categoryIds: [cat-principales]
+                image: hamburguesa.webp
     responses:
       '201':
         description: Entrada creada en estado INACTIVE.
@@ -114,6 +125,12 @@ item:
       comerciales pueden editarse en cualquier estado; el cuerpo no acepta
       modificaciones de las ofertas. Una transición prohibida devuelve 409;
       categorías, oferta predeterminada o publicación inválidas devuelven 422.
+      application/json admite cambios sin archivo. Para reemplazar la imagen se
+      envía multipart/form-data con una parte image; la parte entry, si está
+      presente, contiene metadatos JSON. Si no se envía image, se conserva
+      imageRef. Un formato no admitido devuelve 415; un archivo inválido, mayor
+      de 10 MiB o con ancho o alto superior a 4096 px devuelve 422 sin aplicar
+      cambios. Las solicitudes JSON no aceptan imageRef.
       REQ-MENU-ENTRY-002/003; BR-MENU-002/003/004; INV-MENU-001/002.
     requestBody:
       required: true
@@ -142,6 +159,24 @@ item:
               summary: Quitar la referencia opcional a una oferta predeterminada
               value:
                 defaultOfferId: null
+        multipart/form-data:
+          schema: { $ref: '../components/schemas/catalog.yaml#/EntryPatchMultipart' }
+          encoding:
+            entry:
+              contentType: application/json
+            image:
+              contentType: image/jpeg, image/png, image/webp
+          examples:
+            reemplazarImagen:
+              summary: Reemplazar solo la imagen de la entrada
+              value:
+                image: hamburguesa-especial.webp
+            editarConImagen:
+              summary: Actualizar metadatos y reemplazar la imagen
+              value:
+                entry:
+                  brandName: Hamburguesa especial
+                image: hamburguesa-especial.webp
     responses:
       '200':
         description: Entrada actualizada.

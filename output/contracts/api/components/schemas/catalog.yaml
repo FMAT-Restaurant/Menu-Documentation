@@ -28,16 +28,23 @@ CategoryList:
 EntryInput:
   type: object
   additionalProperties: false
-  required: [brandName, description, imageRef, categoryIds]
+  required: [brandName, description, categoryIds]
+  description: Metadatos comerciales de una entrada. La imagen se envía en la parte binaria image del cuerpo multipart.
   properties:
     brandName: { type: string, minLength: 1, description: Nombre comercial autoritativo. }
     description: { type: string }
-    imageRef: { $ref: './common.yaml#/ImageRef' }
     categoryIds:
       type: array
       uniqueItems: true
       description: Todas las categorías deben pertenecer al menuId de la URI.
       items: { $ref: './common.yaml#/Identifier' }
+EntryCreateMultipart:
+  type: object
+  additionalProperties: false
+  required: [entry, image]
+  properties:
+    entry: { $ref: '#/EntryInput' }
+    image: { $ref: './common.yaml#/ImageUpload' }
 EntryPatch:
   type: object
   additionalProperties: false
@@ -45,11 +52,12 @@ EntryPatch:
   description: |
     Solo se modifican las propiedades presentes. categoryIds sustituye el conjunto
     completo de categorías; [] lo vacía. defaultOfferId admite null para retirar
-    la referencia. Las demás propiedades no admiten null.
+    la referencia. La imagen se reemplaza mediante la parte binaria image de una
+    solicitud multipart; si no se incluye, la referencia vigente se conserva.
+    Las demás propiedades no admiten null.
   properties:
     brandName: { type: string, minLength: 1 }
     description: { type: string }
-    imageRef: { $ref: './common.yaml#/ImageRef' }
     categoryIds:
       type: array
       uniqueItems: true
@@ -62,6 +70,19 @@ EntryPatch:
     status:
       $ref: './common.yaml#/EntryStatus'
       description: Desde ARCHIVED solo se permite solicitar INACTIVE; una activación posterior y explícita exige al menos una oferta válida.
+EntryPatchMultipart:
+  type: object
+  additionalProperties: false
+  description: |
+    Incluye entry para modificar metadatos y/o image para reemplazar la imagen.
+    Se debe enviar al menos una de las dos partes. Omitir image conserva la
+    referencia vigente; una imagen inválida no modifica la entrada.
+  properties:
+    entry: { $ref: '#/EntryPatch' }
+    image: { $ref: './common.yaml#/ImageUpload' }
+  anyOf:
+    - required: [entry]
+    - required: [image]
 Entry:
   type: object
   additionalProperties: false
@@ -139,14 +160,29 @@ EntryDeletionResult:
 OfferInput:
   type: object
   additionalProperties: false
-  required: [basePrice, offerImageRef, composition]
+  required: [basePrice, composition]
+  description: Metadatos comerciales de una oferta. La imagen se envía en la parte binaria image del cuerpo multipart.
   properties:
     presentationTag:
       type: string
       description: Etiqueta opcional de presentación; no sustituye brandName.
     basePrice: { $ref: './common.yaml#/Amount' }
-    offerImageRef: { $ref: './common.yaml#/ImageRef' }
     composition: { $ref: './composition.yaml#/Composition' }
+OfferCreateMultipart:
+  type: object
+  additionalProperties: false
+  required: [offer, image]
+  properties:
+    offer: { $ref: '#/OfferInput' }
+    image: { $ref: './common.yaml#/ImageUpload' }
+OfferRevisionMultipart:
+  type: object
+  additionalProperties: false
+  required: [offer]
+  description: Si se omite image, la nueva revisión conserva offerImageRef de la oferta vigente.
+  properties:
+    offer: { $ref: '#/OfferInput' }
+    image: { $ref: './common.yaml#/ImageUpload' }
 OfferStatusPatch:
   type: object
   additionalProperties: false

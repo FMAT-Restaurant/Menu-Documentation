@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API síncrona de Menu/Catálogo
-  version: 2.1.0
+  version: 2.2.0
   description: |
     Contrato HTTP aceptado derivado de la ERS 2.1.0 y documentado en
     ../api-contract.md. Define las rutas, métodos, cuerpos, códigos y formatos

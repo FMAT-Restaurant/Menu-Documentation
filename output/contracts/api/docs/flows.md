@@ -12,6 +12,14 @@ Este documento complementa las descripciones de operaciones y esquemas del [cont
 
 Archivar una entrada es reversible. Desde `ARCHIVED`, la transición permitida es a `INACTIVE`; activar requiere una solicitud posterior.
 
+## Cargar y reemplazar imágenes
+
+`POST /menus/{menuId}/entries` envía `entry` como parte JSON y `image` como archivo multipart. `POST /menus/{menuId}/entries/{entryId}/offers` usa `offer` y `image` del mismo modo. La imagen es obligatoria al crear una entrada u oferta.
+
+`PATCH /menus/{menuId}/entries/{entryId}` conserva JSON para actualizar campos sin archivo y admite multipart para reemplazar la imagen. La parte `entry` puede omitirse si solo cambia la imagen. `POST /menus/{menuId}/entries/{entryId}/offers/{offerId}/revisions` admite metadatos JSON o multipart; la parte `image` es opcional y, si se omite, la nueva revisión conserva `offerImageRef`.
+
+Se aceptan JPEG, PNG y WebP, hasta 10 MiB y 4096 px de ancho y alto. Un formato no admitido devuelve 415; contenido inválido, tamaño excedido o dimensión excedida devuelve 422. Ante un rechazo, no se crea el recurso ni se modifica la definición vigente. Front presenta el error de validación y mantiene la referencia de imagen vigente. Las respuestas de escritura y las consultas siguen entregando `imageRef` o `offerImageRef` en JSON; la API no cambia el formato de lectura.
+
 ## Eliminar una entrada archivada
 
 1. `DELETE /menus/{menuId}/entries/{entryId}` exige que la entrada esté `ARCHIVED`. La operación localiza las referencias vigentes a cualquiera de sus ofertas, incluidas las opciones ya inactivas, tanto en `CatalogOfferSource` como en `AddOption` con destino `CATALOG_OFFER`.

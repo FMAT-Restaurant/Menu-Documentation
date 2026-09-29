@@ -11,6 +11,7 @@
     "api:serve": "redocly preview output/contracts/api/openapi.yaml",
     "api:lint": "redocly lint output/contracts/api/openapi.yaml",
     "api:lint.generate.ignore.file": "redocly lint output/contracts/api/openapi.yaml --generate-ignore-file",
+    "api:bundle": "redocly bundle output/contracts/api/openapi.yaml --output docs/apis/menu/openapi.yaml --ext yaml",
     "api:docs": "redocly build-docs output/contracts/api/openapi.yaml"
   },
   "devDependencies": {

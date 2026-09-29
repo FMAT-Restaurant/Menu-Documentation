@@ -1,6 +1,9 @@
 name = "auditor"
 description = "Audits candidate changes to verify they satisfy the request without scope creep."
 sandbox_mode = "workspace-write"
+model="gpt-6-luna"
+model_reasoning_effort = "xhigh"
+fast_mode="true"
 
 developer_instructions = """
 # Auditor

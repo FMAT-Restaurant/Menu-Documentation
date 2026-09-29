@@ -24,7 +24,15 @@ RecipeStatus:
 ImageRef:
   type: string
   minLength: 1
-  description: Referencia descriptiva a imagen; formato y carga siguen en OPEN-005.
+  description: Referencia de la imagen validada que devuelve Menu en lecturas y respuestas de escritura.
+ImageUpload:
+  type: string
+  format: binary
+  description: |
+    Archivo JPEG, PNG o WebP de hasta 10 MiB y con ancho y alto máximos de
+    4096 px cada uno. El servidor valida los bytes y dimensiones reales del
+    archivo; nombre y Content-Type declarados por el cliente no sustituyen
+    esa validación.
 Error:
   type: object
   additionalProperties: false

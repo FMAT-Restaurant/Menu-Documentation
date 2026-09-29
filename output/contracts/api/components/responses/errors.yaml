@@ -1,5 +1,5 @@
 BadRequest:
-  description: El cuerpo JSON está mal formado o un parámetro tiene formato o sintaxis inválidos.
+  description: El cuerpo JSON o multipart/form-data está mal formado, o un parámetro tiene formato o sintaxis inválidos.
   content:
     application/json:
       schema:
@@ -56,7 +56,7 @@ CursorPaginationBadRequest:
             details:
               - { path: cursor, message: El cursor no corresponde a los filtros actuales. }
 Unprocessable:
-  description: La solicitud usa Content-Type application/json y el cuerpo tiene sintaxis JSON válida, pero los campos incumplen el schema o la definición infringe reglas del dominio.
+  description: La solicitud JSON o multipart/form-data está bien formada, pero sus campos incumplen el schema o la definición infringe reglas del dominio, incluidas las restricciones de imagen.
   content:
     application/json:
       schema:
@@ -76,6 +76,27 @@ Unprocessable:
             message: La composición debe contener al menos un slot con una alternativa.
             details:
               - { path: composition.slots, message: Se requiere al menos un slot. }
+        invalidImageData:
+          summary: El contenido no se puede decodificar como imagen admitida
+          value:
+            code: INVALID_IMAGE
+            message: El archivo no contiene una imagen JPEG, PNG o WebP válida.
+            details:
+              - { path: image, message: Verifique el contenido del archivo e inténtelo de nuevo. }
+        imageTooLarge:
+          summary: El archivo supera el tamaño máximo
+          value:
+            code: IMAGE_SIZE_EXCEEDED
+            message: El tamaño máximo de una imagen es 10 MiB.
+            details:
+              - { path: image, message: El archivo excede 10 MiB. }
+        imageDimensionsExceeded:
+          summary: Una dimensión supera el máximo permitido
+          value:
+            code: IMAGE_DIMENSIONS_EXCEEDED
+            message: El ancho y el alto máximos de una imagen son 4096 px cada uno.
+            details:
+              - { path: image, message: El ancho o el alto excede 4096 px. }
 NotFound:
   description: Recurso o revisión inexistente en el ámbito solicitado.
   content:
@@ -97,12 +118,7 @@ Conflict:
           summary: Conflicto con el estado actual
           value: { code: STATE_CONFLICT, message: El estado actual impide esta operación. }
 UnsupportedMediaType:
-  description: El tipo de contenido de la solicitud no está soportado.
-  headers:
-    Accept:
-      description: Tipo de contenido aceptado para el cuerpo de la solicitud.
-      schema: { type: string }
-      example: application/json
+  description: El tipo de contenido de la solicitud o de una parte de archivo no está admitido para esta operación.
   content:
     application/json:
       schema: { $ref: '../schemas/common.yaml#/Error' }
@@ -111,7 +127,14 @@ UnsupportedMediaType:
           summary: Content-Type no soportado
           value:
             code: UNSUPPORTED_MEDIA_TYPE
-            message: El tipo de contenido text/plain no está soportado; use application/json.
+            message: El tipo de contenido text/plain no está declarado en el contrato de esta operación.
+        unsupportedImageFormat:
+          summary: Formato de imagen no admitido
+          value:
+            code: UNSUPPORTED_IMAGE_FORMAT
+            message: El formato de imagen no está admitido; use JPEG, PNG o WebP.
+            details:
+              - { path: image, message: El formato recibido no está permitido. }
 Unauthorized:
   description: Reserva de respuesta para credenciales ausentes o inválidas cuando se acuerde la autenticación. No se aplica todavía a ninguna operación.
   content:

@@ -7,7 +7,6 @@ Esta sección registra decisiones de requisitos que no quedan determinadas por e
 | OPEN-001 | Importes de precios | Cada oferta tiene un precio base propio; las personalizaciones que corresponda pueden declarar un `priceDelta`. El precio final de la orden se determina fuera del catálogo. | Moneda aplicable, precisión, redondeo y rangos admisibles de `basePrice` y `priceDelta`. |
 | OPEN-002 | Oferta predeterminada | Una entrada puede referenciar una oferta predeterminada mediante `defaultOfferId`. | Si la referencia determina una presentación inicial para consulta o selección, y cómo se resuelve cuando la oferta deja de estar activa. |
 | OPEN-003 | Alcance de reutilización de recetas | Las recetas reutilizables se agrupan en una `RecipeLibrary` y pueden usarse desde distintas ofertas. | Si una biblioteca puede compartirse entre varios menús o si su alcance corresponde a un solo menú. |
-| OPEN-005 | Restricciones de imágenes | Las entradas y ofertas tienen una imagen propia. | Formatos, dimensiones, tamaño máximo y comportamiento ante archivos no admitidos. |
 | OPEN-006 | Cantidades y unidades | La cantidad de contenido directo de Inventario es positiva y compatible con la unidad del artículo. Los slots y las líneas de receta expresan cantidades, y las líneas identifican una unidad. | Rangos y precisión de cantidades en slots y recetas, reglas para valores fraccionarios y reglas de unidades de receta. |
 | OPEN-007 | Valores del curso sugerido | Un slot puede expresar un curso como sugerencia de servicio; se contemplan entrada, plato fuerte, postre y bebida. | Si esos valores forman una lista cerrada o si se permiten otros cursos configurables. |
 | OPEN-008 | Alternativas activas en composiciones activas | Las alternativas de contenido tienen estado activo o inactivo, y una oferta activa requiere una composición válida. | Si una composición válida exige que cada slot tenga al menos una alternativa activa o si basta con una alternativa estructuralmente definida. |
@@ -25,9 +24,9 @@ Precisar para qué consultas o procesos se utiliza la oferta predeterminada de u
 
 Determinar si `RecipeLibrary` es compartida por varios menús o pertenece a un único menú, incluidas las consecuencias administrativas de reutilizar y publicar una receta en ese alcance.
 
-## OPEN-005 — Restricciones de imágenes
+## OPEN-005 — Restricciones de imágenes (RESUELTO)
 
-Especificar formatos, dimensiones, tamaño máximo y comportamiento de la interfaz y del catálogo ante archivos no admitidos.
+Las cargas integradas en creación y actualización usan `multipart/form-data`. Se admiten imágenes JPEG, PNG y WebP, de hasta 10 MiB, con ancho y alto máximos de 4096 px cada uno. El catálogo rechaza un formato no admitido con 415 y una imagen inválida, demasiado grande o con dimensiones excedidas con 422; un rechazo no crea ni modifica el recurso ni reemplaza la referencia vigente. Front comunica el error recibido y permite corregir o volver a seleccionar la imagen. Las respuestas de escritura y las consultas conservan `imageRef` y `offerImageRef` como referencias JSON.
 
 ## OPEN-006 — Cantidades y unidades
 

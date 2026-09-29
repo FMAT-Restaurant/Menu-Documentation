@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>API de Menu/Catálogo</title>
+  </head>
+  <body>
+    <div id="api-reference"></div>
+
+    <script type="module">
+      import { createApiReference } from 'https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.0/esm.js'
+
+      const tagSlugs = {
+        'Catálogo': 'catalogo',
+        'Categorías': 'categorias',
+        'Entradas': 'entradas',
+        'Ofertas': 'ofertas',
+        'Composiciones': 'composiciones',
+        'Recetas': 'recetas',
+      }
+
+      createApiReference('#api-reference', {
+        url: './openapi.yaml',
+        showOperationId: true,
+        generateOperationSlug: (operation) => operation.operationId,
+        generateTagSlug: (tag) => tagSlugs[tag.name],
+      })
+    </script>
+  </body>
+</html>
