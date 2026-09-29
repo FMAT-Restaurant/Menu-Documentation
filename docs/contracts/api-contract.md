@@ -26,9 +26,11 @@ El contrato entrega definiciones de ofertas, reglas de composición, alternativa
 
 - Raíz del API: /api/v1.
 - Representaciones: JSON para respuestas y solicitudes sin archivo. Las escrituras que cargan una imagen usan `multipart/form-data` con una parte JSON de metadatos y una parte binaria `image`.
+- Representaciones: JSON para respuestas y solicitudes sin archivo. Las escrituras que cargan una imagen usan `multipart/form-data` con una parte JSON de metadatos y una parte binaria `image`.
 - Los URI usan menuId para delimitar categorías, entradas y ofertas pertenecientes a un menú. “Administración” y “consulta de catálogo” identifican el propósito del consumidor; autenticación, autorización e identidad aún no están definidas y permanecen abiertas. Esta ausencia no determina que la API sea anónima o pública.
 - Las consultas administrativas pueden leer definiciones inactivas. La consulta del catálogo publicable presenta entradas y ofertas activas que satisfacen las condiciones de publicación.
 - La respuesta conserva la diferencia entre CatalogEntry y CatalogOffer: el nombre comercial corresponde a la entrada y la etiqueta opcional de presentación a la oferta.
+- Las escrituras de entrada y oferta cargan imágenes JPEG, PNG o WebP, de hasta 10 MiB y 4096 × 4096 px. Las respuestas de escritura y las consultas mantienen sus representaciones JSON con `imageRef` y `offerImageRef`; las lecturas no devuelven bytes de imagen.
 - Las escrituras de entrada y oferta cargan imágenes JPEG, PNG o WebP, de hasta 10 MiB y 4096 × 4096 px. Las respuestas de escritura y las consultas mantienen sus representaciones JSON con `imageRef` y `offerImageRef`; las lecturas no devuelven bytes de imagen.
 
 ## Operaciones del contrato
@@ -44,11 +46,15 @@ El contrato entrega definiciones de ofertas, reglas de composición, alternativa
 | Consultar entrada para administración | GET | /api/v1/menus/{menuId}/entries/{entryId} | Devuelve una entrada, su estado, categorías y ofertas, incluidas definiciones no publicables. |
 | Crear entrada | POST | /api/v1/menus/{menuId}/entries | Recibe `multipart/form-data` con metadatos JSON en `entry` y una imagen obligatoria en `image`; crea una CatalogEntry INACTIVE. |
 | Editar o cambiar estado de entrada | PATCH | /api/v1/menus/{menuId}/entries/{entryId} | Actualiza datos comerciales, categorías o estado mediante JSON, o reemplaza la imagen con la parte `image` multipart. Si no se adjunta una imagen, conserva `imageRef`. |
+| Crear entrada | POST | /api/v1/menus/{menuId}/entries | Recibe `multipart/form-data` con metadatos JSON en `entry` y una imagen obligatoria en `image`; crea una CatalogEntry INACTIVE. |
+| Editar o cambiar estado de entrada | PATCH | /api/v1/menus/{menuId}/entries/{entryId} | Actualiza datos comerciales, categorías o estado mediante JSON, o reemplaza la imagen con la parte `image` multipart. Si no se adjunta una imagen, conserva `imageRef`. |
 | Eliminar entrada archivada | DELETE | /api/v1/menus/{menuId}/entries/{entryId} | Completa de forma atómica la conversión de referencias vigentes y la eliminación definitiva de la entrada y sus ofertas vigentes. Solo admite una entrada ARCHIVED y responde 200 con el resultado. |
 | Listar ofertas de una entrada | GET | /api/v1/menus/{menuId}/entries/{entryId}/offers | Devuelve las CatalogOffer asociadas a la entrada. |
 | Crear oferta | POST | /api/v1/menus/{menuId}/entries/{entryId}/offers | Recibe metadatos JSON en `offer` y una imagen obligatoria en `image` mediante `multipart/form-data`; crea una CatalogOffer INACTIVE. |
+| Crear oferta | POST | /api/v1/menus/{menuId}/entries/{entryId}/offers | Recibe metadatos JSON en `offer` y una imagen obligatoria en `image` mediante `multipart/form-data`; crea una CatalogOffer INACTIVE. |
 | Consultar oferta | GET | /api/v1/menus/{menuId}/entries/{entryId}/offers/{offerId} | Devuelve la definición vigente de la oferta. |
 | Cambiar estado de oferta | PATCH | /api/v1/menus/{menuId}/entries/{entryId}/offers/{offerId} | Activa o inactiva la oferta. Activarla requiere una composición válida. |
+| Crear una revisión de oferta | POST | /api/v1/menus/{menuId}/entries/{entryId}/offers/{offerId}/revisions | Crea una revisión identificable de la definición comercial completa. Puede reemplazar la imagen con la parte `image` multipart; si se omite, conserva `offerImageRef`. Las revisiones referenciadas existentes se conservan. |
 | Crear una revisión de oferta | POST | /api/v1/menus/{menuId}/entries/{entryId}/offers/{offerId}/revisions | Crea una revisión identificable de la definición comercial completa. Puede reemplazar la imagen con la parte `image` multipart; si se omite, conserva `offerImageRef`. Las revisiones referenciadas existentes se conservan. |
 | Consultar revisión de oferta | GET | /api/v1/catalog-offers/{offerId}/revisions/{offerRevision} | Devuelve la fotografía de una revisión específica, incluso cuando ya se eliminó la oferta vigente de su entrada. |
 | Consultar composición | GET | /api/v1/menus/{menuId}/entries/{entryId}/offers/{offerId}/composition | Devuelve la Composition vigente, incluidos slots, regiones, alternativas de contenido, fuentes, ajustes locales y personalizaciones. |
@@ -159,6 +165,12 @@ Las decisiones de [open.md](../ers/open.md) permanecen pendientes. Sus efectos s
 | OPEN-007 | Si los cursos son un conjunto cerrado o admiten otros valores configurables. |
 | OPEN-008 | Si una Composition válida exige alternativas activas en cada slot. |
 | OPEN-009 | Proporción de operaciones y dataset representativo para el perfil nominal de carga. |
+
+## Decisión resuelta: OPEN-005 — Restricciones de imágenes
+
+Las cargas usan una parte de archivo `image` en `multipart/form-data`. Se admiten JPEG, PNG y WebP con tamaño máximo de 10 MiB y ancho y alto máximos de 4096 px cada uno. Un formato no admitido devuelve 415; contenido de imagen inválido, exceso de tamaño o dimensiones devuelve 422. El servidor valida el contenido real del archivo y rechaza íntegramente la escritura: una creación inválida no crea el recurso y una actualización inválida conserva la definición y referencia vigentes. La interfaz limita el selector a los formatos admitidos, valida tamaño y dimensiones antes de enviar, y comunica el error sin reemplazar la imagen vigente.
+
+Las respuestas de creación/actualización y todas las consultas mantienen exactamente `imageRef` y `offerImageRef` como referencias JSON; no se exponen bytes de imagen en las solicitudes de lectura.
 
 ## Decisión resuelta: OPEN-005 — Restricciones de imágenes
 
