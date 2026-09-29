@@ -1,0 +1,40 @@
+name: OpenAPI contract
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Bundle OpenAPI contract for Scalar
+        run: npx --yes @redocly/cli@2.54.2 bundle docs/contracts/api/openapi.yaml --output docs/contracts/api/dist/openapi.yaml --ext yaml
+
+      - name: Check generated OpenAPI bundle is up to date
+        run: git diff --exit-code -- docs/contracts/api/dist/openapi.yaml
+
+      - name: Lint OpenAPI contract
+        run: npx --yes @redocly/cli@2.54.2 lint --config redocly.yaml docs/contracts/api/openapi.yaml
+
+      - name: Check for breaking changes
+        if: github.event_name == 'pull_request'
+        uses: oasdiff/oasdiff-action/breaking@v0.1.6
+        with:
+          base: origin/${{ github.base_ref }}:docs/contracts/api/openapi.yaml
+          revision: HEAD:docs/contracts/api/openapi.yaml
+          fail-on: WARN
+          allow-external-refs: false
+          review: false

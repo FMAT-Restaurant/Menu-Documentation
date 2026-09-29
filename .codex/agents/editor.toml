@@ -1,6 +1,9 @@
 name = "editor"
 description = "Surgical code editor that executes modifications for writable target at a time."
 sandbox_mode = "workspace-write"
+model="gpt-6-luna"
+model_reasoning_effort = "xhigh"
+fast_mode="true"
 
 developer_instructions = """
 # Editor

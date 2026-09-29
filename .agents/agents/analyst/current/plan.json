@@ -1,232 +1,103 @@
 {
-  "change_id": "accept-http-api-contract",
-  "objective": "Marcar como aceptada la interfaz HTTP actual en output/contracts, quitando su condición nominal de propuesta y regenerando el OpenAPI dist, sin cerrar cuestiones OPEN de la ERS ni alterar decisiones aprobadas.",
+  "change_id": "root-readme-published-documentation-index",
+  "objective": "Sustituir exclusivamente el README.md raíz por un índice breve en español de todos los apartados vigentes del sitio publicado bajo https://fmat-restaurant.github.io/Menu-Documentation/.",
   "decisions": [
     {
       "id": "D1",
-      "decision": "Renombrar output/contracts/proposal.md a output/contracts/api-contract.md. El nombre actual seguiría presentando como propuesta un contrato ya aprobado; copiar todo el contenido y sus decisiones al nuevo archivo, actualizar enlaces y borrar el original solo después de verificar la copia."
+      "decision": "docusaurus.config.js configura url https://fmat-restaurant.github.io y baseUrl /Menu-Documentation/; las URLs del README serán absolutas con esa base."
     },
     {
       "id": "D2",
-      "decision": "La aceptación incluye las rutas, representaciones, métodos, códigos HTTP, paginación/defaults y semánticas DELETE revisadas tal como constan ahora. Cambiar estado y redacción sin rediseñar esas decisiones."
+      "decision": "La comprobación read-only del build confirmó 17 destinos: nueve ERS en orden, modelo conceptual, cinco de producto, Scalar y Events. La ruta /events/ existe pero su página indica estado Pendiente."
     },
     {
       "id": "D3",
-      "decision": "Mantener abiertas las decisiones que la ERS conserva como OPEN, incluidas autenticación/autorización, concurrencia, alcance compartido o por menú de RecipeLibrary (OPEN-003), monedas/precisión/redondeo, unidades/precisión de cantidades, imágenes y las demás cuestiones OPEN. La ruta global de RecipeLibrary queda aceptada, pero no resuelve su alcance."
+      "decision": "Reemplazar el contenido obsoleto del README raíz en lugar de corregir su árbol histórico; el nuevo documento será índice breve, no descripción técnica del repositorio."
     }
   ],
   "permitted_writes": [
-    "output/contracts/api-contract.md",
-    "output/contracts/proposal.md",
-    "output/contracts/api/openapi.yaml",
-    "output/contracts/api/components/parameters.yaml",
-    "output/contracts/api/components/responses/errors.yaml",
-    "output/contracts/api/paths/catalog.yaml",
-    "output/contracts/api/paths/categories.yaml",
-    "output/contracts/api/paths/entries.yaml",
-    "output/contracts/api/paths/offers.yaml",
-    "output/contracts/api/paths/recipes.yaml",
-    "output/contracts/api/README.md",
-    "output/contracts/api/docs/flows.md",
-    "output/contracts/api/docs/traceability.md",
-    "output/contracts/api/docs/auth-integration.md",
-    "output/contracts/api/dist/openapi.yaml",
-    "output/contracts/api/components/schemas/common.yaml"
+    "README.md"
   ],
   "invariants": [
-    "Conservar el contenido, las 25 operaciones y las decisiones HTTP actualmente aprobadas; no modificar la estructura de esquemas (salvo las dos descripciones autorizadas en common.yaml), payloads, métodos, rutas, códigos, defaults ni semántica.",
-    "Mantener intactos los archivos ERS y del modelo de dominio. La ERS sigue siendo la autoridad para reglas del dominio.",
-    "No resolver ni inferir decisiones marcadas OPEN. En particular, la ausencia de security en OpenAPI no determina que la API sea anónima o pública.",
-    "Mantener la semántica vigente de DELETE de entrada archivada: conversión de referencias vigentes y eliminación definitiva según el contrato aceptado; conservar sin cambios las revisiones históricas y los demás detalles aprobados.",
-    "Actualizar referencias internas al documento renombrado y no dejar enlaces a output/contracts/proposal.md.",
-    "Regenerar output/contracts/api/dist/openapi.yaml desde el OpenAPI modular después de los cambios; no editar el bundle antes de actualizar sus fuentes.",
-    "En output/contracts/api/components/schemas/common.yaml, limitar el cambio a las descripciones de Identifier y Error.code; conservar intactos type, constraints, estructura y no fijar catálogo exhaustivo."
+    "No modificar ningún archivo salvo README.md; en particular no tocar .gitignore, docs, build, configuración, workflows o cambios dirty preexistentes.",
+    "No presentar Eventos como contrato publicado: enlazar la página y marcarla Pendiente.",
+    "Conservar los slugs `architechture` y nombres de MVP exactamente como existen en el build, aunque su ortografía o estilo difieran."
   ],
   "affected_files": [
     {
-      "path": "output/contracts/api-contract.md",
-      "operation": "CREATE",
-      "instructions": [
-        "Crear como copia íntegra de output/contracts/proposal.md antes de eliminar el original.",
-        "Cambiar título, estado, encabezados, introducción, tabla de operaciones, paginación, trazabilidad y otras frases para presentar el contrato como aceptado; retirar etiquetas [Propuesta] y términos propuesta/candidato/a cuando atribuyan incertidumbre a decisiones ya aceptadas.",
-        "Conservar rutas, métodos, comportamientos, representaciones, paginación/defaults, códigos HTTP, semánticas DELETE, trazabilidad y referencias a OPEN sin cambios de significado.",
-        "Aclarar que RecipeLibrary usa la ruta global aceptada mientras el alcance compartido o por menú permanece abierto bajo OPEN-003."
-      ],
-      "acceptance": [
-        "El contenido sustantivo del original queda preservado, excepto la redacción de estado y los enlaces necesarios.",
-        "No quedan frases que describan como candidata o pendiente de aceptación una decisión HTTP ya aprobada.",
-        "Las cuestiones OPEN continúan explícitamente pendientes."
-      ]
-    },
-    {
-      "path": "output/contracts/proposal.md",
-      "operation": "DELETE",
-      "instructions": [
-        "Eliminar únicamente después de copiar y adaptar el contenido íntegro en output/contracts/api-contract.md y actualizar los enlaces entrantes."
-      ],
-      "acceptance": [
-        "El archivo nuevo conserva todo el contenido sustantivo y no hay referencias internas restantes al nombre proposal.md."
-      ]
-    },
-    {
-      "path": "output/contracts/api/openapi.yaml",
+      "path": "README.md",
       "operation": "MODIFY",
       "instructions": [
-        "Actualizar info.title, info.version y info.description para reflejar el contrato aceptado; retirar el sufijo -propuesta de la versión, conservando 2.1.0.",
-        "Cambiar la descripción del servidor /api/v1 para presentarlo como raíz aceptada.",
-        "Retirar la afirmación de que métodos, URI, cuerpos, códigos o formatos esperan aceptación.",
-        "Describir la incertidumbre de autenticación/autorización sin fijar política ni inferir acceso público; no introducir securitySchemes/security."
+        "Reemplazar completamente el README antiguo, incluidos badges, tabla de áreas, árbol de carpetas y referencias obsoletas a docs/md y output, por un índice breve en español titulado para la documentación de Menu. Incluir un enlace principal a https://fmat-restaurant.github.io/Menu-Documentation/.",
+        "Sección Especificación: enumerar en este orden nueve URLs absolutas con base https://fmat-restaurant.github.io/Menu-Documentation/: `/specification/` (ERS del servicio Menu), `/specification/configuration/`, `/specification/context/`, `/specification/architechture/`, `/specification/functional-requirements/`, `/specification/non-functional-requirements/`, `/specification/business-rules/`, `/specification/open/` y `/specification/traceability/`. Usar etiquetas breves en español correspondientes a los títulos fuente.",
+        "Incluir enlace separado al modelo conceptual `/reference/md/domain-model/`.",
+        "Sección Producto: enlazar `/product/` (índice/roadmap), `/product/mvp-01-catalogo-publicable/`, `/product/mvp-02-recetas-y-reutilizacion/`, `/product/mvp-03-personalizaciones-y-retiro-seguro/` y `/product/traceability/`, en ese orden.",
+        "Sección Referencias: enlazar `/api/` como referencia interactiva Scalar y `/events/` con etiqueta visible `Pendiente` o texto inmediato que indique que aún no hay contrato de eventos. Usar enlaces Markdown con URLs absolutas y slash final; no listar rutas no publicadas."
       ],
       "acceptance": [
-        "Las 16 rutas, referencias modulares, operaciones, esquemas y respuestas mantienen sus definiciones actuales.",
-        "Metadata sin etiquetas propuesta/candidata y con las decisiones OPEN claramente sin resolver."
+        "README.md es breve, íntegramente en español y contiene enlace principal más los 17 destinos directos solicitados, con nueve ERS en orden y cinco de producto.",
+        "Cada URL usa exactamente el origen/baseUrl configurado y corresponde a una página existente en el build actual.",
+        "Eventos aparece como Pendiente; no quedan la estructura vieja ni rutas docs/md, output/ers u output/ui-spec presentadas como vigentes."
       ]
     },
     {
-      "path": "output/contracts/api/components/parameters.yaml",
-      "operation": "MODIFY",
+      "path": "docusaurus.config.js",
+      "operation": "VERIFY",
       "instructions": [
-        "Quitar [Propuesta] de las descripciones de Page, PageSize, Cursor y Limit, conservando exactamente sus reglas actuales."
+        "Confirmar url https://fmat-restaurant.github.io y baseUrl /Menu-Documentation/, route Scalar /api/ y la página Events existente; no modificar."
       ],
       "acceptance": [
-        "Página base 1, defaults, rangos, cursor opaco y comportamiento de continuación permanecen iguales."
+        "El origen/baseUrl de todas las URLs del README coinciden con configuración."
       ]
     },
     {
-      "path": "output/contracts/api/components/responses/errors.yaml",
-      "operation": "MODIFY",
+      "path": "build/specification/index.html",
+      "operation": "VERIFY",
       "instructions": [
-        "Quitar [Propuesta] de las descripciones de errores de paginación."
+        "Confirmar que el build actual contiene la portada ERS y sus ocho rutas hijas: configuration, context, architechture, functional-requirements, non-functional-requirements, business-rules, open y traceability; no modificar build."
       ],
       "acceptance": [
-        "Códigos, esquemas y condiciones documentadas de error no cambian."
+        "Los nueve destinos ERS enumerados tienen HTML generado."
       ]
     },
     {
-      "path": "output/contracts/api/paths/catalog.yaml",
-      "operation": "MODIFY",
+      "path": "build/reference/md/domain-model/index.html",
+      "operation": "VERIFY",
       "instructions": [
-        "Retirar [Propuesta] y la etiqueta candidata de búsqueda textual, manteniendo el mecanismo de cursor/filtros aceptado."
+        "Confirmar el destino publicado del modelo conceptual; no modificar."
       ],
       "acceptance": [
-        "Parámetros, operationId, responses y comportamiento de catálogo se conservan."
+        "La URL /reference/md/domain-model/ existe en build."
       ]
     },
     {
-      "path": "output/contracts/api/paths/categories.yaml",
-      "operation": "MODIFY",
+      "path": "build/product/index.html",
+      "operation": "VERIFY",
       "instructions": [
-        "Retirar [Propuesta] de la descripción de paginación."
+        "Confirmar índice de producto y las rutas MVP-1/2/3 y traceability generadas; no modificar."
       ],
       "acceptance": [
-        "La paginación base 1, default 20 y máximo 100 se mantienen exactamente."
+        "Los cinco destinos de producto tienen HTML generado."
       ]
     },
     {
-      "path": "output/contracts/api/paths/entries.yaml",
-      "operation": "MODIFY",
+      "path": "build/api/index.html",
+      "operation": "VERIFY",
       "instructions": [
-        "Retirar [Propuesta] de la descripción de paginación."
+        "Confirmar página de Scalar en /api/; no modificar."
       ],
       "acceptance": [
-        "La paginación base 1, default 20 y máximo 100 se mantienen exactamente."
+        "La URL /api/ existe en build."
       ]
     },
     {
-      "path": "output/contracts/api/paths/offers.yaml",
-      "operation": "MODIFY",
+      "path": "build/events/index.html",
+      "operation": "VERIFY",
       "instructions": [
-        "Retirar [Propuesta] de la descripción de paginación."
+        "Confirmar página Events y su estado Pendiente; no modificar."
       ],
       "acceptance": [
-        "La paginación y las definiciones de operaciones permanecen iguales."
-      ]
-    },
-    {
-      "path": "output/contracts/api/paths/recipes.yaml",
-      "operation": "MODIFY",
-      "instructions": [
-        "Presentar la ruta global /recipe-libraries como ruta aceptada y retirar [Propuesta] de las descripciones de paginación.",
-        "Mantener explícito que OPEN-003 deja sin resolver el alcance de RecipeLibrary; no elegir entre biblioteca global/compartida o alcance por menú."
-      ],
-      "acceptance": [
-        "La ruta, operaciones y paginación permanecen iguales; únicamente cambia la redacción de aceptación.",
-        "El alcance de RecipeLibrary sigue OPEN."
-      ]
-    },
-    {
-      "path": "output/contracts/api/README.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Cambiar título, introducción, filas de índice y párrafo final para describir la API como contrato aceptado.",
-        "Enlazar output/contracts/api-contract.md, retirar menciones de ruta/servidor candidato, interfaz candidata, formas propuestas y referencias a proposal.md.",
-        "Conservar explícitamente pendientes autenticación/autorización y concurrencia, además de los OPEN de dominio pertinentes."
-      ],
-      "acceptance": [
-        "Todos los enlaces locales resuelven al documento renombrado o a sus destinos existentes.",
-        "README no contradice la aceptación ni cierra cuestiones OPEN."
-      ]
-    },
-    {
-      "path": "output/contracts/api/docs/flows.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Describir URI, códigos y formas de intercambio como elementos del contrato aceptado y retirar 'transición propuesta'.",
-        "Mantener intactas las transiciones de dominio y sus requisitos."
-      ],
-      "acceptance": [
-        "La semántica de los flujos existentes no cambia."
-      ]
-    },
-    {
-      "path": "output/contracts/api/docs/traceability.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Cambiar título y redacción para enlazar la trazabilidad con el contrato aceptado y output/contracts/api-contract.md.",
-        "Retirar que rutas y transporte son candidatos; conservar la distinción entre autoridad normativa de la ERS y decisiones de transporte del contrato.",
-        "Reformular la fila OPEN-003 para indicar que la URI global está aceptada y el alcance compartido o por menú continúa sin resolver."
-      ],
-      "acceptance": [
-        "Identificadores y enlaces a requisitos se conservan; la matriz no marca ninguna decisión OPEN como cerrada."
-      ]
-    },
-    {
-      "path": "output/contracts/api/docs/auth-integration.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Reemplazar referencias a propuesta por contrato o especificación aceptada.",
-        "Explicar que autenticación, autorización, identidad, permisos y alcance permanecen sin definir según la ERS; no afirmar que la API sea pública/anónima ni añadir mecanismo o política.",
-        "Conservar los puntos de integración y actualizar la instrucción de versión futura para referirse al contrato."
-      ],
-      "acceptance": [
-        "No se agrega ni se implica una decisión de seguridad."
-      ]
-    },
-    {
-      "path": "output/contracts/api/components/schemas/common.yaml",
-      "operation": "MODIFY",
-      "instructions": [
-        "En Identifier.description, retirar «propuesto» y conservar que el identificador es opaco y no implica formato compartido entre contextos.",
-        "En Error.properties.code.description, retirar «propuesto» y la cláusula de que el catálogo se definirá al acordar el contrato; usar una descripción neutral del código técnico sin fijar un catálogo exhaustivo.",
-        "Cambiar solo estas dos descripciones; no cambiar type, minLength, required, properties, estructura ni restricciones del schema."
-      ],
-      "acceptance": [
-        "Las dos descripciones no presentan el contrato como propuesta pendiente.",
-        "El diff de este archivo se limita a las descripciones de Identifier y Error.code; tipos, restricciones y estructura permanecen idénticos.",
-        "No se define un catálogo exhaustivo de códigos."
-      ]
-    },
-    {
-      "path": "output/contracts/api/dist/openapi.yaml",
-      "operation": "MODIFY",
-      "instructions": [
-        "Regenerar al final a partir de output/contracts/api/openapi.yaml y todos sus archivos modulares, usando el bundler OpenAPI del proyecto.",
-        "No introducir ediciones manuales que no estén presentes en las fuentes."
-      ],
-      "acceptance": [
-        "El bundle contiene la metadata y descripciones aceptadas de las fuentes.",
-        "No contiene restos de [Propuesta], candidato/a ni «propuesto» en las descripciones de Identifier y Error.code, ni frases que declaren pendientes las decisiones HTTP ya aprobadas.",
-        "Las referencias internas quedan resueltas y se conservan las cuestiones OPEN sin inventar decisiones."
+        "La URL /events/ existe y el README la presenta como Pendiente."
       ]
     }
   ],

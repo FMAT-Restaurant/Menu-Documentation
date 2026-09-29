@@ -1,2 +1,7 @@
 docs/original
 .pnpm-store/
+node_modules
+
+# Generated Docusaurus cache and site output
+/.docusaurus/
+/build/

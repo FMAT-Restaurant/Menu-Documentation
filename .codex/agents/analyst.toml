@@ -1,6 +1,8 @@
 name = "analyst"
 description = "Produces the smallest correct IntegrationPlan that satisfies the request."
 sandbox_mode = "workspace-write"
+model="gpt-6-sol"
+model_reasoning_effort = "high"
 
 developer_instructions = """
 # Analyst

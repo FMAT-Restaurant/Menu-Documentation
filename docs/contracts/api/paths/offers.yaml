@@ -1,0 +1,217 @@
+collection:
+  parameters:
+    - $ref: '../components/parameters.yaml#/MenuId'
+    - $ref: '../components/parameters.yaml#/EntryId'
+  get:
+    tags: [Ofertas]
+    operationId: listEntryOffers
+    summary: Listar ofertas de una entrada
+    description: |
+      Devuelve presentaciones propias de la entrada, incluidas las activas e
+      inactivas. page inicia en 1 y pageSize usa 20 por omisión,
+      con máximo de 100; la respuesta informa page, pageSize, totalItems y
+      totalPages.
+    parameters:
+      - $ref: '../components/parameters.yaml#/Page'
+      - $ref: '../components/parameters.yaml#/PageSize'
+    responses:
+      '200':
+        description: Ofertas de la entrada.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/pagination.yaml#/OfferPage' }
+            examples:
+              primeraPagina: { $ref: '../components/examples.yaml#/OfferPageFirst' }
+              paginaSiguiente: { $ref: '../components/examples.yaml#/OfferPageNext' }
+              sinOfertas: { $ref: '../components/examples.yaml#/OfferPageEmpty' }
+      '400': { $ref: '../components/responses/errors.yaml#/OffsetPaginationBadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+  post:
+    tags: [Ofertas]
+    operationId: createEntryOffer
+    summary: Crear oferta inactiva
+    description: |
+      Crea una oferta perteneciente a la entrada, con etiqueta opcional,
+      basePrice fijo, imagen y Composition inicial completa. Inicia INACTIVE.
+      Recibe multipart/form-data con una parte offer (JSON de metadatos) y una
+      parte image (archivo JPEG, PNG o WebP). Una imagen que no se puede
+      decodificar o excede 10 MiB o 4096 px de ancho o alto se rechaza con 422;
+      un formato no admitido se rechaza con 415 y no se crea la oferta. La respuesta conserva
+      offerImageRef.
+      El cliente proporciona los identificadores de Composition y de sus
+      elementos anidados; el servidor asigna id y revision de la oferta. Los
+      identificadores anidados deben ser únicos en su ámbito y las referencias
+      internas deben resolver dentro de la composición recibida; un identificador
+      repetido o una referencia interna inválida en el contenido devuelve 422.
+      REQ-MENU-OFFER-001/002/003; BR-MENU-005/006/007; INV-MENU-007.
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema: { $ref: '../components/schemas/catalog.yaml#/OfferCreateMultipart' }
+          encoding:
+            offer:
+              contentType: application/json
+            image:
+              contentType: image/jpeg, image/png, image/webp
+          examples:
+            ofertaInicial: { $ref: '../components/examples.yaml#/OfferCreateMultipart' }
+    responses:
+      '201':
+        description: Oferta inactiva creada con revisión identificable.
+        headers:
+          Location:
+            required: true
+            description: URI consultable de la oferta creada; offerId y entryId corresponden a id y entryId del cuerpo.
+            schema: { type: string, format: uri-reference }
+            example: /api/v1/menus/menu-1/entries/entry-1/offers/offer-1
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/catalog.yaml#/Offer' }
+            examples:
+              ofertaCreada: { $ref: '../components/examples.yaml#/Offer' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
+item:
+  parameters:
+    - $ref: '../components/parameters.yaml#/MenuId'
+    - $ref: '../components/parameters.yaml#/EntryId'
+    - $ref: '../components/parameters.yaml#/OfferId'
+  get:
+    tags: [Ofertas]
+    operationId: getEntryOffer
+    summary: Consultar definición vigente de oferta
+    description: Devuelve identidad, estado actual, revisión y composición vigentes.
+    responses:
+      '200':
+        description: Oferta vigente.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/catalog.yaml#/Offer' }
+            examples:
+              ofertaVigente: { $ref: '../components/examples.yaml#/Offer' }
+              ofertaActiva: { $ref: '../components/examples.yaml#/OfferActive' }
+              trasEliminacion: { $ref: '../components/examples.yaml#/OfferAfterDeletion' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+  patch:
+    tags: [Ofertas]
+    operationId: setEntryOfferStatus
+    summary: Activar o inactivar una oferta
+    description: |
+      La activación exige Composition válida. OPEN-008 aún no decide si cada
+      slot requiere alternativa ACTIVE o solo una alternativa estructural.
+      El cuerpo contiene únicamente status. Enviar INACTIVE inactiva la oferta;
+      ambas transiciones entre ACTIVE e INACTIVE están permitidas, y enviar el
+      estado actual no cambia su revisión comercial. El cambio de
+      estado no modifica Composition ni crea una revisión comercial.
+      Una activación que incumple la validación vigente devuelve 422.
+      REQ-MENU-OFFER-004; BR-MENU-006; INV-MENU-002.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/catalog.yaml#/OfferStatusPatch' }
+          examples:
+            activar: { $ref: '../components/examples.yaml#/OfferStatusPatch' }
+            inactivar:
+              summary: Inactivar la oferta
+              value: { status: INACTIVE }
+    responses:
+      '200':
+        description: Estado actualizado.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/catalog.yaml#/Offer' }
+            examples:
+              activada: { $ref: '../components/examples.yaml#/OfferActive' }
+              inactivada: { $ref: '../components/examples.yaml#/Offer' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
+revisions:
+  parameters:
+    - $ref: '../components/parameters.yaml#/MenuId'
+    - $ref: '../components/parameters.yaml#/EntryId'
+    - $ref: '../components/parameters.yaml#/OfferId'
+  post:
+    tags: [Ofertas]
+    operationId: createEntryOfferRevision
+    summary: Crear revisión completa de una oferta
+    description: |
+      Reemplaza la definición comercial vigente de la oferta y crea una revisión
+      identificable, incluida Composition. Referencias publicadas a revisiones
+      anteriores permanecen intactas. Las referencias entre ofertas y recetas
+      deben ser acíclicas. El cliente suministra los identificadores anidados
+      y el servidor asigna la nueva revision. Una Composition inválida o una
+      referencia que cree un ciclo se considera validación del contenido y
+      devuelve 422. Puede recibirse application/json con metadatos o
+      multipart/form-data con una parte offer (JSON) y una parte image opcional.
+      Si image se omite, la nueva revisión conserva offerImageRef vigente; si
+      se incluye, se reemplaza por la referencia de la imagen validada. Un
+      formato no admitido devuelve 415; un archivo inválido, mayor de 10 MiB o
+      con ancho o alto superior a 4096 px devuelve 422 sin crear la revisión.
+      REQ-MENU-OFFER-005;
+      BR-MENU-028/029; INV-MENU-008.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: { $ref: '../components/schemas/catalog.yaml#/OfferInput' }
+          examples:
+            nuevaDefinicion: { $ref: '../components/examples.yaml#/OfferRevisionInput' }
+        multipart/form-data:
+          schema: { $ref: '../components/schemas/catalog.yaml#/OfferRevisionMultipart' }
+          encoding:
+            offer:
+              contentType: application/json
+            image:
+              contentType: image/jpeg, image/png, image/webp
+          examples:
+            nuevaDefinicionConImagen: { $ref: '../components/examples.yaml#/OfferRevisionMultipart' }
+    responses:
+      '201':
+        description: Nueva revisión vigente de la oferta.
+        headers:
+          Location:
+            required: true
+            description: URI consultable de la revisión creada; offerId y revision corresponden al cuerpo.
+            schema: { type: string, format: uri-reference }
+            example: /api/v1/catalog-offers/offer-1/revisions/rev-2
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/catalog.yaml#/Offer' }
+            examples:
+              nuevaRevision: { $ref: '../components/examples.yaml#/OfferRevised' }
+      '400': { $ref: '../components/responses/errors.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }
+      '415': { $ref: '../components/responses/errors.yaml#/UnsupportedMediaType' }
+      '422': { $ref: '../components/responses/errors.yaml#/Unprocessable' }
+revision:
+  parameters:
+    - $ref: '../components/parameters.yaml#/OfferId'
+    - $ref: '../components/parameters.yaml#/OfferRevision'
+  get:
+    tags: [Ofertas]
+    operationId: getCatalogOfferRevision
+    summary: Consultar revisión histórica de una oferta
+    description: |
+      Recupera la definición comercial identificada que puede estar fijada
+      por CatalogOfferSource. El estado administrativo actual se consulta en
+      la oferta vigente y no se reinterpreta como contenido de esta revisión.
+      La fotografía histórica sigue consultable aunque la entrada y la oferta
+      vigentes hayan sido eliminadas; conserva brandNameSnapshot para mostrar
+      el nombre comercial original. REQ-MENU-OFFER-005; BR-MENU-029/030.
+    responses:
+      '200':
+        description: Definición comercial histórica de la oferta.
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/catalog.yaml#/OfferRevision' }
+            examples:
+              revisionHistorica: { $ref: '../components/examples.yaml#/OfferHistorical' }
+              referenciasHistoricas: { $ref: '../components/examples.yaml#/OfferHistoricalWithDeletedReferences' }
+              ofertaEliminada: { $ref: '../components/examples.yaml#/DeletedOfferHistorical' }
+      '404': { $ref: '../components/responses/errors.yaml#/NotFound' }

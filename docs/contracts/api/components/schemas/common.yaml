@@ -1,0 +1,54 @@
+Identifier:
+  type: string
+  minLength: 1
+  description: Identificador opaco; no implica formato compartido entre contextos.
+Revision:
+  type: string
+  minLength: 1
+  description: Identificador opaco de una revisión publicada e inmutable.
+Amount:
+  type: number
+  description: Importe declarado. Moneda, precisión, redondeo y rangos siguen en OPEN-001.
+EntryStatus:
+  type: string
+  enum: [ACTIVE, INACTIVE, ARCHIVED]
+OfferStatus:
+  type: string
+  enum: [ACTIVE, INACTIVE]
+OptionStatus:
+  type: string
+  enum: [ACTIVE, INACTIVE]
+RecipeStatus:
+  type: string
+  enum: [ACTIVE, INACTIVE]
+ImageRef:
+  type: string
+  minLength: 1
+  description: Referencia de la imagen validada que devuelve Menu en lecturas y respuestas de escritura.
+ImageUpload:
+  type: string
+  format: binary
+  description: |
+    Archivo JPEG, PNG o WebP de hasta 10 MiB y con ancho y alto máximos de
+    4096 px cada uno. El servidor valida los bytes y dimensiones reales del
+    archivo; nombre y Content-Type declarados por el cliente no sustituyen
+    esa validación.
+Error:
+  type: object
+  additionalProperties: false
+  required: [code, message]
+  properties:
+    code:
+      type: string
+      description: Código técnico que identifica la clase de error comunicada.
+    message:
+      type: string
+    details:
+      type: array
+      items:
+        type: object
+        additionalProperties: false
+        required: [path, message]
+        properties:
+          path: { type: string }
+          message: { type: string }
