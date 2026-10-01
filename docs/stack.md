@@ -70,7 +70,6 @@ The project should therefore consider **TypeScript 7.0.2 as its official TypeScr
 | Technology     | Description                                                                                             | Version |
 | -------------- | ------------------------------------------------------------------------------------------------------- | ------- |
 | PostgreSQL     | Relational database management system used for structured and transactional data.                       | 18.6    |
-| MongoDB        | Document-oriented database management system used for flexible document-based persistence.              | 8.3.11  |
 | RabbitMQ       | Message broker used for asynchronous communication and event exchange between services.                 | 4.3.6   |
 | Docker         | Containerization platform used to package and run application services and infrastructure dependencies. | 29.8.1  |
 | Docker Compose | Tool used to define and orchestrate multi-container local development environments.                     | 5.5.1   |

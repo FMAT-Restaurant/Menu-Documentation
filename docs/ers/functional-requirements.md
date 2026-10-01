@@ -129,7 +129,7 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-REC-001 — Biblioteca de recetas reutilizables
 
-- **Requisito:** El sistema deberá permitir al administrador crear y mantener una biblioteca de recetas reutilizables. Cada receta deberá poder describir su rendimiento, unidad de rendimiento y una o más líneas con cantidades y unidades, referidas a artículos de Inventario o a otras recetas reutilizables.
+- **Requisito:** El sistema deberá permitir al administrador crear y mantener una biblioteca de recetas reutilizables. Cada receta deberá poder tener una o más líneas con cantidades y unidades, referidas a artículos de Inventario o a otras recetas reutilizables.
 - **Criterio de aceptación:** Una receta de biblioteca puede utilizarse desde distintas ofertas y productos. Una línea identifica un único artículo de Inventario o una receta reutilizable, con su cantidad y unidad.
 
 ### REQ-MENU-REC-002 — Uso y ajuste local de una receta

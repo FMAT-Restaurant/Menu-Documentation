@@ -1,154 +1,51 @@
 {
-  "change_id": "catalog-entry-offer-restrict-deletion-2026-09-30",
-  "objective": "Aplicar la política solicitada de desactivación, archivado y eliminación RESTRICT para CatalogEntry y CatalogOffer, conservando revisiones históricas y CompositionSnapshot solo como parte de CatalogOfferRevision.",
+  "change_id": "draft-reusable-sonarqube-ticket-2026-10-01",
+  "objective": "Redactar en español un único ticket de integración de SonarQube que pueda copiarse sin cambios semánticos a los repositorios frontend y backend, siguiendo docs/templates/ticket-template.md y sin crear issues ni modificar documentos del producto.",
   "decisions": [
     {
       "id": "D1",
-      "decision": "La solicitud adjunta fija la semántica; no se decide transporte/API ni se modifica contrato, traducción, CI o material histórico."
+      "decision": "El ticket trata la integración del análisis de SonarQube en cada repositorio por separado. Provisionar y administrar la plataforma SonarQube constituye un trabajo distinto."
     },
     {
       "id": "D2",
-      "decision": "Una referencia vigente externa desde CatalogOfferSource o AddOption CATALOG_OFFER impide eliminar la oferta afectada o su entrada; defaultOfferId impide la eliminación individual de la oferta, pero es relación poseída y no bloquea eliminar la entrada completa."
+      "decision": "La redacción será neutral respecto al lenguaje y la herramienta de compilación; cada ejecución en frontend o backend seleccionará el scanner/plugin compatible con su stack y una clave de proyecto propia."
     },
     {
       "id": "D3",
-      "decision": "CatalogOffer conserva solo ACTIVE/INACTIVE. CatalogEntry conserva ACTIVE/INACTIVE/ARCHIVED. CompositionSnapshot sobrevive exclusivamente como instantánea histórica poseída por CatalogOfferRevision; INLINE de ComponentSource sigue permitido para receta local."
+      "decision": "El ticket exigirá configuración reproducible, parámetros y secretos externos al código, comando de ejecución documentado y evidencia de un análisis visible en el proyecto SonarQube elegido."
     },
     {
       "id": "D4",
-      "decision": "El nuevo REQ-MENU-OFFER-006 eleva el total funcional de 30 a 31; la configuración y el índice de la ERS deben reflejar la nueva versión 2.1.3 y esa cuenta. Se preservan OPEN-002, OPEN-005 y OPEN-010."
+      "decision": "Permanecen abiertos la modalidad Cloud/Server, URL y credenciales, ejecución en CI, Quality Gate y Quality Profile, métricas/umbrales de cobertura y estrategia de análisis de ramas/PR, inclusiones y exclusiones."
     }
   ],
-  "permitted_writes": [
-    "docs/ers/business-rules.md",
-    "docs/ers/functional-requirements.md",
-    "docs/other/md/domain-model.md",
-    "docs/ers/context.md",
-    "docs/ers/architechture.md",
-    "docs/ers/traceability.md",
-    "docs/ers/configuration.md",
-    "docs/ers/README.md"
-  ],
+  "permitted_writes": [],
   "invariants": [
-    "Conservar los identificadores normativos existentes; añadir solo REQ-MENU-OFFER-006.",
-    "No alterar la semántica de publicación ni la relación de propiedad de otros conceptos salvo lo necesario para exigir una oferta ACTIVE y válida en CatalogEntry ACTIVE.",
-    "Nunca convertir automáticamente una referencia vigente a INLINE durante eliminación; rechazar sin modificar dependientes.",
-    "Mantener CatalogOfferRevision y CompositionSnapshot históricos inmutables y consultables por offerId y revision.",
-    "No tocar contratos, OpenAPI, documentos históricos, traducciones, imágenes derivadas, scripts, workflows, AGENTS.md ni .gitignore."
+    "Conservar el orden y los encabezados de docs/templates/ticket-template.md.",
+    "No atribuir a la ERS un requisito funcional ni reglas de negocio de SonarQube inexistentes.",
+    "No especificar configuración exclusiva de Java/Gradle o TypeScript/npm en el ticket común.",
+    "No presentar la provisión de la plataforma ni las decisiones abiertas como ya aprobadas.",
+    "No crear issues ni escribir en archivos de producto, código, configuración o Git."
   ],
   "affected_files": [
     {
-      "path": "docs/ers/business-rules.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Sustituir BR-MENU-003, 004, 017, 024, 029, 030 e INV-MENU-008, 009 por la semántica y los textos precisos del request.md adjunto.",
-        "Alinear INV-MENU-002 con BR-MENU-004: una CatalogEntry ACTIVE necesita al menos una CatalogOffer ACTIVE y válida; el estado de la entrada no cambia automáticamente el de sus ofertas.",
-        "Conservar INLINE como ComponentSource de receta local; AddOption admite únicamente INVENTORY_ITEM, PREPARATION o CATALOG_OFFER.",
-        "En BR-MENU-030 distinguir defaultOfferId como impedimento para eliminar una oferta individual; la eliminación de la entrada propietaria completa retira ese vínculo interno con ella."
-      ],
-      "acceptance": [
-        "No queda regla de conversión CATALOG_OFFER a INLINE ni materialización recursiva de borrado.",
-        "Las nueve invariantes y treinta reglas mantienen sus identificadores y la nueva política RESTRICT es inequívoca."
-      ]
-    },
-    {
-      "path": "docs/ers/functional-requirements.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Sustituir REQ-MENU-ENTRY-004, ajustar REQ-MENU-OFFER-005 y añadir REQ-MENU-OFFER-006 con los textos del request.md; conservar el criterio común de imágenes ya vigente fuera de OFFER-005.",
-        "Precisar REQ-MENU-ENTRY-003: se archiva desde ACTIVE o INACTIVE; desarchivar deja INACTIVE y no altera el estado administrativo de ofertas.",
-        "Alinear REQ-MENU-CAT-002 y REQ-MENU-OFFER-004 con publicación de oferta ACTIVE y válida solo bajo entrada ACTIVE; una entrada ACTIVE debe mantener al menos una oferta ACTIVE y válida.",
-        "Retirar de REQ-MENU-CONT-004 y REQ-MENU-PERS-003 la materialización/INLINE vigente durante eliminación y expresar el rechazo mientras exista referencia vigente externa; AddOption conserva solo tres destinos.",
-        "Mantener OPEN-010 y las decisiones de transporte sin concretar; no introducir rutas ni payloads."
-      ],
-      "acceptance": [
-        "31 requisitos REQ-MENU-* únicos, incluido OFFER-006.",
-        "Ningún criterio funcional exige convertir referencias vigentes a INLINE para permitir eliminación."
-      ]
-    },
-    {
-      "path": "docs/other/md/domain-model.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Aplicar todos los cambios de las secciones CatalogEntry, CatalogOffer, CatalogOfferRevision, CompositionSnapshot, InlineContent, AddOption y ComponentSource del request.md, incluidos el resumen, tabla de entidades, atributos, relaciones e invariantes.",
-        "Retirar la copia de CompositionSnapshot desde InlineContent/AddOption y toda materialización/conversión recursiva de borrado; conservar CompositionSnapshot como componente histórico exclusivo de CatalogOfferRevision y RecipeDefinition local bajo InlineContent.",
-        "Alinear ComponentOption, CatalogOfferSource, CompositionSlot y las reglas transversales 4 y 8 con referencias RESTRICT, sin desactivación ni nuevas revisiones automáticas de dependientes.",
-        "Actualizar los dos diagramas Mermaid, sus clases, cardinalidades y notas: CatalogOfferRevision compone CompositionSnapshot; InlineContent compone solo RecipeDefinition; AddOption referencia InventoryItem, RecipeDefinition o CatalogOfferRevision, y en definiciones vigentes también CatalogOffer.",
-        "Conservar identidades, revisiones históricas y los cuatro tipos de ComponentSource; no añadir ARCHIVED a CatalogOffer."
-      ],
-      "acceptance": [
-        "El modelo conceptual y sus dos diagramas expresan únicamente snapshot histórico y eliminación RESTRICT.",
-        "La eliminación individual exige oferta INACTIVE, sin referencias vigentes, sin defaultOfferId y sin invalidar la entrada ACTIVE."
-      ]
-    },
-    {
-      "path": "docs/ers/context.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Alinear las frases de estados y publicación con CatalogEntry ACTIVE y al menos una CatalogOffer ACTIVE y válida; conservar estados existentes y ausencia de cascada administrativa al archivar.",
-        "Sustituir descripción de InlineContent por receta local exclusiva y AddOption por los tres destinos permitidos.",
-        "Reemplazar la narración de eliminación por rechazo ante referencias vigentes externas y conservación de revisiones históricas; actualizar el diagrama Mermaid y glosario para eliminar AddOption INLINE y las relaciones vigentes a CompositionSnapshot, manteniendo la instantánea en CatalogOfferRevision."
-      ],
-      "acceptance": [
-        "Ninguna explicación o arista presenta la conversión automática ni un snapshot vigente en InlineContent/AddOption."
-      ]
-    },
-    {
-      "path": "docs/ers/architechture.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Actualizar la narración de agregados, estados, eliminación y la tabla de 29 conceptos: CatalogEntry archivada y CatalogOffer inactiva se eliminan solo cuando se cumplen las restricciones; conservar oferta/revisión histórica y composición poseída.",
-        "Retirar de InlineContent, CatalogOfferSource, AddOption y CompositionSnapshot toda copia vigente/conversión a INLINE, preservando la relación histórica CatalogOfferRevision–CompositionSnapshot.",
-        "Rehacer las relaciones de ambos diagramas Mermaid, los textos bajo diagramas, el diagrama de flujo de eliminación y las reglas arquitectónicas para mostrar rechazo íntegro por referencias vigentes, defaultOfferId en borrado individual y protección de una CatalogEntry ACTIVE.",
-        "Conservar los límites conceptuales de arquitectura; no especificar tablas, API ni persistencia."
-      ],
-      "acceptance": [
-        "Diagrama y texto describen la misma política RESTRICT y las dos rutas de eliminación.",
-        "Las revisiones históricas siguen independientes de definiciones vigentes."
-      ]
-    },
-    {
-      "path": "docs/ers/traceability.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Agregar una fila única para REQ-MENU-OFFER-006 con relaciones justificadas a BR-MENU-004, BR-MENU-029/030 e INV-MENU-002/008/009 según los criterios publicados.",
-        "Actualizar las filas y vínculos de ENTRY-004, OFFER-005, CONT-004, PERS-003, BR-MENU-029/030 e INV-MENU-008/009 para reflejar RESTRICT, no conversión; mantener relaciones apoyadas por el texto.",
-        "Mantener 30 reglas, 9 invariantes y los criterios no funcionales; no alterar OPEN-010."
-      ],
-      "acceptance": [
-        "La matriz tiene exactamente 31 filas funcionales propias y ningún tema/relación atribuye conversión INLINE al borrado."
-      ]
-    },
-    {
-      "path": "docs/ers/configuration.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Actualizar versión consolidada de 2.1.2 a 2.1.3 y fecha de esta revisión a 2026-09-30.",
-        "Resumir el cambio de ciclo de vida y eliminación RESTRICT sin reescribir la historia de versiones; conservar el alcance operativo de un Menu por sucursal, OPEN-005 y OPEN-010."
-      ],
-      "acceptance": [
-        "La configuración identifica 2.1.3 y el resumen no dice que la eliminación convierta referencias vigentes."
-      ]
-    },
-    {
-      "path": "docs/ers/README.md",
-      "operation": "MODIFY",
-      "instructions": [
-        "Alinear la versión visible con 2.1.3 y las dos menciones del total funcional de 30 a 31 por REQ-MENU-OFFER-006.",
-        "Si describe la política de eliminación, mantenerla consistente con RESTRICT sin introducir detalles nuevos."
-      ],
-      "acceptance": [
-        "Versión y conteo funcional concuerdan con los documentos normativos."
-      ]
-    },
-    {
-      "path": "docs/ers/open.md",
+      "path": "docs/templates/ticket-template.md",
       "operation": "VERIFY",
       "instructions": [
-        "Comprobar que OPEN-002 sobre uso de oferta predeterminada y OPEN-010 sobre contrato externo permanecen abiertos y no necesitan nueva decisión semántica para la política solicitada."
+        "Usar sus secciones Descripción, Requisitos implicados, Reglas de negocio implicadas, Invariantes implicadas, Criterios de aceptación, Decisiones abiertas y Referencias para estructurar el borrador."
       ],
       "acceptance": [
-        "No se modifica este archivo."
+        "El borrador contiene todas las secciones en el mismo orden y sin texto de relleno."
+      ]
+    },
+    {
+      "path": "docs/stack.md",
+      "operation": "VERIFY",
+      "instructions": [
+        "Confirmar que frontend y backend usan stacks distintos para no prescribir un scanner/plugin propio de solo uno de ellos."
+      ],
+      "acceptance": [
+        "La tarea común permite implementación propia en ambos repositorios sin asumir un lenguaje o sistema de build único."
       ]
     }
   ],
