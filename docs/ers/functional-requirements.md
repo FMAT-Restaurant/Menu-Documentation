@@ -20,8 +20,8 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-CAT-002 — Consulta del catálogo publicable
 
-- **Requisito:** El sistema deberá presentar las entradas y ofertas que estén activas y cumplan las condiciones de publicación del catálogo. La presentación deberá permitir reconocer cuál es la identidad comercial del producto y cuáles son sus ofertas vendibles.
-- **Criterio de aceptación:** Una entrada incompleta o inactiva no se presenta como oferta vigente. Una entrada activa con una oferta válida presenta esa oferta y su precio declarado; las ofertas de una misma entrada se distinguen entre sí.
+- **Requisito:** El sistema deberá presentar las entradas `ACTIVE` y sus ofertas `ACTIVE` que cumplan las condiciones de publicación del catálogo. Una oferta solo se presenta cuando su entrada está `ACTIVE` y la oferta es válida. La presentación deberá permitir reconocer cuál es la identidad comercial del producto y cuáles son sus ofertas vendibles.
+- **Criterio de aceptación:** Una entrada incompleta, `INACTIVE` o `ARCHIVED` no se presenta como vigente. Una entrada `ACTIVE` debe disponer de al menos una oferta `ACTIVE` y válida; cada oferta presentada está `ACTIVE`, tiene una composición válida y muestra su precio declarado. Las ofertas de una misma entrada se distinguen entre sí. Cambiar el estado administrativo de una entrada no modifica automáticamente el estado de sus ofertas, ni viceversa.
 
 ### REQ-MENU-ENTRY-001 — Creación de una entrada
 
@@ -35,13 +35,13 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-ENTRY-003 — Estado y archivado de una entrada
 
-- **Requisito:** El sistema deberá permitir al administrador activar o inactivar una entrada y archivarla de manera reversible. Desarchivar una entrada deberá dejarla inactiva para que el administrador decida expresamente si vuelve a activarla.
-- **Criterio de aceptación:** Una entrada activa solo se publica si tiene al menos una oferta válida. Una entrada archivada no se publica; al desarchivarla queda inactiva y requiere una activación explícita posterior.
+- **Requisito:** El sistema deberá permitir al administrador activar o inactivar una entrada y archivarla de manera reversible desde los estados `ACTIVE` o `INACTIVE`. Desarchivar una entrada deberá dejarla en `INACTIVE` para que el administrador decida expresamente si vuelve a activarla. Estos cambios no modificarán automáticamente los estados administrativos de sus ofertas.
+- **Criterio de aceptación:** El sistema rechaza activar una entrada si no dispone de al menos una oferta `ACTIVE` y válida. Una entrada solo se publica en estado `ACTIVE` y cuando cumple esa condición. Una entrada archivada no se publica; al desarchivarla queda en `INACTIVE` y requiere una activación explícita posterior. Archivar, desarchivar, activar o inactivar la entrada no cambia el estado de sus ofertas.
 
 ### REQ-MENU-ENTRY-004 — Eliminación de una entrada archivada
 
-- **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada solo si está archivada. Antes de eliminar sus ofertas, deberá localizar las referencias vigentes a cualquiera de ellas, tanto en el origen de una `ComponentOption` como en una `AddOption`. Deberá desactivar en lote cada `ComponentOption` contenedora y sustituir cada referencia vigente por una copia local `INLINE` de la composición completa de la revisión de oferta que esa referencia tenía fijada. Solo después de completar todas las sustituciones podrá eliminar la entrada y sus ofertas vigentes.
-- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Para una entrada archivada, la operación termina íntegramente o no aplica ningún cambio: las opciones afectadas quedan inactivas, las composiciones copiadas conservan slots, alternativas y personalizaciones, no queda ninguna referencia vigente a las ofertas eliminadas y las ofertas contenedoras tienen nuevas revisiones. Las revisiones históricas publicadas permanecen intactas y las fotografías de las ofertas eliminadas que necesitan siguen siendo consultables.
+- **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada únicamente cuando se encuentre archivada y ninguna de sus ofertas mantenga referencias vigentes externas desde otras definiciones del catálogo.
+- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Si alguna de las ofertas de una entrada archivada es utilizada por un `CatalogOfferSource`, un `AddOption` de tipo `CATALOG_OFFER` u otra referencia vigente que requiera su existencia, la eliminación se rechaza sin realizar modificaciones parciales y se informa qué dependencias la impiden. Cuando no existen dichas referencias, se eliminan la entrada y sus definiciones vigentes poseídas. Las revisiones históricas publicadas permanecen intactas y consultables.
 
 ## Ofertas y composición
 
@@ -63,12 +63,17 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 ### REQ-MENU-OFFER-004 — Activación de una oferta
 
 - **Requisito:** El sistema deberá permitir al administrador activar o inactivar una oferta. Para activarla, deberá exigir que tenga una composición válida.
-- **Criterio de aceptación:** Una oferta inactiva no se presenta como alternativa vigente. Una oferta sin composición válida no puede activarse; una oferta válida puede activarse mediante una acción administrativa.
+- **Criterio de aceptación:** Una oferta `INACTIVE` no se presenta como alternativa vigente. Una oferta sin composición válida no puede activarse; una oferta con composición válida puede activarse mediante una acción administrativa, incluso mientras su entrada está `INACTIVE`, pero no se publica hasta que la entrada esté `ACTIVE`. Una oferta solo se publica si tanto ella como su entrada están en estado `ACTIVE`, y la entrada `ACTIVE` conserva al menos una oferta `ACTIVE` y válida. El sistema rechaza inactivar la única oferta `ACTIVE` y válida de una entrada `ACTIVE`; el administrador debe inactivar la entrada de forma explícita antes. Cambiar el estado de la oferta no modifica automáticamente el de su entrada, ni viceversa.
 
 ### REQ-MENU-OFFER-005 — Referencia a una oferta reutilizada
 
-- **Requisito:** Cuando una oferta se utilice como contenido dentro de otra, el sistema deberá permitir identificar la versión publicada de la oferta referenciada que forma parte de la composición.
-- **Criterio de aceptación:** La actualización de la definición comercial se realiza mediante una nueva revisión; si no se cambia la imagen, se conserva la imagen vigente. Una actualización de la oferta referenciada no cambia por sí sola la composición publicada que ya la utiliza; cualquier adopción de una versión posterior queda identificada. Las revisiones publicadas previamente permanecen intactas. Tras eliminar la entrada propietaria, las referencias históricas conservan la revisión fijada y la fotografía correspondiente permanece consultable.
+- **Requisito:** Cuando una oferta se utilice como contenido dentro de otra, el sistema deberá identificar la revisión publicada concreta de la oferta referenciada.
+- **Criterio de aceptación:** La actualización de la oferta referenciada produce una revisión nueva y no cambia por sí sola las composiciones ya publicadas que utilizan una revisión anterior. Las revisiones publicadas previamente permanecen intactas y consultables.
+
+### REQ-MENU-OFFER-006 — Eliminación de una oferta
+
+- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y no mantenga referencias vigentes externas.
+- **Criterio de aceptación:** La eliminación de una oferta activa se rechaza. También se rechaza si la oferta es utilizada por un `CatalogOfferSource`, por un `AddOption` de tipo `CATALOG_OFFER` o si corresponde al `defaultOfferId` de su entrada. La operación no modifica automáticamente los recursos que la referencian. Si no existen dependencias impeditivas, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 
@@ -120,7 +125,7 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 ### REQ-MENU-CONT-004 — Otra oferta como contenido
 
 - **Requisito:** El sistema deberá permitir usar una oferta existente como contenido de una posición en otra oferta. La oferta referenciada conservará su composición y sus posibilidades de personalización propias.
-- **Criterio de aceptación:** La oferta hija se reconoce como contenido reutilizado y su precio base no se suma automáticamente al precio base de la oferta que la contiene. Si se elimina la entrada propietaria de la oferta hija, cada uso vigente se materializa como contenido local `INLINE` con una copia de la composición completa de su revisión fijada, sin aplanarla como receta.
+- **Criterio de aceptación:** La oferta hija se reconoce como contenido reutilizado y su precio base no se suma automáticamente al precio base de la oferta que la contiene. La eliminación de la oferta o de su entrada propietaria se rechaza mientras exista esta referencia vigente, sin modificar la composición que la contiene.
 
 ### REQ-MENU-REC-001 — Biblioteca de recetas reutilizables
 
@@ -151,8 +156,8 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-PERS-003 — Opciones para agregar contenido
 
-- **Requisito:** El sistema deberá permitir definir grupos de contenido adicional para una alternativa ya incluida, con límites de cuántas opciones adicionales pueden elegirse. Cada opción podrá referirse a un artículo de Inventario, una receta reutilizable o una oferta del catálogo, o contener una copia local `INLINE` de la composición de una oferta materializada, y declarar su ajuste de precio; cuando corresponda, también su cantidad y unidad.
-- **Criterio de aceptación:** Los límites del grupo rigen solo la selección de contenido adicional y no alteran las reglas de inclusión de posiciones. Cada opción tiene un único modo de contenido. Si apuntaba a una oferta de una entrada eliminada, conserva `priceDelta` y sustituye el destino por una copia local de la composición de la revisión fijada; la `ComponentOption` que contiene la personalización queda inactiva.
+- **Requisito:** El sistema deberá permitir definir grupos de contenido adicional para una alternativa ya incluida, con límites de cuántas opciones adicionales pueden elegirse. Cada opción utilizará exactamente uno de estos destinos: artículo de Inventario, receta reutilizable u oferta del catálogo. Podrá declarar su ajuste de precio y, cuando corresponda, su cantidad y unidad.
+- **Criterio de aceptación:** Los límites del grupo rigen solo la selección de contenido adicional y no alteran las reglas de inclusión de posiciones. Cada opción tiene un único destino. La eliminación de una oferta o de su entrada propietaria se rechaza mientras esta opción mantenga una referencia vigente a esa oferta; la opción y la personalización que la contiene no se modifican.
 
 ### REQ-MENU-PERS-004 — Sustitución de un ingrediente
 

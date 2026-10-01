@@ -1,117 +1,154 @@
 {
-  "change_id": "mvp1-foundational-issues-menu-frontend",
-  "objective": "Crear únicamente los cuatro issues fundacionales faltantes MVP1-T005..T008 en FMAT-Restaurant/Menu-Frontend. MVP1-T001..T004 ya existen y no se duplican.",
+  "change_id": "catalog-entry-offer-restrict-deletion-2026-09-30",
+  "objective": "Aplicar la política solicitada de desactivación, archivado y eliminación RESTRICT para CatalogEntry y CatalogOffer, conservando revisiones históricas y CompositionSnapshot solo como parte de CatalogOfferRevision.",
   "decisions": [
     {
       "id": "D1",
-      "decision": "La corrección del usuario limita la solicitud a la sección 2, tareas fundacionales MVP1-T001..T008. Se excluyen tareas funcionales y NFR."
+      "decision": "La solicitud adjunta fija la semántica; no se decide transporte/API ni se modifica contrato, traducción, CI o material histórico."
     },
     {
       "id": "D2",
-      "decision": "La instrucción conversacional previa identifica FMAT-Restaurant/Menu-Frontend como repositorio de destino; ese destino se aplica también a las tareas Back T005..T008. El equipo Back se indica explícitamente en cada cuerpo."
+      "decision": "Una referencia vigente externa desde CatalogOfferSource o AddOption CATALOG_OFFER impide eliminar la oferta afectada o su entrada; defaultOfferId impide la eliminación individual de la oferta, pero es relación poseída y no bloquea eliminar la entrada completa."
     },
     {
       "id": "D3",
-      "decision": "Los issues #5..#8 ya representan T001..T004. Los estados de #6 y #7 son cerrado, sin que ello justifique duplicarlos."
+      "decision": "CatalogOffer conserva solo ACTIVE/INACTIVE. CatalogEntry conserva ACTIVE/INACTIVE/ARCHIVED. CompositionSnapshot sobrevive exclusivamente como instantánea histórica poseída por CatalogOfferRevision; INLINE de ComponentSource sigue permitido para receta local."
     },
     {
       "id": "D4",
-      "decision": "El patrón observado en #3, #5..#8 usa Task ID al inicio del título, descripción basada en el plan, criterios de aceptación y referencias cuando aplican. La etiqueta enhancement se aplica a los cuatro nuevos issues; las decisiones técnicas abiertas permanecen abiertas."
-    },
-    {
-      "id": "D5",
-      "decision": "Consulta actual de todos los issues del repositorio: #5..#8 ya cubren T001..T004; ninguno de T005..T008 existe. Repetir la búsqueda justo antes de cada creación."
+      "decision": "El nuevo REQ-MENU-OFFER-006 eleva el total funcional de 30 a 31; la configuración y el índice de la ERS deben reflejar la nueva versión 2.1.3 y esa cuenta. Se preservan OPEN-002, OPEN-005 y OPEN-010."
     }
   ],
   "permitted_writes": [
-    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T005",
-    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T006",
-    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T007",
-    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T008"
+    "docs/ers/business-rules.md",
+    "docs/ers/functional-requirements.md",
+    "docs/other/md/domain-model.md",
+    "docs/ers/context.md",
+    "docs/ers/architechture.md",
+    "docs/ers/traceability.md",
+    "docs/ers/configuration.md",
+    "docs/ers/README.md"
   ],
   "invariants": [
-    "Solo crear T005..T008 en FMAT-Restaurant/Menu-Frontend y verificar ausencia de duplicados inmediatamente antes de cada creación.",
-    "No modificar T001..T004 ni crear T009..T048.",
-    "No asignar assignees, milestone o GitHub Project sin instrucción explícita.",
-    "No escribir archivos del repositorio documental, AGENTS.md ni .gitignore.",
-    "No cerrar preguntas abiertas de persistencia, topología, AuthN/AuthZ o CD mediante el texto de los issues.",
-    "Tras cada creación, consultar el issue por su número y verificar título, cuerpo, Equipo Back, etiqueta enhancement, referencia publicada y ausencia de duplicados de Task ID."
+    "Conservar los identificadores normativos existentes; añadir solo REQ-MENU-OFFER-006.",
+    "No alterar la semántica de publicación ni la relación de propiedad de otros conceptos salvo lo necesario para exigir una oferta ACTIVE y válida en CatalogEntry ACTIVE.",
+    "Nunca convertir automáticamente una referencia vigente a INLINE durante eliminación; rechazar sin modificar dependientes.",
+    "Mantener CatalogOfferRevision y CompositionSnapshot históricos inmutables y consultables por offerId y revision.",
+    "No tocar contratos, OpenAPI, documentos históricos, traducciones, imágenes derivadas, scripts, workflows, AGENTS.md ni .gitignore."
   ],
   "affected_files": [
     {
-      "path": "docs/product/mvp-01-catalogo-publicable.md",
+      "path": "docs/ers/business-rules.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Sustituir BR-MENU-003, 004, 017, 024, 029, 030 e INV-MENU-008, 009 por la semántica y los textos precisos del request.md adjunto.",
+        "Alinear INV-MENU-002 con BR-MENU-004: una CatalogEntry ACTIVE necesita al menos una CatalogOffer ACTIVE y válida; el estado de la entrada no cambia automáticamente el de sus ofertas.",
+        "Conservar INLINE como ComponentSource de receta local; AddOption admite únicamente INVENTORY_ITEM, PREPARATION o CATALOG_OFFER.",
+        "En BR-MENU-030 distinguir defaultOfferId como impedimento para eliminar una oferta individual; la eliminación de la entrada propietaria completa retira ese vínculo interno con ella."
+      ],
+      "acceptance": [
+        "No queda regla de conversión CATALOG_OFFER a INLINE ni materialización recursiva de borrado.",
+        "Las nueve invariantes y treinta reglas mantienen sus identificadores y la nueva política RESTRICT es inequívoca."
+      ]
+    },
+    {
+      "path": "docs/ers/functional-requirements.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Sustituir REQ-MENU-ENTRY-004, ajustar REQ-MENU-OFFER-005 y añadir REQ-MENU-OFFER-006 con los textos del request.md; conservar el criterio común de imágenes ya vigente fuera de OFFER-005.",
+        "Precisar REQ-MENU-ENTRY-003: se archiva desde ACTIVE o INACTIVE; desarchivar deja INACTIVE y no altera el estado administrativo de ofertas.",
+        "Alinear REQ-MENU-CAT-002 y REQ-MENU-OFFER-004 con publicación de oferta ACTIVE y válida solo bajo entrada ACTIVE; una entrada ACTIVE debe mantener al menos una oferta ACTIVE y válida.",
+        "Retirar de REQ-MENU-CONT-004 y REQ-MENU-PERS-003 la materialización/INLINE vigente durante eliminación y expresar el rechazo mientras exista referencia vigente externa; AddOption conserva solo tres destinos.",
+        "Mantener OPEN-010 y las decisiones de transporte sin concretar; no introducir rutas ni payloads."
+      ],
+      "acceptance": [
+        "31 requisitos REQ-MENU-* únicos, incluido OFFER-006.",
+        "Ningún criterio funcional exige convertir referencias vigentes a INLINE para permitir eliminación."
+      ]
+    },
+    {
+      "path": "docs/other/md/domain-model.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Aplicar todos los cambios de las secciones CatalogEntry, CatalogOffer, CatalogOfferRevision, CompositionSnapshot, InlineContent, AddOption y ComponentSource del request.md, incluidos el resumen, tabla de entidades, atributos, relaciones e invariantes.",
+        "Retirar la copia de CompositionSnapshot desde InlineContent/AddOption y toda materialización/conversión recursiva de borrado; conservar CompositionSnapshot como componente histórico exclusivo de CatalogOfferRevision y RecipeDefinition local bajo InlineContent.",
+        "Alinear ComponentOption, CatalogOfferSource, CompositionSlot y las reglas transversales 4 y 8 con referencias RESTRICT, sin desactivación ni nuevas revisiones automáticas de dependientes.",
+        "Actualizar los dos diagramas Mermaid, sus clases, cardinalidades y notas: CatalogOfferRevision compone CompositionSnapshot; InlineContent compone solo RecipeDefinition; AddOption referencia InventoryItem, RecipeDefinition o CatalogOfferRevision, y en definiciones vigentes también CatalogOffer.",
+        "Conservar identidades, revisiones históricas y los cuatro tipos de ComponentSource; no añadir ARCHIVED a CatalogOffer."
+      ],
+      "acceptance": [
+        "El modelo conceptual y sus dos diagramas expresan únicamente snapshot histórico y eliminación RESTRICT.",
+        "La eliminación individual exige oferta INACTIVE, sin referencias vigentes, sin defaultOfferId y sin invalidar la entrada ACTIVE."
+      ]
+    },
+    {
+      "path": "docs/ers/context.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Alinear las frases de estados y publicación con CatalogEntry ACTIVE y al menos una CatalogOffer ACTIVE y válida; conservar estados existentes y ausencia de cascada administrativa al archivar.",
+        "Sustituir descripción de InlineContent por receta local exclusiva y AddOption por los tres destinos permitidos.",
+        "Reemplazar la narración de eliminación por rechazo ante referencias vigentes externas y conservación de revisiones históricas; actualizar el diagrama Mermaid y glosario para eliminar AddOption INLINE y las relaciones vigentes a CompositionSnapshot, manteniendo la instantánea en CatalogOfferRevision."
+      ],
+      "acceptance": [
+        "Ninguna explicación o arista presenta la conversión automática ni un snapshot vigente en InlineContent/AddOption."
+      ]
+    },
+    {
+      "path": "docs/ers/architechture.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Actualizar la narración de agregados, estados, eliminación y la tabla de 29 conceptos: CatalogEntry archivada y CatalogOffer inactiva se eliminan solo cuando se cumplen las restricciones; conservar oferta/revisión histórica y composición poseída.",
+        "Retirar de InlineContent, CatalogOfferSource, AddOption y CompositionSnapshot toda copia vigente/conversión a INLINE, preservando la relación histórica CatalogOfferRevision–CompositionSnapshot.",
+        "Rehacer las relaciones de ambos diagramas Mermaid, los textos bajo diagramas, el diagrama de flujo de eliminación y las reglas arquitectónicas para mostrar rechazo íntegro por referencias vigentes, defaultOfferId en borrado individual y protección de una CatalogEntry ACTIVE.",
+        "Conservar los límites conceptuales de arquitectura; no especificar tablas, API ni persistencia."
+      ],
+      "acceptance": [
+        "Diagrama y texto describen la misma política RESTRICT y las dos rutas de eliminación.",
+        "Las revisiones históricas siguen independientes de definiciones vigentes."
+      ]
+    },
+    {
+      "path": "docs/ers/traceability.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Agregar una fila única para REQ-MENU-OFFER-006 con relaciones justificadas a BR-MENU-004, BR-MENU-029/030 e INV-MENU-002/008/009 según los criterios publicados.",
+        "Actualizar las filas y vínculos de ENTRY-004, OFFER-005, CONT-004, PERS-003, BR-MENU-029/030 e INV-MENU-008/009 para reflejar RESTRICT, no conversión; mantener relaciones apoyadas por el texto.",
+        "Mantener 30 reglas, 9 invariantes y los criterios no funcionales; no alterar OPEN-010."
+      ],
+      "acceptance": [
+        "La matriz tiene exactamente 31 filas funcionales propias y ningún tema/relación atribuye conversión INLINE al borrado."
+      ]
+    },
+    {
+      "path": "docs/ers/configuration.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Actualizar versión consolidada de 2.1.2 a 2.1.3 y fecha de esta revisión a 2026-09-30.",
+        "Resumir el cambio de ciclo de vida y eliminación RESTRICT sin reescribir la historia de versiones; conservar el alcance operativo de un Menu por sucursal, OPEN-005 y OPEN-010."
+      ],
+      "acceptance": [
+        "La configuración identifica 2.1.3 y el resumen no dice que la eliminación convierta referencias vigentes."
+      ]
+    },
+    {
+      "path": "docs/ers/README.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "Alinear la versión visible con 2.1.3 y las dos menciones del total funcional de 30 a 31 por REQ-MENU-OFFER-006.",
+        "Si describe la política de eliminación, mantenerla consistente con RESTRICT sin introducir detalles nuevos."
+      ],
+      "acceptance": [
+        "Versión y conteo funcional concuerdan con los documentos normativos."
+      ]
+    },
+    {
+      "path": "docs/ers/open.md",
       "operation": "VERIFY",
       "instructions": [
-        "Confirmar sección 2 y copiar los títulos y descripciones de T005..T008 exactamente; no modificar."
+        "Comprobar que OPEN-002 sobre uso de oferta predeterminada y OPEN-010 sobre contrato externo permanecen abiertos y no necesitan nueva decisión semántica para la política solicitada."
       ],
       "acceptance": [
-        "Cada issue corresponde a una fila SETUP del equipo Back y conserva las decisiones abiertas."
-      ]
-    },
-    {
-      "path": "README.md",
-      "operation": "VERIFY",
-      "instructions": [
-        "Confirmar que las URLs del plan MVP-1 y la API se presentan como destinos publicados; no modificar."
-      ],
-      "acceptance": [
-        "Los enlaces de referencia de los issues usan la documentación publicada indicada por el usuario."
-      ]
-    },
-    {
-      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T005",
-      "operation": "CREATE",
-      "instructions": [
-        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T005 Definir repositorio y base Back\", etiqueta enhancement y sin asignado, hito ni Project.",
-        "Usar este cuerpo exacto:\nUsar Java 25 LTS con Eclipse Temurin 25.0.4.1, Spring Boot 4.1.1, Gradle 9.8.0, JUnit 6.0.3 y Mockito 5.23.0; mantener abierta la selección entre PostgreSQL 18.6 y MongoDB 8.3.11, junto con la topología y los límites transaccionales. Si se elige PostgreSQL, corresponde Spring Data JPA 4.1.1; si se elige MongoDB, Spring Data MongoDB 5.1.1; ambas versiones son gestionadas por Spring Boot 4.1.1 según docs/other/stack.md; no añadir Spring Security hasta que AuthN/AuthZ se decida explícitamente ni implicar acceso anónimo/público. Crear un servicio ejecutable local con un esqueleto OpenAPI.\n\nCriterios de aceptación:\n* Crear un servicio Back ejecutable local con un esqueleto OpenAPI usando las versiones del plan.\n* Mantener sin resolver la elección de persistencia, la topología, los límites transaccionales y AuthN/AuthZ; no implicar acceso público o anónimo.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n",
-        "Antes de crear, buscar MVP1-T005 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
-      ],
-      "acceptance": [
-        "Existe exactamente un issue MVP1-T005 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
-        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
-        "La URL del issue creado queda registrada para la verificación posterior."
-      ]
-    },
-    {
-      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T006",
-      "operation": "CREATE",
-      "instructions": [
-        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T006 Dockerizar Back\", etiqueta enhancement y sin asignado, hito ni Project.",
-        "Usar este cuerpo exacto:\nCrear la imagen del API con Eclipse Temurin 25.0.4.1 para build/runtime según corresponda y configuración local con Docker 29.8.1 y Docker Compose 5.5.1 para ejecutar Back junto a dependencias aprobadas; mantener abierta la topología. Termina cuando el proceso arranca con configuración externa.\n\nCriterios de aceptación:\n* Construir la imagen del API y arrancar el proceso con configuración externa y dependencias locales aprobadas.\n* Mantener abierta la decisión de topología.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n",
-        "Antes de crear, buscar MVP1-T006 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
-      ],
-      "acceptance": [
-        "Existe exactamente un issue MVP1-T006 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
-        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
-        "La URL del issue creado queda registrada para la verificación posterior."
-      ]
-    },
-    {
-      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T007",
-      "operation": "CREATE",
-      "instructions": [
-        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T007 CI de Back y contrato\", etiqueta enhancement y sin asignado, hito ni Project.",
-        "Usar este cuerpo exacto:\nConfigurar CI con Java 25 LTS/Eclipse Temurin 25.0.4.1 y Gradle 9.8.0; ejecutar build y pruebas unitarias/integración con JUnit 6.0.3 y Mockito 5.23.0, usando Testcontainers 2.0.5 cuando las pruebas de integración requieran dependencias contenedorizadas. Validar el contrato OpenAPI modular aceptado (API 2.2.1, OpenAPI 3.1.0), incluidos los límites/códigos de error multipart y las respuestas JSON de lectura con referencias de imagen; usar Docker 29.8.1 y Docker Compose 5.5.1 para las dependencias locales cuando aplique y construir la imagen Docker. Mantener los gates de build, pruebas, contrato e imagen. Termina cuando cada cambio muestra el resultado y bloquea la publicación del artefacto si algún paso obligatorio falla.\n\nCriterios de aceptación:\n* El CI ejecuta build, pruebas unitarias e integración, validación del contrato OpenAPI modular aceptado y construcción de imagen Docker.\n* Cada cambio reporta el resultado de los gates obligatorios y bloquea la publicación del artefacto si alguno falla.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n* [Referencia de API Menu](https://fmat-restaurant.github.io/Menu-Documentation/api/)\n",
-        "Antes de crear, buscar MVP1-T007 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
-      ],
-      "acceptance": [
-        "Existe exactamente un issue MVP1-T007 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
-        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
-        "La URL del issue creado queda registrada para la verificación posterior."
-      ]
-    },
-    {
-      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T008",
-      "operation": "CREATE",
-      "instructions": [
-        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T008 CD de Back\", etiqueta enhancement y sin asignado, hito ni Project.",
-        "Usar este cuerpo exacto:\nConfigurar la publicación y promoción de la imagen Back a los entornos acordados, incluida la secuencia de migración compatible con el servicio. Bloqueado hasta acordar registry, destinos, credenciales, aprobaciones, persistencia y recuperación.\n\nCriterios de aceptación:\n* Publicar y promover la imagen Back en los entornos acordados con una secuencia de migración compatible.\n* Mantener la tarea bloqueada hasta acordar registry, destinos, credenciales, aprobaciones, persistencia y recuperación.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n",
-        "Antes de crear, buscar MVP1-T008 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
-      ],
-      "acceptance": [
-        "Existe exactamente un issue MVP1-T008 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
-        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
-        "La URL del issue creado queda registrada para la verificación posterior."
+        "No se modifica este archivo."
       ]
     }
   ],

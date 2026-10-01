@@ -10,7 +10,7 @@ El modelo organiza esta responsabilidad en tres niveles:
 2. **Presentación vendible:** cada `CatalogEntry` puede ofrecer una o más `CatalogOffer`. Cada oferta define su precio base y una `Composition`.
 3. **Composición y contenido:** la composición define slots y reglas de inclusión. Cada slot contiene alternativas de contenido; cada alternativa identifica una aparición concreta y puede declarar personalizaciones propias.
 
-El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationTag` opcional de `CatalogOffer`. La presentación describe la oferta; las cantidades se expresan en los slots de su composición. Una entrada `ACTIVE` requiere al menos una oferta válida. `CatalogEntry` tiene los estados `ACTIVE`, `INACTIVE` y `ARCHIVED`; `CatalogOffer`, `ComponentOption` y `RecipeDefinition` tienen `ACTIVE` e `INACTIVE`.
+El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationTag` opcional de `CatalogOffer`. La presentación describe la oferta; las cantidades se expresan en los slots de su composición. Una entrada `ACTIVE` requiere al menos una `CatalogOffer` `ACTIVE` y válida; una oferta solo se publica bajo una entrada `ACTIVE`. `CatalogEntry` tiene los estados `ACTIVE`, `INACTIVE` y `ARCHIVED`; `CatalogOffer`, `ComponentOption` y `RecipeDefinition` tienen `ACTIVE` e `INACTIVE`. Los estados de la entrada y de sus ofertas son independientes: cambiar uno no modifica automáticamente el otro.
 
 ### Reglas de composición
 
@@ -27,7 +27,7 @@ La inclusión de slots y la elección de contenido son decisiones distintas:
 
 Cada `ComponentOption` es una aparición contextual con exactamente un `ComponentSource`. Las cuatro clases de contenido son `INLINE`, `INVENTORY_ITEM`, `PREPARATION` y `CATALOG_OFFER`. Varias apariciones pueden referir el mismo contenido y mantener personalizaciones distintas.
 
-Catálogo administra `RecipeDefinition`, sus líneas `ComponentIngredient` y las posibilidades de personalización declaradas. `RecipeLibrary` agrupa recetas reutilizables; `InlineContent` contiene exactamente una receta propia o una copia local de la composición completa de una oferta, con sus slots, alternativas y personalizaciones. `PreparationSource` referencia una receta de biblioteca y puede declarar ajustes locales. Esos ajustes describen diferencias para esa aparición y conservan la definición compartida como fuente común.
+Catálogo administra `RecipeDefinition`, sus líneas `ComponentIngredient` y las posibilidades de personalización declaradas. `RecipeLibrary` agrupa recetas reutilizables; `InlineContent` contiene una receta local de alcance propio. `CompositionSnapshot` conserva la composición publicada de una revisión y pertenece únicamente a `CatalogOfferRevision`; no es contenido vigente de `InlineContent` ni de `AddOption`. `PreparationSource` referencia una receta de biblioteca y puede declarar ajustes locales. Esos ajustes describen diferencias para esa aparición y conservan la definición compartida como fuente común.
 
 Una línea `ComponentIngredient` identifica una aparición de un `InventoryItem` o de una receta reutilizable y expresa su cantidad y unidad. Una receta requiere una cantidad de rendimiento y una unidad; sus revisiones identifican la definición utilizada. Las referencias recursivas entre recetas se mantienen sin ciclos.
 
@@ -40,7 +40,11 @@ Una línea `ComponentIngredient` identifica una aparición de un `InventoryItem`
 
 Las personalizaciones que requieren líneas de receta usan la receta efectiva de su propia opción. Cada grupo expresa sus propias alternativas y límites; las personalizaciones de apariciones distintas permanecen en sus respectivos contextos.
 
-Una `AddOption` también puede contener una composición de oferta copiada localmente como contenido `INLINE`. Al eliminar una entrada archivada, Menú desactiva en lote las `ComponentOption` que contienen referencias vigentes a cualquiera de sus ofertas, convierte esas referencias en copias locales, crea nuevas revisiones de las ofertas contenedoras y completa la eliminación como un resultado íntegro. Las revisiones históricas permanecen intactas y las fotografías de ofertas necesarias para consultarlas siguen disponibles.
+Una `AddOption` referencia exactamente uno de estos destinos: un `InventoryItem`, una `RecipeDefinition` reutilizable o una oferta del catálogo (`CATALOG_OFFER`).
+
+Desactivar una oferta impide nuevos usos o su publicación sin eliminar las referencias existentes ni cambiar automáticamente otros recursos. Archivar una entrada desde `ACTIVE` o `INACTIVE` la retira del flujo normal sin modificar los estados de sus ofertas; desarchivarla la deja en `INACTIVE`.
+
+Una `CatalogEntry` solo puede eliminarse cuando está `ARCHIVED` y ninguna de sus ofertas mantiene referencias vigentes externas. Una `CatalogOffer` solo puede eliminarse individualmente cuando está `INACTIVE`, no está referenciada por una definición vigente mediante `CatalogOfferSource` o `AddOption` de destino `CATALOG_OFFER`, no es el `defaultOfferId` de su entrada y su eliminación no deja una entrada `ACTIVE` sin una oferta `ACTIVE` y válida. Una referencia vigente bloquea también la eliminación de la entrada propietaria de la oferta afectada. `defaultOfferId` impide eliminar individualmente la oferta indicada, pero el vínculo, que pertenece a la entrada, se retira con ella al eliminar la entrada completa. La operación se rechaza sin modificar los recursos referenciantes o crear revisiones nuevas. Las relaciones y estructuras poseídas exclusivamente pueden eliminarse junto con su propietario cuando no hay referencias impeditivas. Las revisiones históricas publicadas, incluida su `CompositionSnapshot`, permanecen inmutables y consultables por `offerId` y `revision`; las referencias que solo permanecen en revisiones históricas no bloquean la eliminación de la definición vigente.
 
 ### Precio declarado por Catálogo
 
@@ -64,6 +68,8 @@ flowchart LR
         Menu[Menu] --> Category[Category]
         Menu --> Entry[CatalogEntry]
         Entry --> Offer[CatalogOffer]
+        Offer -. "publica revisiones" .-> OfferRevision["CatalogOfferRevision<br/>offerId + revision"]
+        OfferRevision --> CompositionSnapshot["CompositionSnapshot<br/>composición publicada inmutable"]
         Offer --> Composition[Composition]
         Composition --> Slot[CompositionSlot]
         Slot --> Option[ComponentOption]
@@ -74,9 +80,8 @@ flowchart LR
         Source --> PrepSource[PREPARATION]
         Source --> OfferSource[CATALOG_OFFER]
         Inline --> InlineRecipe["RecipeDefinition<br/>scope INLINE"]
-        Inline --> CompositionSnapshot["CompositionSnapshot<br/>copia local completa"]
-        Personalizations -. "puede contener" .-> AddOptionInline["AddOption INLINE"]
-        AddOptionInline --> CompositionSnapshot
+        Personalizations -. "puede contener" .-> AddOptionGroup[AddOptionGroup]
+        AddOptionGroup --> AddOption["AddOption<br/>INVENTORY_ITEM | PREPARATION | CATALOG_OFFER"]
         PrepSource --> LibraryRecipe["RecipeDefinition<br/>scope LIBRARY"]
         RecipeLibrary[RecipeLibrary] --> LibraryRecipe
         InlineRecipe --> Ingredient[ComponentIngredient]
@@ -95,8 +100,15 @@ flowchart LR
     ItemSource -. "referencia de identidad" .-> InventoryItem
     Ingredient -. "referencia de identidad" .-> InventoryItem
     OfferSource -. "referencia otra oferta" .-> Offer
+    OfferSource -. "revisión fijada" .-> OfferRevision
+    AddOption -. "INVENTORY_ITEM" .-> InventoryItem
+    AddOption -. "PREPARATION" .-> LibraryRecipe
+    AddOption -. "CATALOG_OFFER" .-> Offer
+    AddOption -. "revisión fijada" .-> OfferRevision
     OrderSelection -. "se rige por composición y alternativas" .-> Composition
 ```
+
+Una referencia vigente desde `CatalogOfferSource` o una `AddOption` `CATALOG_OFFER` impide eliminar la oferta afectada o la entrada que la contiene. El rechazo no desactiva opciones, no modifica los recursos referenciantes y no crea revisiones; `CatalogOfferRevision` y su `CompositionSnapshot` histórica se conservan.
 
 ## Lenguaje para describir una oferta
 
@@ -104,7 +116,7 @@ Una oferta se describe desde la identidad de la carta hasta las alternativas que
 
 ```mermaid
 flowchart TD
-    Offer["CatalogOffer<br/>presentación y basePrice"] --> Composition["Composition<br/>reglas de inclusión"]
+    Offer["CatalogOffer<br/>estado, presentación y basePrice"] --> Composition["Composition<br/>reglas de inclusión"]
     Composition --> Slot["CompositionSlot<br/>posición y cantidad incluida"]
     Slot --> Option["ComponentOption<br/>aparición de contenido"]
     Option --> Source["Un origen de contenido"]
@@ -119,18 +131,19 @@ La vista distingue la regla que incluye una posición del contenido que la ocupa
 
 - **`Menu`:** ámbito propietario de las categorías y entradas comerciales.
 - **`Category`:** clasificación reutilizable del menú que puede relacionarse con varias entradas.
-- **`CatalogEntry`:** identidad comercial de un producto de la carta; conserva `brandName`, categorías y ofertas.
-- **`CatalogOffer`:** presentación vendible de una entrada, con `presentationTag` opcional, `basePrice` y exactamente una composición.
+- **`CatalogEntry`:** identidad comercial de un producto de la carta; conserva `brandName`, categorías, estado y ofertas. Una entrada `ACTIVE` requiere al menos una oferta `ACTIVE` y válida.
+- **`CatalogOffer`:** presentación vendible de una entrada, con estado `ACTIVE` o `INACTIVE`, `presentationTag` opcional, `basePrice` y exactamente una composición; solo se publica bajo una entrada `ACTIVE`.
+- **`CatalogOfferRevision`:** revisión publicada e inmutable de una oferta, consultable por `offerId` y `revision` aunque ya no exista la definición vigente.
 - **`Composition`:** estructura de una oferta que define slots, slots obligatorios y límites para incluir slots elegibles.
-- **`CompositionSnapshot`:** copia local de la composición completa de una revisión de oferta, con sus slots, alternativas y personalizaciones.
+- **`CompositionSnapshot`:** composición publicada e inmutable que pertenece únicamente a una `CatalogOfferRevision` histórica.
 - **`CompositionSlot`:** posición funcional o espacial de una composición, con cantidad incluida y alternativas de contenido.
 - **`PlacementRegion`:** región semántica descriptiva de una composición que puede ser referida por un slot.
 - **`ComponentOption`:** aparición contextual de contenido admitida en un slot, con un origen y personalizaciones opcionales propias.
 - **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INLINE`, `INVENTORY_ITEM`, `PREPARATION` o `CATALOG_OFFER`.
-- **`InlineContent`:** contenido local de una opción con una receta propia o una copia completa de la composición de una oferta.
+- **`InlineContent`:** contenido local de una opción que contiene una receta propia.
 - **`InventoryItemSource`:** contenido que referencia un artículo externo de Inventario con cantidad y unidad.
 - **`PreparationSource`:** contenido que referencia una receta reutilizable y puede tener ajustes locales.
-- **`CatalogOfferSource`:** contenido que referencia otra oferta vendible y conserva su composición.
+- **`CatalogOfferSource`:** contenido que referencia otra oferta vendible y fija la revisión publicada utilizada; una referencia vigente bloquea la eliminación de la oferta o su entrada.
 - **`InventoryItem`:** artículo cuya identidad y existencias pertenecen a Inventario.
 - **`RecipeLibrary`:** colección de recetas reutilizables administrada por Catálogo.
 - **`RecipeDefinition`:** definición de una elaboración con revisión, rendimiento y líneas de ingredientes.
@@ -140,7 +153,7 @@ La vista distingue la regla que incluye una posición del contenido que la ocupa
 - **`RecipeModifierGroup`:** grupo de cambios permitidos sobre ingredientes existentes en la receta efectiva.
 - **`RecipeModifier`:** cambio declarado de cantidad o eliminación de una línea de receta existente, con su `priceDelta`.
 - **`AddOptionGroup`:** grupo que limita las alternativas adicionales seleccionables para una opción incorporada.
-- **`AddOption`:** contenido adicional que referencia un artículo de Inventario, una receta reutilizable o una oferta de Catálogo, o contiene una composición de oferta copiada localmente.
+- **`AddOption`:** contenido adicional que referencia exactamente un artículo de Inventario, una receta reutilizable o una oferta del catálogo (`CATALOG_OFFER`). Una referencia vigente bloquea la eliminación de la oferta o su entrada.
 - **`ReplaceOptionGroup`:** grupo que identifica una línea directa de Inventario de la receta efectiva y sus sustituciones posibles.
 - **`ReplaceOption`:** alternativa de sustitución que referencia un artículo de Inventario.
 - **`PreparationInstructionGroup`:** grupo de instrucciones seleccionables para una preparación o servicio.

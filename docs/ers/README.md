@@ -7,7 +7,7 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 2.1.2 |
+| Versión | 2.1.3 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
 | Alcance | Menu administra la identidad comercial del catálogo, sus ofertas, composición, recetas y personalizaciones. Inventario mantiene la identidad y existencias de sus artículos; el modelo de órdenes registra elecciones y determina el precio final. |
@@ -22,7 +22,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 2. [`../other/md/domain-model.md`](../other/md/domain-model.md) para consultar el modelo conceptual vigente y sus relaciones.
 3. [`context.md`](context.md) para entender el alcance de Menú/Catálogo, su lenguaje y sus límites con Inventario y Órdenes.
 4. [`architechture.md`](architechture.md) para revisar la arquitectura, entidades y diagramas del servicio.
-5. [`functional-requirements.md`](functional-requirements.md) para consultar las 30 capacidades funcionales verificables.
+5. [`functional-requirements.md`](functional-requirements.md) para consultar las 31 capacidades funcionales verificables.
 6. [`non-functional-requirements.md`](non-functional-requirements.md) para consultar los criterios de rendimiento y operación.
 7. [`business-rules.md`](business-rules.md) para consultar las 30 reglas de negocio y 9 invariantes del dominio.
 8. [`open.md`](open.md) para identificar las 8 decisiones de requisitos aún pendientes, incluida OPEN-010.
@@ -36,7 +36,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 | [`../other/md/domain-model.md`](../other/md/domain-model.md) | Modelo conceptual de Menú/Catálogo, composición, contenido, recetas, personalizaciones y límites de dominio. | Interpretar las entidades y relaciones vigentes. |
 | [`context.md`](context.md) | Responsabilidad de Menú/Catálogo, ownership, límites entre contextos y glosario. | Entender qué datos y decisiones pertenecen a cada contexto. |
 | [`architechture.md`](architechture.md) | Modelo del servicio, entidades, relaciones, diagramas y límites arquitectónicos. | Consultar la organización arquitectónica del servicio. |
-| [`functional-requirements.md`](functional-requirements.md) | 30 requisitos `REQ-MENU-*` para categorías, entradas, ofertas, composición, recetas y personalizaciones. | Implementar o revisar las capacidades funcionales solicitadas. |
+| [`functional-requirements.md`](functional-requirements.md) | 31 requisitos `REQ-MENU-*` para categorías, entradas, ofertas, composición, recetas y personalizaciones. | Implementar o revisar las capacidades funcionales solicitadas. |
 | [`non-functional-requirements.md`](non-functional-requirements.md) | Criterios `NFR-MENU-*` de carga, latencia y comportamiento operativo. | Evaluar los objetivos de calidad definidos para el servicio y sus flujos completos. |
 | [`business-rules.md`](business-rules.md) | 30 reglas `BR-MENU-*` y 9 invariantes `INV-MENU-*`. | Validar las restricciones comerciales y la integridad del modelo. |
 | [`open.md`](open.md) | 8 cuestiones de requisitos que requieren una decisión explícita, incluida OPEN-010. | Evitar fijar valores o comportamientos que aún no están determinados. |

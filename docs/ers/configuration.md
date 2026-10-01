@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 2.1.2 (Consolidada Vigente) |
+| Versión | 2.1.3 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-09-30 |
 
@@ -12,7 +12,7 @@
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **2.1.2** (fecha 2026-09-30) conserva de **OPEN-005** las restricciones de contenido y validación atómica de imágenes. Las operaciones, los datos y las representaciones externas de la API quedan pendientes de revisión de los mockups, según **OPEN-010**. Esta versión conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo de las versiones anteriores. Su fuente conceptual principal es [`domain-model.md`](../other/md/domain-model.md), que define el modelo vigente de Menú/Catálogo.
+La versión **2.1.3** (fecha 2026-09-30) conserva de **OPEN-005** las restricciones de contenido y validación atómica de imágenes. Las operaciones, los datos y las representaciones externas de la API quedan pendientes de revisión de los mockups, según **OPEN-010**. Esta versión actualiza el ciclo de vida y la eliminación del catálogo: una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina una entrada ARCHIVED o una oferta INACTIVE cuando no hay referencias vigentes externas; la eliminación individual de una oferta también se rechaza si corresponde a defaultOfferId o si invalidaría una entrada ACTIVE. Estas eliminaciones aplican RESTRICT: ante una restricción, se rechazan sin modificar las definiciones dependientes ni convertir referencias vigentes en INLINE. Las revisiones históricas publicadas permanecen inmutables y consultables. Se conserva además el cierre de entradas archivadas y la base de reespecificación integral del catálogo de las versiones anteriores. Su fuente conceptual principal es [`domain-model.md`](../other/md/domain-model.md), que define el modelo vigente de Menú/Catálogo.
 
 ## Alcance operativo vigente
 

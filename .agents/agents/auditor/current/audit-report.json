@@ -1,6 +1,6 @@
 {
   "verdict": "PASS",
-  "summary": "El candidato actual se limita a los seis archivos permitidos; las rutas legacy de output/contracts ya estaban eliminadas antes de esta edición.",
+  "summary": "Los ocho documentos permitidos satisfacen los criterios auditados; la cardinalidad INLINE y las relaciones de trazabilidad quedaron alineadas.",
   "issues": [],
   "next_action": "NONE"
 }

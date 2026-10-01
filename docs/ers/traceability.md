@@ -11,12 +11,13 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 | `REQ-MENU-ENTRY-001` | Creación de entrada con imagen obligatoria | `BR-MENU-002`, `BR-MENU-003` | `INV-MENU-001` | — |
 | `REQ-MENU-ENTRY-002` | Reemplazo y conservación de la imagen vigente | `BR-MENU-002` | `INV-MENU-001` | — |
 | `REQ-MENU-ENTRY-003` | Estado y archivado de una entrada | `BR-MENU-003`, `BR-MENU-004` | `INV-MENU-002` | — |
-| `REQ-MENU-ENTRY-004` | Eliminación de una entrada archivada | `BR-MENU-003`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-008`, `INV-MENU-009` | — |
+| `REQ-MENU-ENTRY-004` | Eliminación RESTRICT de una entrada archivada | `BR-MENU-003`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-008`, `INV-MENU-009` | — |
 | `REQ-MENU-OFFER-001` | Creación de oferta con imagen obligatoria | `BR-MENU-005`, `BR-MENU-006` | `INV-MENU-001` | — |
 | `REQ-MENU-OFFER-002` | Identidad de entrada y presentación vendible | `BR-MENU-002`, `BR-MENU-005` | — | — |
 | `REQ-MENU-OFFER-003` | Precio base declarado | `BR-MENU-007`, `BR-MENU-027` | `INV-MENU-007` | — |
 | `REQ-MENU-OFFER-004` | Activación de una oferta | `BR-MENU-006` | `INV-MENU-002` | — |
-| `REQ-MENU-OFFER-005` | Referencia reutilizada: revisión con reemplazo y conservación de imagen | `BR-MENU-028`, `BR-MENU-029` | `INV-MENU-008` | — |
+| `REQ-MENU-OFFER-005` | Revisión concreta de oferta referenciada | `BR-MENU-029` | `INV-MENU-008` | — |
+| `REQ-MENU-OFFER-006` | Eliminación RESTRICT de una oferta inactiva | `BR-MENU-004`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-002`, `INV-MENU-008`, `INV-MENU-009` | — |
 | `REQ-MENU-COMP-001` | Composición de una oferta | `BR-MENU-006` | `INV-MENU-002`, `INV-MENU-004` | — |
 | `REQ-MENU-COMP-002` | Inclusión de posiciones | `BR-MENU-008`, `BR-MENU-009`, `BR-MENU-010` | `INV-MENU-003` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
 | `REQ-MENU-COMP-003` | Alternativas de contenido por posición | `BR-MENU-011` | `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
@@ -47,7 +48,7 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 
 ## Decisión resuelta
 
-OPEN-005 queda resuelta para las restricciones de contenido de imagen y el rechazo íntegro de imágenes inválidas; esos criterios se especifican en los requisitos funcionales y se relacionan con `REQ-MENU-ENTRY-001/002` y `REQ-MENU-OFFER-001/005`. El transporte, las operaciones y las representaciones externas de API quedan pendientes bajo OPEN-010 en [cuestiones abiertas](open.md), a la espera de revisar los mockups.
+OPEN-005 queda resuelta para las restricciones de contenido de imagen y el rechazo íntegro de imágenes inválidas; esos criterios se especifican en los requisitos funcionales y se relacionan con `REQ-MENU-ENTRY-001/002` y `REQ-MENU-OFFER-001`. El transporte, las operaciones y las representaciones externas de API quedan pendientes bajo OPEN-010 en [cuestiones abiertas](open.md), a la espera de revisar los mockups.
 
 ## Matriz de reglas de negocio
 
@@ -56,7 +57,7 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `BR-MENU-001` | Clasificación por categorías | `REQ-MENU-CAT-001`, `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-002` |
 | `BR-MENU-002` | Identidad comercial de la entrada | `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-002`, `REQ-MENU-OFFER-002` |
 | `BR-MENU-003` | Ciclo de vida de la entrada | `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-003`, `REQ-MENU-ENTRY-004` |
-| `BR-MENU-004` | Publicación de una entrada | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003` |
+| `BR-MENU-004` | Publicación de una entrada | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003`, `REQ-MENU-OFFER-006` |
 | `BR-MENU-005` | Pertenencia y etiqueta de la oferta | `REQ-MENU-OFFER-001`, `REQ-MENU-OFFER-002` |
 | `BR-MENU-006` | Composición de una oferta | `REQ-MENU-CAT-002`, `REQ-MENU-OFFER-001`, `REQ-MENU-OFFER-004`, `REQ-MENU-COMP-001` |
 | `BR-MENU-007` | Precio base fijo | `REQ-MENU-OFFER-003`, `REQ-MENU-CONT-004` |
@@ -72,7 +73,7 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `BR-MENU-017` | Un solo origen de contenido | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003` |
 | `BR-MENU-018` | Ownership de Inventario | `REQ-MENU-CONT-002`, `REQ-MENU-REC-001` |
 | `BR-MENU-019` | Líneas de receta | `REQ-MENU-CONT-002`, `REQ-MENU-REC-001` |
-| `BR-MENU-020` | Biblioteca y revisiones de receta | `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-REC-003` |
+| `BR-MENU-020` | Biblioteca y revisiones de receta | `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-REC-003` |
 | `BR-MENU-021` | Ajustes administrativos locales | `REQ-MENU-REC-002` |
 | `BR-MENU-022` | Alcance de las personalizaciones | `REQ-MENU-PERS-001`, `REQ-MENU-PERS-002`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-005` |
 | `BR-MENU-023` | Modificación o retiro de ingredientes | `REQ-MENU-PERS-002` |
@@ -80,23 +81,23 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `BR-MENU-025` | Sustitución de ingrediente | `REQ-MENU-PERS-004` |
 | `BR-MENU-026` | Instrucciones de preparación | `REQ-MENU-PERS-005` |
 | `BR-MENU-027` | Ajustes de precio declarados | `REQ-MENU-OFFER-003`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-006` |
-| `BR-MENU-028` | Referencias recursivas | `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-004` |
-| `BR-MENU-029` | Revisión de ofertas referenciadas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-004` |
-| `BR-MENU-030` | Eliminación y conversión de referencias vigentes | `REQ-MENU-ENTRY-004`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-003` |
+| `BR-MENU-028` | Referencias recursivas | `REQ-MENU-CONT-004` |
+| `BR-MENU-029` | Revisión de ofertas referenciadas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-OFFER-006` |
+| `BR-MENU-030` | Eliminación RESTRICT y referencias vigentes | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-006`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-003` |
 
 ## Matriz de invariantes de integridad
 
 | Identificador | Invariante | Requisitos funcionales relacionados |
 | :--- | :--- | :--- |
 | `INV-MENU-001` | Pertenencia al menú | `REQ-MENU-CAT-001`, `REQ-MENU-ENTRY-001`, `REQ-MENU-ENTRY-002`, `REQ-MENU-OFFER-001` |
-| `INV-MENU-002` | Publicación válida | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003`, `REQ-MENU-OFFER-004`, `REQ-MENU-COMP-001` |
+| `INV-MENU-002` | Publicación válida | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003`, `REQ-MENU-OFFER-004`, `REQ-MENU-OFFER-006`, `REQ-MENU-COMP-001` |
 | `INV-MENU-003` | Integridad de selección | `REQ-MENU-COMP-002` |
 | `INV-MENU-004` | Contenido determinado | `REQ-MENU-COMP-001`, `REQ-MENU-COMP-003`, `REQ-MENU-COMP-004`, `REQ-MENU-CONT-001` |
 | `INV-MENU-005` | Referencia íntegra de contenido de Inventario y receta | `REQ-MENU-CONT-002`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-PERS-002`, `REQ-MENU-PERS-004` |
 | `INV-MENU-006` | Personalizaciones aisladas | `REQ-MENU-PERS-001`, `REQ-MENU-PERS-002`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-005` |
 | `INV-MENU-007` | Separación de precio | `REQ-MENU-OFFER-003`, `REQ-MENU-PERS-003`, `REQ-MENU-PERS-004`, `REQ-MENU-PERS-006` |
-| `INV-MENU-008` | Referencias acíclicas e históricas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-004`, `REQ-MENU-REC-001`, `REQ-MENU-REC-003` |
-| `INV-MENU-009` | Eliminación sin referencias vigentes colgantes | `REQ-MENU-ENTRY-004`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-003` |
+| `INV-MENU-008` | Referencias acíclicas e históricas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-OFFER-006`, `REQ-MENU-CONT-004`, `REQ-MENU-REC-001`, `REQ-MENU-REC-003` |
+| `INV-MENU-009` | Eliminación sin referencias vigentes colgantes | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-006`, `REQ-MENU-CONT-004`, `REQ-MENU-PERS-003` |
 
 ## Criterio de mantenimiento
 
