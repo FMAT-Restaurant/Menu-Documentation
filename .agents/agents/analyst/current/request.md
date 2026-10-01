@@ -1,1 +1,11 @@
-Solicitud nueva: prepara IntegrationPlan/editor-task para modificar exclusivamente el README.md raíz y dejarlo breve, en español, como índice de la documentación publicada. Usa la URL configurada `https://fmat-restaurant.github.io/Menu-Documentation/` y enumera las URLs directas de todos los apartados vigentes: nueve documentos ERS en orden, modelo conceptual `/reference/md/domain-model/`, índice de producto + MVP-1/2/3 + trazabilidad, referencia Scalar `/api/` y Eventos `/events/` marcado Pendiente. Confirma antes que las rutas existen en el build fuente y que baseUrl/config las respaldan. Quita el README antiguo con su estructura ya obsoleta; no modifiques ningún otro archivo y no cambies .gitignore. Solo análisis/plan, sin editar README.
+# Solicitud original
+
+> crea los issues para cubrir las tareas funcionales de [mvp-01-catalogo-publicable.md](docs/product/mvp-01-catalogo-publicable.md) solo esos de momento, guiate respecto a como las otras issues se han creado (los tags, la descripción, etc). La documentación para que puedas ir referenciando en las tareas está en:
+>
+> [https://fmat-restaurant.github.io/Menu-Documentation/](https://fmat-restaurant.github.io/Menu-Documentation/)
+
+Contexto de la conversación: el repositorio previamente mencionado es `FMAT-Restaurant/Menu-Frontend`.
+
+# Corrección posterior del usuario
+
+> me equivoque, las "fundacionales" nada más, solo quiero ver como lo haces para ver que peo

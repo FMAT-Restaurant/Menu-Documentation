@@ -12,9 +12,7 @@ const stagedStaticRoot = path.join(stagingRoot, 'static');
 
 const sourceFolders = new Map([
   ['ers', 'specification'],
-  ['product', 'product'],
   ['other', 'reference'],
-  ['contracts', 'contracts'],
 ]);
 
 const ersSidebarPositions = new Map([
@@ -165,7 +163,7 @@ function markdownLink(label, destination) {
 
 function staticRouteForSourceFile(sourceRelativePath) {
   const relativePath = toPosix(sourceRelativePath);
-  if (relativePath.startsWith('contracts/') || relativePath.startsWith('assets/')) {
+  if (relativePath.startsWith('assets/')) {
     return `/${relativePath}`;
   }
   return null;
@@ -288,13 +286,8 @@ function resolveLocalDestination(sourceFile, sourceStagedPath, urlPath, sourceGr
     return { value: relativeLink || path.posix.basename(stagedAsset) };
   }
 
-  if (targetRelativePath.startsWith('contracts/')) {
-    const staticRoute = `/${targetRelativePath}`;
-    return { value: staticRoute };
-  }
-
   if (sourceGroup === 'other') return { unresolved: true, reason: 'non-Markdown legacy asset is not staged' };
-  return { unresolved: true, reason: 'target is not a published Markdown or contract asset' };
+  return { unresolved: true, reason: 'target is not a published Markdown asset' };
 }
 
 function rewriteDestination(sourceFile, sourceStagedPath, destination, sourceGroup, missingLinks) {
@@ -321,7 +314,7 @@ function rewriteDestination(sourceFile, sourceStagedPath, destination, sourceGro
     const relative = toPosix(path.relative(sourceDocsRoot, sourceFile));
     const detail = `${relative} -> ${urlPath} (${resolved.reason})`;
     missingLinks.push({ group: sourceGroup, detail });
-    if (sourceGroup === 'ers' || sourceGroup === 'product' || sourceGroup === 'contracts') {
+    if (sourceGroup === 'ers') {
       throw new Error(`Unresolvable documentation link: ${detail}`);
     }
     return destination;
@@ -342,117 +335,6 @@ function rewriteMarkdown(markdown, sourceFile, sourceStagedPath, sourceGroup, mi
     `${prefix}${rewriteDestination(sourceFile, sourceStagedPath, destination, sourceGroup, missingLinks)}${suffix}`,
   );
   return result;
-}
-
-function transformRawRestPathsOutsideInlineCode(text) {
-  const rawRestPathPattern = /(?<![A-Za-z0-9_./:-])\/[A-Za-z0-9._~!$&'*+,;=:@%{}-]+(?:\/[A-Za-z0-9._~!$&'*+,;=:@%{}-]+)*\/?/g;
-  const bareRestResourcePaths = new Set(['/menus', '/entries', '/recipe-libraries']);
-  return text.replace(rawRestPathPattern, (match) => {
-    const trailingPunctuation = match.match(/[.,;:!?]+$/)?.[0] ?? '';
-    const path = trailingPunctuation ? match.slice(0, -trailingPunctuation.length) : match;
-    const normalizedPath = path.replace(/\/+$/, '') || '/';
-    const hasPathParameter = /(?:^|\/)\{[^/{}\s]+\}(?:\/|$)/.test(path);
-    if (!hasPathParameter && !bareRestResourcePaths.has(normalizedPath)) return match;
-    return `\`${path}\`${trailingPunctuation}`;
-  });
-}
-
-function findInlineCodeClosingRun(line, searchFrom, delimiterLength) {
-  let candidateStart = line.indexOf('`', searchFrom);
-  while (candidateStart >= 0) {
-    let candidateEnd = candidateStart;
-    while (line[candidateEnd] === '`') candidateEnd += 1;
-    if (candidateEnd - candidateStart === delimiterLength) return candidateStart;
-    candidateStart = line.indexOf('`', candidateEnd);
-  }
-  return -1;
-}
-
-function transformRawRestPathsOutsideInlineCodeSpans(line, inlineCodeState) {
-  let result = '';
-  let cursor = 0;
-
-  while (cursor < line.length) {
-    if (inlineCodeState.delimiterLength !== null) {
-      const closingStart = findInlineCodeClosingRun(line, cursor, inlineCodeState.delimiterLength);
-      if (closingStart < 0) {
-        return result + line.slice(cursor);
-      }
-      const closingEnd = closingStart + inlineCodeState.delimiterLength;
-      result += line.slice(cursor, closingEnd);
-      cursor = closingEnd;
-      inlineCodeState.delimiterLength = null;
-      continue;
-    }
-
-    const tickStart = line.indexOf('`', cursor);
-    if (tickStart < 0) {
-      result += transformRawRestPathsOutsideInlineCode(line.slice(cursor));
-      break;
-    }
-
-    result += transformRawRestPathsOutsideInlineCode(line.slice(cursor, tickStart));
-    let delimiterEnd = tickStart;
-    while (line[delimiterEnd] === '`') delimiterEnd += 1;
-    const delimiterLength = delimiterEnd - tickStart;
-    const closingStart = findInlineCodeClosingRun(line, delimiterEnd, delimiterLength);
-
-    if (closingStart < 0) {
-      result += line.slice(tickStart);
-      inlineCodeState.delimiterLength = delimiterLength;
-      break;
-    }
-
-    const closingEnd = closingStart + delimiterLength;
-    result += line.slice(tickStart, closingEnd);
-    cursor = closingEnd;
-  }
-
-  return result;
-}
-
-function transformRawRestPathPlaceholders(markdown) {
-  const chunks = markdown.split(/(\r?\n)/);
-  let activeFence = null;
-  const inlineCodeState = { delimiterLength: null };
-
-  for (let index = 0; index < chunks.length; index += 2) {
-    const line = chunks[index];
-    if (activeFence) {
-      const closingFence = line.match(/^ {0,3}(`+|~+)\s*$/);
-      if (
-        closingFence &&
-        closingFence[1][0] === activeFence.character &&
-        closingFence[1].length >= activeFence.length
-      ) {
-        activeFence = null;
-      }
-      continue;
-    }
-
-    if (inlineCodeState.delimiterLength === null) {
-      const openingFence = line.match(/^ {0,3}(`{3,}|~{3,})/);
-      if (openingFence) {
-        activeFence = { character: openingFence[1][0], length: openingFence[1].length };
-        continue;
-      }
-    }
-
-    chunks[index] = transformRawRestPathsOutsideInlineCodeSpans(line, inlineCodeState);
-  }
-
-  return chunks.join('');
-}
-
-function copyContractAssets() {
-  const contractsRoot = path.join(sourceDocsRoot, 'contracts');
-  for (const file of walk(contractsRoot)) {
-    if (path.extname(file).toLowerCase() === '.md') continue;
-    const relativePath = path.relative(contractsRoot, file);
-    const target = path.join(stagedStaticRoot, 'contracts', relativePath);
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.copyFileSync(file, target);
-  }
 }
 
 function copyReferenceSourceMarkdown() {
@@ -490,27 +372,21 @@ for (const sourceFile of markdownFiles) {
 
   let content = fs.readFileSync(sourceFile, 'utf8');
   content = rewriteMarkdown(content, sourceFile, sourceStagedPath, sourceGroup, missingLinks);
-  if (sourceRelativePath === path.join('contracts', 'api-contract.md')) {
-    content = transformRawRestPathPlaceholders(content);
-  }
-
   const normalizedSourcePath = toPosix(sourceRelativePath);
   const frontmatterValues = {};
   const sidebarPosition = ersSidebarPositions.get(normalizedSourcePath);
   if (sidebarPosition !== undefined) frontmatterValues.sidebar_position = sidebarPosition;
   if (normalizedSourcePath === 'ers/README.md') frontmatterValues.slug = '/specification/';
-  if (normalizedSourcePath === 'product/README.md') frontmatterValues.slug = '/product/';
   if (Object.keys(frontmatterValues).length) content = mergeFrontmatter(content, frontmatterValues);
   fs.writeFileSync(target, content, 'utf8');
 }
 
 const sourceAssets = path.join(sourceDocsRoot, 'assets');
 if (fs.existsSync(sourceAssets)) fs.cpSync(sourceAssets, path.join(stagedDocsRoot, 'assets'), { recursive: true });
-copyContractAssets();
 copyReferenceSourceMarkdown();
 
-const bundleSource = path.join(sourceDocsRoot, 'contracts', 'api', 'dist', 'openapi.yaml');
-if (!fs.existsSync(bundleSource)) throw new Error(`Missing canonical OpenAPI bundle: ${bundleSource}`);
+const bundleSource = path.join(sourceDocsRoot, 'apis', 'menu', 'dist', 'openapi.yaml');
+if (!fs.existsSync(bundleSource)) throw new Error(`Missing API reference bundle: ${bundleSource}`);
 const bundleTarget = path.join(stagedStaticRoot, 'api', 'openapi.yaml');
 fs.mkdirSync(path.dirname(bundleTarget), { recursive: true });
 fs.copyFileSync(bundleSource, bundleTarget);
@@ -523,5 +399,5 @@ if (legacyLinks.length) {
 
 console.log(`Prepared ${markdownFiles.length} Markdown documents in ${stagingRoot}.`);
 console.log(`Copied ${archivedOtherMarkdown.size} historical Markdown source file(s) as static .md.txt assets.`);
-console.log('Routes: /specification/, /product/, /reference/, and /contracts/.');
+console.log('Routes: /specification/, /reference/, and /api/.');
 console.log('OpenAPI bundle: static/api/openapi.yaml.');

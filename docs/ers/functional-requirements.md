@@ -2,16 +2,14 @@
 
 Esta sección define las capacidades observables que el servicio Menu debe ofrecer para administrar el catálogo comercial. Los requisitos describen las necesidades del administrador y de quienes consultan el catálogo; las reglas de dominio relacionadas se enlazan en [business-rules.md](business-rules.md).
 
-## Criterio común para imágenes (OPEN-005 resuelto)
+## Criterio común para imágenes
 
-- Crear una entrada requiere `multipart/form-data` con metadatos JSON en la parte `entry` y el archivo obligatorio en `image`. Para editar una entrada, se puede enviar JSON cuando no se adjunta imagen o `multipart/form-data` con `entry` opcional y `image` opcional; en multipart debe enviarse al menos una de esas partes. Omitir `image` conserva `imageRef`.
-- Crear una oferta requiere `multipart/form-data` con metadatos JSON en `offer` y el archivo obligatorio en `image`. Crear una nueva revisión de oferta admite JSON cuando no cambia la imagen o `multipart/form-data` con `offer` JSON e `image` opcional. Omitir `image` conserva `offerImageRef`.
+- Crear una entrada requiere una imagen. Al editarla, la imagen puede reemplazarse; si no se cambia, se conserva la imagen vigente.
+- Crear una oferta requiere una imagen. Al crear una revisión, la imagen puede reemplazarse; si no se cambia, se conserva la imagen vigente.
 - Solo se admiten JPEG, PNG y WebP, con tamaño máximo de 10 MiB y ancho y alto máximos de 4096 px cada uno. El servicio valida el contenido real del archivo, no solo el tipo declarado.
-- Un formato no admitido produce 415. Una imagen inválida o no decodificable, que exceda el tamaño o cualquiera de las dimensiones máximas produce 422. El rechazo es íntegro: no crea el recurso ni la revisión, no aplica los demás cambios de la solicitud y conserva la referencia de imagen vigente.
-- Las respuestas de escritura y las consultas permanecen en JSON; `imageRef` y `offerImageRef` son referencias y no se devuelven bytes de imagen.
-- El Front limita los tipos, el tamaño y las dimensiones antes del envío y presenta los errores para que puedan corregirse y reintentarse.
+- Una imagen inválida o no decodificable, que exceda el tamaño o cualquiera de las dimensiones máximas, se rechaza. El rechazo es íntegro: no crea el recurso ni la revisión, no aplica cambios parciales y conserva la imagen vigente.
 
-El contrato HTTP aceptado detalla esta decisión en [Contrato de API del servicio Menu](../contracts/api-contract.md).
+El transporte, las operaciones y la representación de datos de la API quedan pendientes de revisar los mockups y se registran en [OPEN-010](open.md).
 
 ## Categorías y entradas del catálogo
 
@@ -23,7 +21,7 @@ El contrato HTTP aceptado detalla esta decisión en [Contrato de API del servici
 ### REQ-MENU-CAT-002 — Consulta del catálogo publicable
 
 - **Requisito:** El sistema deberá presentar las entradas y ofertas que estén activas y cumplan las condiciones de publicación del catálogo. La presentación deberá permitir reconocer cuál es la identidad comercial del producto y cuáles son sus ofertas vendibles.
-- **Criterio de aceptación:** Una entrada incompleta o inactiva no se presenta como oferta vigente. Una entrada activa con una oferta válida presenta esa oferta y su precio declarado; las ofertas de una misma entrada se distinguen entre sí. Las consultas conservan las representaciones JSON existentes y sus referencias `imageRef` y `offerImageRef`, sin devolver bytes de imagen ni alterar los demás comportamientos de consulta.
+- **Criterio de aceptación:** Una entrada incompleta o inactiva no se presenta como oferta vigente. Una entrada activa con una oferta válida presenta esa oferta y su precio declarado; las ofertas de una misma entrada se distinguen entre sí.
 
 ### REQ-MENU-ENTRY-001 — Creación de una entrada
 
@@ -33,7 +31,7 @@ El contrato HTTP aceptado detalla esta decisión en [Contrato de API del servici
 ### REQ-MENU-ENTRY-002 — Edición de una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador cambiar el nombre comercial, la descripción, la imagen y las categorías de una entrada existente.
-- **Criterio de aceptación:** La imagen puede reemplazarse al editar; si se omite, se conserva `imageRef` vigente. Tras guardar los cambios, la entrada muestra los valores actualizados y permanece asociada únicamente a categorías del menú al que pertenece.
+- **Criterio de aceptación:** La imagen puede reemplazarse al editar; si no se cambia, se conserva la imagen vigente. Tras guardar los cambios, la entrada muestra los valores actualizados y permanece asociada únicamente a categorías del menú al que pertenece.
 
 ### REQ-MENU-ENTRY-003 — Estado y archivado de una entrada
 
@@ -70,7 +68,7 @@ El contrato HTTP aceptado detalla esta decisión en [Contrato de API del servici
 ### REQ-MENU-OFFER-005 — Referencia a una oferta reutilizada
 
 - **Requisito:** Cuando una oferta se utilice como contenido dentro de otra, el sistema deberá permitir identificar la versión publicada de la oferta referenciada que forma parte de la composición.
-- **Criterio de aceptación:** La actualización de la definición comercial se realiza mediante una nueva revisión; puede omitirse la imagen, en cuyo caso se conserva `offerImageRef` vigente. Una actualización de la oferta referenciada no cambia por sí sola la composición publicada que ya la utiliza; cualquier adopción de una versión posterior queda identificada. Las revisiones publicadas previamente permanecen intactas. Tras eliminar la entrada propietaria, las referencias históricas conservan la revisión fijada y la fotografía correspondiente permanece consultable.
+- **Criterio de aceptación:** La actualización de la definición comercial se realiza mediante una nueva revisión; si no se cambia la imagen, se conserva la imagen vigente. Una actualización de la oferta referenciada no cambia por sí sola la composición publicada que ya la utiliza; cualquier adopción de una versión posterior queda identificada. Las revisiones publicadas previamente permanecen intactas. Tras eliminar la entrada propietaria, las referencias históricas conservan la revisión fijada y la fotografía correspondiente permanece consultable.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 

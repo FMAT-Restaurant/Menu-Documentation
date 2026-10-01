@@ -2,6 +2,8 @@ extends:
   - recommended
 
 rules:
+  # Temporary for the empty reference; re-enable when OPEN-010 defines the API server.
+  no-empty-servers: off
   security-defined: off
   no-unresolved-refs: error
   operation-operationId: error

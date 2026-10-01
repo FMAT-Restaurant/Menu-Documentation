@@ -1,0 +1,28 @@
+name: API reference source
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Bundle OpenAPI reference source for Scalar
+        run: npx --yes @redocly/cli@2.54.2 bundle docs/apis/menu/openapi.yaml --output docs/apis/menu/dist/openapi.yaml --ext yaml
+
+      - name: Check generated OpenAPI bundle is up to date
+        run: git diff --exit-code -- docs/apis/menu/dist/openapi.yaml
+
+      - name: Lint OpenAPI reference source
+        run: npx --yes @redocly/cli@2.54.2 lint --config redocly.yaml docs/apis/menu/openapi.yaml

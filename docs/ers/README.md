@@ -7,14 +7,14 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 2.1.1 |
+| Versión | 2.1.2 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
 | Alcance | Menu administra la identidad comercial del catálogo, sus ofertas, composición, recetas y personalizaciones. Inventario mantiene la identidad y existencias de sus artículos; el modelo de órdenes registra elecciones y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
-> **Cierre de OPEN-005:** los criterios para cargar imágenes al crear o actualizar una entrada, crear una oferta y crear una nueva revisión de oferta quedan especificados en los requisitos funcionales y trazados en [`traceability.md`](traceability.md). Permanecen pendientes únicamente OPEN-001, OPEN-002, OPEN-003, OPEN-006, OPEN-007, OPEN-008 y OPEN-009.
+> **OPEN-005:** se conservan las restricciones de contenido y validación atómica de imágenes, especificadas en los requisitos funcionales y trazadas en [`traceability.md`](traceability.md). El transporte y la representación externa no se fijan ahora; las operaciones, datos y representaciones de la API quedan pendientes en OPEN-010 después de revisar los mockups. Permanecen pendientes OPEN-001, OPEN-002, OPEN-003, OPEN-006, OPEN-007, OPEN-008, OPEN-009 y OPEN-010.
 
 ## Ruta de lectura recomendada
 
@@ -25,7 +25,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 5. [`functional-requirements.md`](functional-requirements.md) para consultar las 30 capacidades funcionales verificables.
 6. [`non-functional-requirements.md`](non-functional-requirements.md) para consultar los criterios de rendimiento y operación.
 7. [`business-rules.md`](business-rules.md) para consultar las 30 reglas de negocio y 9 invariantes del dominio.
-8. [`open.md`](open.md) para identificar las 7 decisiones de requisitos aún pendientes.
+8. [`open.md`](open.md) para identificar las 8 decisiones de requisitos aún pendientes, incluida OPEN-010.
 9. [`traceability.md`](traceability.md) para consultar las relaciones entre requisitos, reglas, invariantes y criterios no funcionales.
 
 ## Mapa de documentos
@@ -39,7 +39,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 | [`functional-requirements.md`](functional-requirements.md) | 30 requisitos `REQ-MENU-*` para categorías, entradas, ofertas, composición, recetas y personalizaciones. | Implementar o revisar las capacidades funcionales solicitadas. |
 | [`non-functional-requirements.md`](non-functional-requirements.md) | Criterios `NFR-MENU-*` de carga, latencia y comportamiento operativo. | Evaluar los objetivos de calidad definidos para el servicio y sus flujos completos. |
 | [`business-rules.md`](business-rules.md) | 30 reglas `BR-MENU-*` y 9 invariantes `INV-MENU-*`. | Validar las restricciones comerciales y la integridad del modelo. |
-| [`open.md`](open.md) | 7 cuestiones de requisitos que requieren una decisión explícita. | Evitar fijar valores o comportamientos que aún no están determinados. |
+| [`open.md`](open.md) | 8 cuestiones de requisitos que requieren una decisión explícita, incluida OPEN-010. | Evitar fijar valores o comportamientos que aún no están determinados. |
 | [`traceability.md`](traceability.md) | Matrices de los requisitos, reglas, invariantes y criterios no funcionales. | Auditar cobertura e integridad de las referencias normativas. |
 
 ## Límites de responsabilidad destacados

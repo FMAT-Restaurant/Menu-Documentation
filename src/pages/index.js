@@ -10,21 +10,21 @@ const destinations = [
     action: 'Leer la especificación',
   },
   {
-    title: 'MVPs',
-    to: '/product/',
-    description: 'Roadmap y planes de implementación organizados en tres entregas.',
-    action: 'Explorar los MVPs',
+    title: 'Modelo conceptual',
+    to: '/reference/md/domain-model/',
+    description: 'Entidades, relaciones y reglas estructurales del catálogo.',
+    action: 'Consultar el modelo',
   },
   {
     title: 'API',
     to: '/api/',
-    description: 'Contrato HTTP vigente y referencia interactiva de sus operaciones.',
-    action: 'Consultar el contrato API',
+    description: 'La página de referencia se mantiene; las operaciones y los datos se definirán tras revisar los mockups.',
+    action: 'Consultar la referencia API',
   },
   {
     title: 'Eventos',
     to: '/events/',
-    description: 'La definición de eventos y su contrato aún están pendientes.',
+    description: 'La definición de eventos permanece pendiente.',
     action: 'Consultar el estado',
     status: 'Pendiente',
   },
@@ -43,7 +43,7 @@ export default function HomePage() {
             Restaurant Platform
           </h1>
           <p className={styles.intro}>
-            Consulta los requisitos, las entregas planeadas y los contratos vigentes del servicio Menu/Catálogo.
+            Consulta los requisitos, el modelo conceptual y el estado de las referencias del servicio Menu/Catálogo.
           </p>
         </section>
 

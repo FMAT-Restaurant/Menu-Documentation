@@ -4,15 +4,19 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 2.1.1 (Consolidada Vigente) |
+| Versión | 2.1.2 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
-| Fecha | 2026-09-29 |
+| Fecha | 2026-09-30 |
 
 ## Identificación y Propósito
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **2.1.1** (fecha 2026-09-29) incorpora el cierre de **OPEN-005**: la creación y actualización que carga imágenes de entradas u ofertas usa `multipart/form-data`; se admiten JPEG, PNG y WebP, con máximos de 10 MiB y 4096 × 4096 px. Un formato no admitido produce 415; una imagen inválida, demasiado grande o fuera de dimensiones produce 422. El rechazo es íntegro y no aplica cambios parciales. Las respuestas de escritura y las consultas conservan las referencias JSON `imageRef` y `offerImageRef`; el formato de solicitud de datos y las representaciones de lectura permanecen sin cambios. Esta versión conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo de las versiones anteriores. Su fuente conceptual principal es [`domain-model.md`](../other/md/domain-model.md), que define el modelo vigente de Menú/Catálogo.
+La versión **2.1.2** (fecha 2026-09-30) conserva de **OPEN-005** las restricciones de contenido y validación atómica de imágenes. Las operaciones, los datos y las representaciones externas de la API quedan pendientes de revisión de los mockups, según **OPEN-010**. Esta versión conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo de las versiones anteriores. Su fuente conceptual principal es [`domain-model.md`](../other/md/domain-model.md), que define el modelo vigente de Menú/Catálogo.
+
+## Alcance operativo vigente
+
+El alcance esperado para esta versión es un `Menu` —el catálogo completo— por sucursal, provisionado mediante configuración al instalar la sucursal. Esta versión no contempla administración de menús. Este alcance operativo no modifica las entidades ni las invariantes del dominio vigente, no agrega `Branch` ni `Tenant` al dominio y conserva `Menu` tal como está definido en [`domain-model.md`](../other/md/domain-model.md).
 
 ## Autoridad Temporal y Semántica de las Fuentes
 
@@ -36,5 +40,5 @@ Las fuentes siguientes registran el análisis y las decisiones del proyecto. El 
 La especificación vigente se aplica con este orden de autoridad:
 
 - El [modelo conceptual vigente](../other/md/domain-model.md) define el dominio autoritativo de Menú/Catálogo: entidades, relaciones, reglas de composición, contenido, recetas, personalizaciones, precios declarados y límites con otros contextos.
-- Los documentos normativos de esta ERS en `docs/ers/` desarrollan y precisan ese modelo: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md), [reglas de negocio](business-rules.md), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos, reglas y criterios vigentes rigen la especificación; OPEN-005 está cerrada y sus criterios de carga de imágenes quedan especificados en los requisitos funcionales y trazados en el documento de trazabilidad.
+- Los documentos normativos de esta ERS en `docs/ers/` desarrollan y precisan ese modelo: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md), [reglas de negocio](business-rules.md), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos, reglas y criterios vigentes rigen la especificación; OPEN-005 conserva las restricciones de contenido y validación atómica de imágenes en los requisitos funcionales y su trazabilidad. Las operaciones y representaciones externas de API quedan pendientes bajo OPEN-010.
 - Las fuentes históricas enumeradas arriba aportan contexto sobre la evolución y las decisiones del proyecto; no constituyen norma vigente ni prevalecen sobre el modelo conceptual y los documentos normativos actuales.

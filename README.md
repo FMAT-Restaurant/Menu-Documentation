@@ -1,6 +1,6 @@
 # Documentación de Restaurant Platform
 
-Índice del sitio de documentación del servicio Menu/Catálogo: requisitos, planes de entrega y contratos publicados.
+Índice del sitio de documentación del servicio Menu/Catálogo: requisitos, modelo de dominio y referencias.
 
 [Inicio del sitio de documentación](https://fmat-restaurant.github.io/Menu-Documentation/)
 
@@ -20,15 +20,7 @@
 
 [Modelo conceptual](https://fmat-restaurant.github.io/Menu-Documentation/reference/md/domain-model/)
 
-## Producto
-
-1. [Roadmap y planes de implementación de Menu](https://fmat-restaurant.github.io/Menu-Documentation/product/)
-2. [MVP-1 — Catálogo publicable](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)
-3. [MVP-2 — Recetas y reutilización](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-02-recetas-y-reutilizacion/)
-4. [MVP-3 — Personalizaciones y retiro seguro](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-03-personalizaciones-y-retiro-seguro/)
-5. [Trazabilidad de requisitos a tareas de MVP](https://fmat-restaurant.github.io/Menu-Documentation/product/traceability/)
-
 ## Referencias
 
-- [Referencia interactiva de API (Scalar)](https://fmat-restaurant.github.io/Menu-Documentation/api/)
+- [Referencia interactiva de API (Scalar; contenido pendiente de mockups)](https://fmat-restaurant.github.io/Menu-Documentation/api/)
 - [Eventos — Pendiente](https://fmat-restaurant.github.io/Menu-Documentation/events/)

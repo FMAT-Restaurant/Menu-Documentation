@@ -7,11 +7,11 @@
   },
   "scripts": {
     "lint:mermaid": "node tools/validate-mermaid.mjs",
-    "api:serve": "redocly preview docs/contracts/api/openapi.yaml",
-    "api:lint": "redocly lint docs/contracts/api/openapi.yaml",
-    "api:lint.generate.ignore.file": "redocly lint docs/contracts/api/openapi.yaml --generate-ignore-file",
-    "api:bundle": "redocly bundle docs/contracts/api/openapi.yaml --output docs/contracts/api/dist/openapi.yaml --ext yaml",
-    "api:docs": "redocly build-docs docs/contracts/api/openapi.yaml",
+    "api:serve": "redocly preview docs/apis/menu/openapi.yaml",
+    "api:lint": "redocly lint docs/apis/menu/openapi.yaml",
+    "api:lint.generate.ignore.file": "redocly lint docs/apis/menu/openapi.yaml --generate-ignore-file",
+    "api:bundle": "redocly bundle docs/apis/menu/openapi.yaml --output docs/apis/menu/dist/openapi.yaml --ext yaml",
+    "api:docs": "redocly build-docs docs/apis/menu/openapi.yaml",
     "docs:prepare": "pnpm run api:bundle && node tools/prepare-documentation-site.mjs",
     "docs:dev": "pnpm run docs:prepare && docusaurus start",
     "docs:build": "pnpm run docs:prepare && docusaurus build"

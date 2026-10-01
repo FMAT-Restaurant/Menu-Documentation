@@ -1,103 +1,117 @@
 {
-  "change_id": "root-readme-published-documentation-index",
-  "objective": "Sustituir exclusivamente el README.md raíz por un índice breve en español de todos los apartados vigentes del sitio publicado bajo https://fmat-restaurant.github.io/Menu-Documentation/.",
+  "change_id": "mvp1-foundational-issues-menu-frontend",
+  "objective": "Crear únicamente los cuatro issues fundacionales faltantes MVP1-T005..T008 en FMAT-Restaurant/Menu-Frontend. MVP1-T001..T004 ya existen y no se duplican.",
   "decisions": [
     {
       "id": "D1",
-      "decision": "docusaurus.config.js configura url https://fmat-restaurant.github.io y baseUrl /Menu-Documentation/; las URLs del README serán absolutas con esa base."
+      "decision": "La corrección del usuario limita la solicitud a la sección 2, tareas fundacionales MVP1-T001..T008. Se excluyen tareas funcionales y NFR."
     },
     {
       "id": "D2",
-      "decision": "La comprobación read-only del build confirmó 17 destinos: nueve ERS en orden, modelo conceptual, cinco de producto, Scalar y Events. La ruta /events/ existe pero su página indica estado Pendiente."
+      "decision": "La instrucción conversacional previa identifica FMAT-Restaurant/Menu-Frontend como repositorio de destino; ese destino se aplica también a las tareas Back T005..T008. El equipo Back se indica explícitamente en cada cuerpo."
     },
     {
       "id": "D3",
-      "decision": "Reemplazar el contenido obsoleto del README raíz en lugar de corregir su árbol histórico; el nuevo documento será índice breve, no descripción técnica del repositorio."
+      "decision": "Los issues #5..#8 ya representan T001..T004. Los estados de #6 y #7 son cerrado, sin que ello justifique duplicarlos."
+    },
+    {
+      "id": "D4",
+      "decision": "El patrón observado en #3, #5..#8 usa Task ID al inicio del título, descripción basada en el plan, criterios de aceptación y referencias cuando aplican. La etiqueta enhancement se aplica a los cuatro nuevos issues; las decisiones técnicas abiertas permanecen abiertas."
+    },
+    {
+      "id": "D5",
+      "decision": "Consulta actual de todos los issues del repositorio: #5..#8 ya cubren T001..T004; ninguno de T005..T008 existe. Repetir la búsqueda justo antes de cada creación."
     }
   ],
   "permitted_writes": [
-    "README.md"
+    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T005",
+    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T006",
+    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T007",
+    "github:FMAT-Restaurant/Menu-Frontend#MVP1-T008"
   ],
   "invariants": [
-    "No modificar ningún archivo salvo README.md; en particular no tocar .gitignore, docs, build, configuración, workflows o cambios dirty preexistentes.",
-    "No presentar Eventos como contrato publicado: enlazar la página y marcarla Pendiente.",
-    "Conservar los slugs `architechture` y nombres de MVP exactamente como existen en el build, aunque su ortografía o estilo difieran."
+    "Solo crear T005..T008 en FMAT-Restaurant/Menu-Frontend y verificar ausencia de duplicados inmediatamente antes de cada creación.",
+    "No modificar T001..T004 ni crear T009..T048.",
+    "No asignar assignees, milestone o GitHub Project sin instrucción explícita.",
+    "No escribir archivos del repositorio documental, AGENTS.md ni .gitignore.",
+    "No cerrar preguntas abiertas de persistencia, topología, AuthN/AuthZ o CD mediante el texto de los issues.",
+    "Tras cada creación, consultar el issue por su número y verificar título, cuerpo, Equipo Back, etiqueta enhancement, referencia publicada y ausencia de duplicados de Task ID."
   ],
   "affected_files": [
     {
+      "path": "docs/product/mvp-01-catalogo-publicable.md",
+      "operation": "VERIFY",
+      "instructions": [
+        "Confirmar sección 2 y copiar los títulos y descripciones de T005..T008 exactamente; no modificar."
+      ],
+      "acceptance": [
+        "Cada issue corresponde a una fila SETUP del equipo Back y conserva las decisiones abiertas."
+      ]
+    },
+    {
       "path": "README.md",
-      "operation": "MODIFY",
+      "operation": "VERIFY",
       "instructions": [
-        "Reemplazar completamente el README antiguo, incluidos badges, tabla de áreas, árbol de carpetas y referencias obsoletas a docs/md y output, por un índice breve en español titulado para la documentación de Menu. Incluir un enlace principal a https://fmat-restaurant.github.io/Menu-Documentation/.",
-        "Sección Especificación: enumerar en este orden nueve URLs absolutas con base https://fmat-restaurant.github.io/Menu-Documentation/: `/specification/` (ERS del servicio Menu), `/specification/configuration/`, `/specification/context/`, `/specification/architechture/`, `/specification/functional-requirements/`, `/specification/non-functional-requirements/`, `/specification/business-rules/`, `/specification/open/` y `/specification/traceability/`. Usar etiquetas breves en español correspondientes a los títulos fuente.",
-        "Incluir enlace separado al modelo conceptual `/reference/md/domain-model/`.",
-        "Sección Producto: enlazar `/product/` (índice/roadmap), `/product/mvp-01-catalogo-publicable/`, `/product/mvp-02-recetas-y-reutilizacion/`, `/product/mvp-03-personalizaciones-y-retiro-seguro/` y `/product/traceability/`, en ese orden.",
-        "Sección Referencias: enlazar `/api/` como referencia interactiva Scalar y `/events/` con etiqueta visible `Pendiente` o texto inmediato que indique que aún no hay contrato de eventos. Usar enlaces Markdown con URLs absolutas y slash final; no listar rutas no publicadas."
+        "Confirmar que las URLs del plan MVP-1 y la API se presentan como destinos publicados; no modificar."
       ],
       "acceptance": [
-        "README.md es breve, íntegramente en español y contiene enlace principal más los 17 destinos directos solicitados, con nueve ERS en orden y cinco de producto.",
-        "Cada URL usa exactamente el origen/baseUrl configurado y corresponde a una página existente en el build actual.",
-        "Eventos aparece como Pendiente; no quedan la estructura vieja ni rutas docs/md, output/ers u output/ui-spec presentadas como vigentes."
+        "Los enlaces de referencia de los issues usan la documentación publicada indicada por el usuario."
       ]
     },
     {
-      "path": "docusaurus.config.js",
-      "operation": "VERIFY",
+      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T005",
+      "operation": "CREATE",
       "instructions": [
-        "Confirmar url https://fmat-restaurant.github.io y baseUrl /Menu-Documentation/, route Scalar /api/ y la página Events existente; no modificar."
+        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T005 Definir repositorio y base Back\", etiqueta enhancement y sin asignado, hito ni Project.",
+        "Usar este cuerpo exacto:\nUsar Java 25 LTS con Eclipse Temurin 25.0.4.1, Spring Boot 4.1.1, Gradle 9.8.0, JUnit 6.0.3 y Mockito 5.23.0; mantener abierta la selección entre PostgreSQL 18.6 y MongoDB 8.3.11, junto con la topología y los límites transaccionales. Si se elige PostgreSQL, corresponde Spring Data JPA 4.1.1; si se elige MongoDB, Spring Data MongoDB 5.1.1; ambas versiones son gestionadas por Spring Boot 4.1.1 según docs/other/stack.md; no añadir Spring Security hasta que AuthN/AuthZ se decida explícitamente ni implicar acceso anónimo/público. Crear un servicio ejecutable local con un esqueleto OpenAPI.\n\nCriterios de aceptación:\n* Crear un servicio Back ejecutable local con un esqueleto OpenAPI usando las versiones del plan.\n* Mantener sin resolver la elección de persistencia, la topología, los límites transaccionales y AuthN/AuthZ; no implicar acceso público o anónimo.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n",
+        "Antes de crear, buscar MVP1-T005 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
       ],
       "acceptance": [
-        "El origen/baseUrl de todas las URLs del README coinciden con configuración."
+        "Existe exactamente un issue MVP1-T005 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
+        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
+        "La URL del issue creado queda registrada para la verificación posterior."
       ]
     },
     {
-      "path": "build/specification/index.html",
-      "operation": "VERIFY",
+      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T006",
+      "operation": "CREATE",
       "instructions": [
-        "Confirmar que el build actual contiene la portada ERS y sus ocho rutas hijas: configuration, context, architechture, functional-requirements, non-functional-requirements, business-rules, open y traceability; no modificar build."
+        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T006 Dockerizar Back\", etiqueta enhancement y sin asignado, hito ni Project.",
+        "Usar este cuerpo exacto:\nCrear la imagen del API con Eclipse Temurin 25.0.4.1 para build/runtime según corresponda y configuración local con Docker 29.8.1 y Docker Compose 5.5.1 para ejecutar Back junto a dependencias aprobadas; mantener abierta la topología. Termina cuando el proceso arranca con configuración externa.\n\nCriterios de aceptación:\n* Construir la imagen del API y arrancar el proceso con configuración externa y dependencias locales aprobadas.\n* Mantener abierta la decisión de topología.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n",
+        "Antes de crear, buscar MVP1-T006 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
       ],
       "acceptance": [
-        "Los nueve destinos ERS enumerados tienen HTML generado."
+        "Existe exactamente un issue MVP1-T006 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
+        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
+        "La URL del issue creado queda registrada para la verificación posterior."
       ]
     },
     {
-      "path": "build/reference/md/domain-model/index.html",
-      "operation": "VERIFY",
+      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T007",
+      "operation": "CREATE",
       "instructions": [
-        "Confirmar el destino publicado del modelo conceptual; no modificar."
+        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T007 CI de Back y contrato\", etiqueta enhancement y sin asignado, hito ni Project.",
+        "Usar este cuerpo exacto:\nConfigurar CI con Java 25 LTS/Eclipse Temurin 25.0.4.1 y Gradle 9.8.0; ejecutar build y pruebas unitarias/integración con JUnit 6.0.3 y Mockito 5.23.0, usando Testcontainers 2.0.5 cuando las pruebas de integración requieran dependencias contenedorizadas. Validar el contrato OpenAPI modular aceptado (API 2.2.1, OpenAPI 3.1.0), incluidos los límites/códigos de error multipart y las respuestas JSON de lectura con referencias de imagen; usar Docker 29.8.1 y Docker Compose 5.5.1 para las dependencias locales cuando aplique y construir la imagen Docker. Mantener los gates de build, pruebas, contrato e imagen. Termina cuando cada cambio muestra el resultado y bloquea la publicación del artefacto si algún paso obligatorio falla.\n\nCriterios de aceptación:\n* El CI ejecuta build, pruebas unitarias e integración, validación del contrato OpenAPI modular aceptado y construcción de imagen Docker.\n* Cada cambio reporta el resultado de los gates obligatorios y bloquea la publicación del artefacto si alguno falla.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n* [Referencia de API Menu](https://fmat-restaurant.github.io/Menu-Documentation/api/)\n",
+        "Antes de crear, buscar MVP1-T007 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
       ],
       "acceptance": [
-        "La URL /reference/md/domain-model/ existe en build."
+        "Existe exactamente un issue MVP1-T007 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
+        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
+        "La URL del issue creado queda registrada para la verificación posterior."
       ]
     },
     {
-      "path": "build/product/index.html",
-      "operation": "VERIFY",
+      "path": "github:FMAT-Restaurant/Menu-Frontend#MVP1-T008",
+      "operation": "CREATE",
       "instructions": [
-        "Confirmar índice de producto y las rutas MVP-1/2/3 y traceability generadas; no modificar."
+        "Repositorio de destino: FMAT-Restaurant/Menu-Frontend. Crear exactamente un issue con título \"MVP1-T008 CD de Back\", etiqueta enhancement y sin asignado, hito ni Project.",
+        "Usar este cuerpo exacto:\nConfigurar la publicación y promoción de la imagen Back a los entornos acordados, incluida la secuencia de migración compatible con el servicio. Bloqueado hasta acordar registry, destinos, credenciales, aprobaciones, persistencia y recuperación.\n\nCriterios de aceptación:\n* Publicar y promover la imagen Back en los entornos acordados con una secuencia de migración compatible.\n* Mantener la tarea bloqueada hasta acordar registry, destinos, credenciales, aprobaciones, persistencia y recuperación.\n\nEquipo: Back\n\nReferencias:\n* [Plan MVP-1 — tareas fundacionales](https://fmat-restaurant.github.io/Menu-Documentation/product/mvp-01-catalogo-publicable/)\n",
+        "Antes de crear, buscar MVP1-T008 en todos los estados del repositorio; si ya existe, registrar su URL y no duplicarlo."
       ],
       "acceptance": [
-        "Los cinco destinos de producto tienen HTML generado."
-      ]
-    },
-    {
-      "path": "build/api/index.html",
-      "operation": "VERIFY",
-      "instructions": [
-        "Confirmar página de Scalar en /api/; no modificar."
-      ],
-      "acceptance": [
-        "La URL /api/ existe en build."
-      ]
-    },
-    {
-      "path": "build/events/index.html",
-      "operation": "VERIFY",
-      "instructions": [
-        "Confirmar página Events y su estado Pendiente; no modificar."
-      ],
-      "acceptance": [
-        "La URL /events/ existe y el README la presenta como Pendiente."
+        "Existe exactamente un issue MVP1-T008 en FMAT-Restaurant/Menu-Frontend con el título y cuerpo indicados.",
+        "La etiqueta enhancement está aplicada y el cuerpo identifica Equipo: Back.",
+        "La URL del issue creado queda registrada para la verificación posterior."
       ]
     }
   ],

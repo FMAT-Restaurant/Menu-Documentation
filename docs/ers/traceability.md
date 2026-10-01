@@ -7,16 +7,16 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 | Requisito | Tema | Reglas relacionadas | Invariantes relacionadas | Criterios no funcionales relacionados |
 | :--- | :--- | :--- | :--- | :--- |
 | `REQ-MENU-CAT-001` | Administración de categorías | `BR-MENU-001` | `INV-MENU-001` | — |
-| `REQ-MENU-CAT-002` | Consulta del catálogo y referencias JSON `imageRef` y `offerImageRef` | `BR-MENU-004`, `BR-MENU-006` | `INV-MENU-002` | `NFR-MENU-PERF-02` |
-| `REQ-MENU-ENTRY-001` | Creación de entrada con imagen obligatoria; `imageRef` en JSON | `BR-MENU-002`, `BR-MENU-003` | `INV-MENU-001` | — |
-| `REQ-MENU-ENTRY-002` | Reemplazo de imagen y conservación de `imageRef` al omitirla | `BR-MENU-002` | `INV-MENU-001` | — |
+| `REQ-MENU-CAT-002` | Consulta del catálogo publicable | `BR-MENU-004`, `BR-MENU-006` | `INV-MENU-002` | `NFR-MENU-PERF-02` |
+| `REQ-MENU-ENTRY-001` | Creación de entrada con imagen obligatoria | `BR-MENU-002`, `BR-MENU-003` | `INV-MENU-001` | — |
+| `REQ-MENU-ENTRY-002` | Reemplazo y conservación de la imagen vigente | `BR-MENU-002` | `INV-MENU-001` | — |
 | `REQ-MENU-ENTRY-003` | Estado y archivado de una entrada | `BR-MENU-003`, `BR-MENU-004` | `INV-MENU-002` | — |
 | `REQ-MENU-ENTRY-004` | Eliminación de una entrada archivada | `BR-MENU-003`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-008`, `INV-MENU-009` | — |
-| `REQ-MENU-OFFER-001` | Creación de oferta con imagen obligatoria; `offerImageRef` en JSON | `BR-MENU-005`, `BR-MENU-006` | `INV-MENU-001` | — |
+| `REQ-MENU-OFFER-001` | Creación de oferta con imagen obligatoria | `BR-MENU-005`, `BR-MENU-006` | `INV-MENU-001` | — |
 | `REQ-MENU-OFFER-002` | Identidad de entrada y presentación vendible | `BR-MENU-002`, `BR-MENU-005` | — | — |
 | `REQ-MENU-OFFER-003` | Precio base declarado | `BR-MENU-007`, `BR-MENU-027` | `INV-MENU-007` | — |
 | `REQ-MENU-OFFER-004` | Activación de una oferta | `BR-MENU-006` | `INV-MENU-002` | — |
-| `REQ-MENU-OFFER-005` | Referencia reutilizada: revisión con reemplazo de imagen y conservación de `offerImageRef` si se omite | `BR-MENU-028`, `BR-MENU-029` | `INV-MENU-008` | — |
+| `REQ-MENU-OFFER-005` | Referencia reutilizada: revisión con reemplazo y conservación de imagen | `BR-MENU-028`, `BR-MENU-029` | `INV-MENU-008` | — |
 | `REQ-MENU-COMP-001` | Composición de una oferta | `BR-MENU-006` | `INV-MENU-002`, `INV-MENU-004` | — |
 | `REQ-MENU-COMP-002` | Inclusión de posiciones | `BR-MENU-008`, `BR-MENU-009`, `BR-MENU-010` | `INV-MENU-003` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
 | `REQ-MENU-COMP-003` | Alternativas de contenido por posición | `BR-MENU-011` | `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
@@ -47,7 +47,7 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 
 ## Decisión resuelta
 
-OPEN-005 está cerrada y ya no pertenece al registro de [cuestiones abiertas](open.md). La regla normativa común queda especificada en los requisitos funcionales y se concreta en `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-001/002` y `REQ-MENU-OFFER-001/005`. El detalle del transporte HTTP se documenta en [api-contract.md](../contracts/api-contract.md), en la sección «Decisión resuelta: OPEN-005 — Restricciones de imágenes».
+OPEN-005 queda resuelta para las restricciones de contenido de imagen y el rechazo íntegro de imágenes inválidas; esos criterios se especifican en los requisitos funcionales y se relacionan con `REQ-MENU-ENTRY-001/002` y `REQ-MENU-OFFER-001/005`. El transporte, las operaciones y las representaciones externas de API quedan pendientes bajo OPEN-010 en [cuestiones abiertas](open.md), a la espera de revisar los mockups.
 
 ## Matriz de reglas de negocio
 

@@ -11,6 +11,7 @@ Esta sección registra decisiones de requisitos que no quedan determinadas por e
 | OPEN-007 | Valores del curso sugerido | Un slot puede expresar un curso como sugerencia de servicio; se contemplan entrada, plato fuerte, postre y bebida. | Si esos valores forman una lista cerrada o si se permiten otros cursos configurables. |
 | OPEN-008 | Alternativas activas en composiciones activas | Las alternativas de contenido tienen estado activo o inactivo, y una oferta activa requiere una composición válida. | Si una composición válida exige que cada slot tenga al menos una alternativa activa o si basta con una alternativa estructuralmente definida. |
 | OPEN-009 | Distribución de carga del perfil nominal | El perfil establece concurrencia, tasa sostenida, duración y clases de operación del catálogo y validación de selecciones. | Proporción de solicitudes entre las clases y la distribución representativa que se usará en la evaluación. |
+| OPEN-010 | Contrato externo de la API | Las capacidades funcionales del catálogo ya están especificadas; los mockups orientarán cómo exponerlas. | Qué rutas y métodos exponen esas capacidades y qué datos de solicitud y respuesta deben exponerse, incluida su representación. |
 
 ## OPEN-001 — Importes de precios
 
@@ -39,3 +40,7 @@ Precisar si para que una oferta pueda activarse cada slot debe disponer de al me
 ## OPEN-009 — Distribución de carga del perfil nominal
 
 Definir la proporción de solicitudes entre consulta del catálogo y validación de selecciones, además de los datos representativos con los que se ejecutará la evaluación de carga nominal.
+
+## OPEN-010 — Contrato externo de la API
+
+Después de revisar los mockups, determinar qué rutas y métodos de API exponen las capacidades funcionales ya establecidas y qué datos deben recibirse y exponerse para los flujos. Hasta entonces, no se fijan rutas, métodos, parámetros, esquemas de solicitud o respuesta ni formatos de representación externa.

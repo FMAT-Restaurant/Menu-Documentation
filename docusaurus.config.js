@@ -14,7 +14,7 @@ module.exports = {
   organizationName: 'FMAT-Restaurant',
   projectName: 'Menu-Documentation',
   onBrokenLinks: 'throw',
-  // Canonical ERS/product links are checked as errors during preparation;
+  // Canonical ERS links are checked as errors during preparation;
   // keep historic reference-document links visible as warnings.
   onBrokenMarkdownLinks: 'warn',
   onBrokenAnchors: 'throw',
