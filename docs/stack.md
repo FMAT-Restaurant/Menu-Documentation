@@ -57,7 +57,6 @@ The project should therefore consider **TypeScript 7.0.2 as its official TypeScr
 | Eclipse Temurin     | OpenJDK distribution used for local development, CI/CD and application runtime.                                                   | 25.0.4.1 |
 | Spring Boot         | Framework used to implement and configure backend microservices.                                                                  | 4.1.1    |
 | Spring Data JPA     | Persistence abstraction used to access relational data stored in PostgreSQL. Its version is managed by Spring Boot.               | 4.1.1    |
-| Spring Data MongoDB | Persistence abstraction used to access document-oriented data stored in MongoDB. Its version is managed by Spring Boot.           | 5.1.1    |
 | Spring AMQP         | Spring integration used for AMQP messaging and communication with RabbitMQ. Its version is managed by Spring Boot.                | 4.1.1    |
 | Spring Security     | Authentication and authorization framework for Spring applications. Its version is managed by Spring Boot.                        | 7.1.1    |
 | Gradle              | Build automation and dependency management tool used by backend services.                                                         | 9.8.0    |
