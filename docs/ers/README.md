@@ -7,10 +7,10 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 2.1.4 |
+| Versión | 2.1.5 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
-| Alcance | Menu administra la identidad comercial del catálogo, sus ofertas, composiciones, espacios y recetas. Inventario mantiene la identidad y existencias de sus artículos; Órdenes registra las elecciones concretas de espacios y contenido y determina el precio final. |
+| Alcance | Menu administra la identidad comercial del catálogo, sus ofertas, composiciones, espacios y recetas almacenadas en la librería de recetas. Una definición de receta puede seleccionar una receta existente por ID o crear una receta desde la configuración del catálogo; en ambos casos queda en la librería. Inventario mantiene la identidad y existencias de sus artículos; Órdenes registra las elecciones concretas de espacios y contenido y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
@@ -44,7 +44,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 
 ## Límites de responsabilidad destacados
 
-- **Menú/Catálogo** define la identidad comercial de las entradas, sus ofertas vendibles, composiciones por espacios, contenido, recetas reutilizables y precios declarados.
+- **Menú/Catálogo** define la identidad comercial de las entradas, sus ofertas vendibles, composiciones por espacios, contenido, recetas de la librería seleccionadas por ID o creadas desde la configuración del catálogo, y precios declarados.
 - **Inventario** es propietario de la identidad y las existencias de `InventoryItem`; Menú/Catálogo mantiene referencias a esos artículos.
 - **Órdenes** registra las elecciones concretas de espacios y contenido en una orden y determina el precio final de acuerdo con las definiciones comerciales del catálogo.
 

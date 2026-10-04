@@ -4,7 +4,7 @@
 
 El modelo de Menú/Catálogo describe categorías, entradas comerciales, ofertas, composiciones, contenidos posibles y recetas. Menu contiene categorías y entradas; Category clasifica CatalogEntry; y CatalogEntry administra el nombre comercial, sus categorías y ofertas. Una CatalogEntry ACTIVE y publicable mantiene al menos una CatalogOffer ACTIVE y válida. Los estados de entrada y ofertas son independientes y no cambian automáticamente entre sí. Toda oferta vendible tiene una Composition de uno o más CompositionSlot, incluso cuando representa un producto individual.
 
-CatalogOffer declara un precio base fijo y una presentación opcional; Composition define la inclusión de slots, y cada ComponentOption determina el contenido admitido para una aparición concreta. Catálogo administra las definiciones y cantidades de receta. Inventario conserva la identidad y el stock de InventoryItem, al que Catálogo referencia externamente.
+CatalogOffer declara un precio base fijo y una presentación opcional; Composition define la inclusión de slots, y cada ComponentOption determina el contenido admitido para una aparición concreta. Catálogo administra RecipeLibrary y las definiciones y cantidades de receta que contiene. Inventario conserva la identidad y el stock de InventoryItem, al que Catálogo referencia externamente.
 
 ## Agregados y Límites de Consistencia
 
@@ -18,13 +18,13 @@ Menu contiene categorías y entradas comerciales. Category clasifica cero o más
 
 CatalogEntry puede tener CatalogOffer; una CatalogEntry ACTIVE requiere al menos una CatalogOffer ACTIVE y válida. Una oferta solo puede publicarse mientras su entrada esté ACTIVE y su Composition sea válida. CatalogOffer posee exactamente una Composition y su basePrice describe el precio fijo de esa oferta. Su nombre visible combina el nombre comercial de la entrada con la presentación opcional; presentationTag es descriptiva y no determina cantidades físicas. Composition contiene uno o más CompositionSlot y puede declarar PlacementRegion. Cada slot posee una o más ComponentOption, cada una como aparición contextual de un contenido. La opción referencia exactamente un origen.
 
-RecipeLibrary reúne recetas reutilizables. InlineContent contiene exactamente una RecipeDefinition local; PreparationSource referencia una receta publicada y sus ajustes locales; CatalogOfferSource referencia otra oferta vendible y su revisión publicada concreta. CompositionSnapshot pertenece exclusivamente a CatalogOfferRevision y conserva una definición histórica. InventoryItem y su stock siguen bajo Inventario.
+RecipeLibrary reúne todas las RecipeDefinition del catálogo. RecipeSource referencia una receta publicada por ID y revisión, y mantiene ajustes locales para esa aparición; CatalogOfferSource referencia otra oferta vendible y su revisión publicada concreta. CompositionSnapshot pertenece exclusivamente a CatalogOfferRevision y conserva una definición histórica. InventoryItem y su stock siguen bajo Inventario.
 
 Una CatalogEntry solo puede eliminarse desde ARCHIVED y si ninguna de sus ofertas mantiene referencias vigentes externas. Una CatalogOffer solo puede eliminarse individualmente desde INACTIVE, si no es el defaultOfferId de su entrada, no tiene referencias vigentes externas y su eliminación no deja una CatalogEntry ACTIVE sin una oferta ACTIVE y válida. CatalogOfferSource es una referencia externa que impone RESTRICT. Si una condición no se cumple, se rechaza la eliminación íntegra sin transformar referencias ni crear revisiones de las definiciones dependientes. Al eliminar una entrada sin referencias externas, su defaultOfferId y las ofertas y estructuras vigentes poseídas se retiran con ella. En ambas rutas, las revisiones históricas publicadas permanecen inmutables y consultables mediante offerId y revision.
 
 ## Entidades y Atributos Principales
 
-La siguiente tabla resume los 20 conceptos del modelo, sus responsabilidades, atributos y relaciones. CatalogEntry declara ACTIVE, INACTIVE o ARCHIVED; CatalogOffer, ComponentOption y RecipeDefinition declaran ACTIVE o INACTIVE. Los identificadores son conceptuales: no prescriben claves de base de datos ni un esquema de almacenamiento.
+La siguiente tabla resume los 19 conceptos del modelo, sus responsabilidades, atributos y relaciones. CatalogEntry declara ACTIVE, INACTIVE o ARCHIVED; CatalogOffer, ComponentOption y RecipeDefinition declaran ACTIVE o INACTIVE. Los identificadores son conceptuales: no prescriben claves de base de datos ni un esquema de almacenamiento.
 
 | Entidad o concepto | Responsabilidad | Atributos y relaciones principales |
 | :--- | :--- | :--- |
@@ -38,16 +38,15 @@ La siguiente tabla resume los 20 conceptos del modelo, sus responsabilidades, at
 | CompositionSlot | Posición funcional o espacial que aporta contenido. | id, compositionId, name, course?, quantity, positionRef?, options[]; pertenece a Composition y contiene una o más ComponentOption. |
 | PlacementRegion | Región o ubicación semántica descriptiva de una composición. | id, compositionId, name, parentRegionId?, surface?, coverage?; puede tener región padre y ser referida por CompositionSlot. |
 | ComponentOption | Aparición contextual de contenido admitida en un slot. | id, slotId, displayName, status, source; pertenece a CompositionSlot y posee un ComponentSource. |
-| ComponentSource | Tipo conceptual del origen único de una opción. | type: INLINE, INVENTORY_ITEM, PREPARATION o CATALOG_OFFER; especialización exclusiva en InlineContent, InventoryItemSource, PreparationSource o CatalogOfferSource. |
-| InlineContent | Contenido definido localmente como receta en una opción. | id, name?, recipe, description?; pertenece a una ComponentOption y contiene exactamente una RecipeDefinition local. |
+| ComponentSource | Tipo conceptual del origen único de una opción. | type: INVENTORY_ITEM, RECIPE o CATALOG_OFFER; especialización exclusiva en InventoryItemSource, RecipeSource o CatalogOfferSource. |
 | InventoryItemSource | Referencia directa a un artículo externo de Inventario. | inventoryItemId, quantity, unit, displayNameSnapshot?; referencia exactamente un InventoryItem. |
-| PreparationSource | Uso de una receta reutilizable, con ajustes locales opcionales. | recipeId, recipeRevision, name?, adjustments[]; referencia RecipeDefinition publicada de RecipeLibrary y posee RecipeAdjustment. |
+| RecipeSource | Uso de una receta de RecipeLibrary, con ajustes locales opcionales. | recipeId, recipeRevision, name?, adjustments[]; referencia por ID y revisión una RecipeDefinition publicada de RecipeLibrary y posee RecipeAdjustment para esa aparición. |
 | CatalogOfferSource | Referencia vigente a otra oferta vendible y a su revisión publicada concreta. | catalogOfferId, offerRevision, displayNameSnapshot?; referencia CatalogOffer y su CatalogOfferRevision. La referencia vigente externa impide eliminar la oferta referenciada o su entrada; las revisiones históricas permanecen consultables tras retirar la definición vigente. |
 | InventoryItem | Artículo o ingrediente cuya identidad y stock son de Inventario. | id, name, baseUnit; concepto externo referenciado por InventoryItemSource y ComponentIngredient. |
-| RecipeLibrary | Colección de recetas reutilizables administradas por Catálogo. | id, name, recipes[]; contiene RecipeDefinition de alcance LIBRARY. |
-| RecipeDefinition | Definición física base de una preparación con rendimiento y líneas. | id, name, description?, revision, scope, yieldQuantity, yieldUnit, ingredients[], status; pertenece a InlineContent o RecipeLibrary. |
-| ComponentIngredient | Aparición identificable de un ingrediente o preparación en una receta. | id, recipeId, partKey, displayName?, targetType, targetId, targetRevision?, quantity, unit; apunta a InventoryItem o a una RecipeDefinition reutilizable. |
-| RecipeAdjustment | Diferencia administrativa local sobre una receta reutilizada. | id, preparationSourceId, operation, targetPartKey?, inventoryItemId?, quantity?, unit?; pertenece a PreparationSource y apunta a la parte de origen cuando la operación lo requiere. |
+| RecipeLibrary | Colección de recetas administradas por Catálogo. | id, name, recipes[]; contiene todas las RecipeDefinition del catálogo. |
+| RecipeDefinition | Definición de receta con rendimiento y líneas. | id, name, description?, revision, yieldQuantity, yieldUnit, ingredients[], status; pertenece a RecipeLibrary. |
+| ComponentIngredient | Aparición identificable de un ingrediente o receta en una receta. | id, recipeId, partKey, displayName?, targetType, targetId, targetRevision?, quantity, unit; apunta a InventoryItem o a una RecipeDefinition de RecipeLibrary. |
+| RecipeAdjustment | Diferencia administrativa local sobre una receta usada en una aparición. | id, recipeSourceId, operation, targetPartKey?, inventoryItemId?, quantity?, unit?; pertenece a RecipeSource y apunta a la parte de origen cuando la operación lo requiere. |
 
 ### Selección de composición y contenido
 
@@ -68,11 +67,11 @@ La decisión de incluir un slot y la decisión de qué contenido ocupa ese slot 
 
 ### Recetas y precios
 
-Inventory posee la identidad de InventoryItem y el stock. Catálogo administra RecipeDefinition y las cantidades de sus ComponentIngredient. ComponentIngredient apunta a InventoryItem o, para una preparación reutilizable anidada, a una receta de RecipeLibrary. Las recetas publicadas se identifican por revisión; no se alteran retroactivamente. Los ciclos entre recetas se impiden.
+Inventory posee la identidad de InventoryItem y el stock. Catálogo administra RecipeLibrary, todas sus RecipeDefinition y las cantidades de sus ComponentIngredient. ComponentIngredient apunta a InventoryItem o a una RecipeDefinition de RecipeLibrary. Las recetas publicadas se identifican por revisión; no se alteran retroactivamente. Los ciclos entre recetas se impiden.
 
-INLINE contiene exactamente una receta local; PREPARATION reutiliza una RecipeDefinition de RecipeLibrary, tal cual o con RecipeAdjustment local; INVENTORY_ITEM referencia un artículo externo; CATALOG_OFFER referencia una oferta vendible y su revisión publicada concreta. CompositionSnapshot pertenece solo a CatalogOfferRevision y conserva su composición publicada histórica. Las opciones de receta requieren una receta efectiva en su propio ámbito.
+Una ComponentOption de tipo RECIPE se configura seleccionando el ID de una RecipeDefinition existente en RecipeLibrary o definiendo una receta desde el flujo de configuración de esa opción. Al guardar la nueva definición, esta se almacena en RecipeLibrary; en ambos caminos, RecipeSource queda enlazado por recipeId y recipeRevision. RecipeAdjustment conserva cualquier diferencia administrativa para esa aparición y no cambia la receta compartida. INVENTORY_ITEM referencia un artículo externo; CATALOG_OFFER referencia una oferta vendible y su revisión publicada concreta. CompositionSnapshot pertenece solo a CatalogOfferRevision y conserva su composición publicada histórica.
 
-InventoryItemSource declara cantidad positiva y unidad compatible con el artículo; su displayNameSnapshot es descriptivo y no crea identidad de Inventario. RecipeAdjustment usa ADD, REMOVE, OVERRIDE_QUANTITY o REPLACE_INVENTORY_ITEM: ADD requiere ingrediente y cantidad, y las demás operaciones sobre una parte requieren una línea de origen compatible. Los ajustes son locales a PreparationSource y no cambian la receta compartida.
+InventoryItemSource declara cantidad positiva y unidad compatible con el artículo; su displayNameSnapshot es descriptivo y no crea identidad de Inventario. RecipeAdjustment usa ADD, REMOVE, OVERRIDE_QUANTITY o REPLACE_INVENTORY_ITEM: ADD requiere ingrediente y cantidad, y las demás operaciones sobre una parte requieren una línea de origen compatible. Los ajustes son locales a RecipeSource y no cambian la receta compartida.
 
 CatalogOffer.basePrice es fijo para la oferta, independientemente de los slots y contenidos elegidos. Ni CompositionSlot, ComponentOption ni una oferta hija aportan cargos automáticos a ese precio. El modelo no calcula el precio final de una orden.
 
@@ -148,15 +147,12 @@ classDiagram
         <<abstract>>
         +type
     }
-    class InlineContent {
-        +recipe
-    }
     class InventoryItemSource {
         +inventoryItemId
         +quantity
         +unit
     }
-    class PreparationSource {
+    class RecipeSource {
         +recipeId
         +recipeRevision
     }
@@ -177,7 +173,6 @@ classDiagram
     class RecipeDefinition {
         +id
         +revision
-        +scope
         +yieldQuantity
         +yieldUnit
     }
@@ -207,18 +202,16 @@ classDiagram
     PlacementRegion "0..*" --> "0..1" PlacementRegion : región padre
     CompositionSlot "1" *-- "1..*" ComponentOption : contenido del slot
     ComponentOption "1" *-- "1" ComponentSource : origen único
-    ComponentSource <|-- InlineContent
     ComponentSource <|-- InventoryItemSource
-    ComponentSource <|-- PreparationSource
+    ComponentSource <|-- RecipeSource
     ComponentSource <|-- CatalogOfferSource
 
     InventoryItemSource "0..*" --> "1" InventoryItem : referencia externa
     CatalogOfferSource "0..*" --> "1" CatalogOffer : oferta vigente referenciada
     CatalogOfferSource "0..*" ..> "1" CatalogOfferRevision : revisión fijada
-    InlineContent "1" *-- "1" RecipeDefinition : receta local obligatoria
-    RecipeLibrary "1" *-- "0..*" RecipeDefinition : recetas compartidas
-    PreparationSource "0..*" --> "1" RecipeDefinition : receta reutilizable
-    PreparationSource "1" *-- "0..*" RecipeAdjustment : ajustes locales
+    RecipeLibrary "1" *-- "0..*" RecipeDefinition : recetas
+    RecipeSource "0..*" --> "1" RecipeDefinition : receta y revisión fijada
+    RecipeSource "1" *-- "0..*" RecipeAdjustment : ajustes locales
     RecipeDefinition "1" *-- "1..*" ComponentIngredient : líneas
     ComponentIngredient "0..*" --> "0..1" InventoryItem : insumo directo
     ComponentIngredient "0..*" --> "0..1" RecipeDefinition : subpreparación
@@ -226,7 +219,7 @@ classDiagram
     RecipeAdjustment "0..*" --> "0..1" InventoryItem : artículo para alta/reemplazo
 ```
 
-InlineContent contiene únicamente una receta local. CompositionSnapshot pertenece únicamente a CatalogOfferRevision y conserva inmutable la composición publicada de esa revisión. CatalogOfferSource, cuando forma parte de una definición vigente, requiere la oferta vigente y su revisión fijada; esa referencia externa impide eliminar la oferta o su CatalogEntry sin modificar el dependiente. Las revisiones históricas siguen consultables por offerId y revision aunque se retire la definición vigente. RecipeDefinition pertenece a InlineContent o a RecipeLibrary según scope. ComponentIngredient apunta a InventoryItem o a una receta reutilizable, nunca a ambos a la vez. RecipeAdjustment apunta a una parte de origen cuando operation lo requiere; ADD y REPLACE_INVENTORY_ITEM usan InventoryItem.
+Todas las RecipeDefinition pertenecen a RecipeLibrary. CompositionSnapshot pertenece únicamente a CatalogOfferRevision y conserva inmutable la composición publicada de esa revisión. CatalogOfferSource, cuando forma parte de una definición vigente, requiere la oferta vigente y su revisión fijada; esa referencia externa impide eliminar la oferta o su CatalogEntry sin modificar el dependiente. Las revisiones históricas siguen consultables por offerId y revision aunque se retire la definición vigente. ComponentIngredient apunta a InventoryItem o a una RecipeDefinition de RecipeLibrary, nunca a ambos a la vez. RecipeAdjustment apunta a una parte de origen cuando operation lo requiere; ADD y REPLACE_INVENTORY_ITEM usan InventoryItem.
 
 
 #### Estados comerciales
@@ -286,7 +279,7 @@ El modelo establece datos de catálogo y reglas para describir ofertas, composic
 ### Aislamiento Lógico y Reglas de Integración
 
 1. Menu es propietario de sus Category y CatalogEntry. CatalogEntry posee CatalogOffer; CatalogOffer posee Composition; las composiciones contienen slots y apariciones de contenido.
-2. Catálogo define las recetas y las cantidades de sus ComponentIngredient, así como los ajustes administrativos locales de PreparationSource.
+2. Catálogo administra RecipeLibrary, define sus recetas y las cantidades de sus ComponentIngredient, así como los ajustes administrativos locales de RecipeSource.
 3. Inventario posee la identidad de InventoryItem y su stock. Catálogo referencia InventoryItem mediante identidades explícitas; igualdad numérica entre identificadores de contextos diferentes no establece identidad compartida.
 4. La validez estructural de una receta no depende de existencias de Inventario. Catálogo no administra el stock externo.
 5. CatalogOffer.basePrice es un dato declarado por el catálogo. El dominio no calcula precios finales de pedidos ni suma precios base de slots, opciones u ofertas hijas.

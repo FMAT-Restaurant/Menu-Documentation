@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 2.1.4 (Consolidada Vigente) |
+| Versión | 2.1.5 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-10-03 |
 
@@ -12,11 +12,11 @@
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **2.1.4** (fecha 2026-10-03) fija como autoridad el modelo vigente de Menú/Catálogo en [`domain-model.md`](../other/md/domain-model.md). El alcance operativo contempla un catálogo por sucursal, provisionado con su instalación, sin administración de menús. Se conservan las restricciones de contenido y validación atómica de imágenes de **OPEN-005**; las operaciones, los datos y las representaciones externas de la API permanecen pendientes bajo **OPEN-010**.
+La versión **2.1.5** (fecha 2026-10-03) fija como autoridad el modelo vigente de Menú/Catálogo en [`domain-model.md`](../other/md/domain-model.md). El alcance operativo contempla un catálogo por sucursal, provisionado con su instalación, sin administración de menús. Se conservan las restricciones de contenido y validación atómica de imágenes de **OPEN-005**; las operaciones, los datos y las representaciones externas de la API permanecen pendientes bajo **OPEN-010**.
 
 ### Ciclo de vida y referencias
 
-Una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina una entrada ARCHIVED o una oferta INACTIVE cuando no hay referencias vigentes externas; la eliminación individual de una oferta también se rechaza si corresponde a defaultOfferId o si invalidaría una entrada ACTIVE. Estas eliminaciones aplican RESTRICT: ante una restricción, se rechazan sin modificar las definiciones dependientes ni convertir referencias vigentes en INLINE. Las revisiones históricas publicadas permanecen inmutables y consultables. Se conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo.
+Una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina una entrada ARCHIVED o una oferta INACTIVE cuando no hay referencias vigentes externas; la eliminación individual de una oferta también se rechaza si corresponde a defaultOfferId o si invalidaría una entrada ACTIVE. Estas eliminaciones aplican RESTRICT: ante una restricción, se rechazan sin modificar las definiciones dependientes ni alterar sus referencias vigentes. Las revisiones históricas publicadas permanecen inmutables y consultables. Se conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo.
 
 ## Alcance operativo vigente
 

@@ -24,13 +24,13 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 | `REQ-MENU-COMP-004` | Cantidad incluida por posición | `BR-MENU-012` | `INV-MENU-004` | — |
 | `REQ-MENU-COMP-005` | Tiempo sugerido de servicio | `BR-MENU-013` | — | — |
 | `REQ-MENU-COMP-006` | Ubicación espacial descriptiva | `BR-MENU-013`, `BR-MENU-014` | — | — |
-| `REQ-MENU-CONT-001` | Alternativas de contenido | `BR-MENU-015`, `BR-MENU-016`, `BR-MENU-017` | `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
-| `REQ-MENU-CONT-002` | Uso directo de un artículo de Inventario | `BR-MENU-018`, `BR-MENU-019` | `INV-MENU-005` | — |
-| `REQ-MENU-CONT-003` | Preparación definida en una alternativa | `BR-MENU-017`, `BR-MENU-020` | `INV-MENU-005` | — |
+| `REQ-MENU-CONT-001` | Tipos y configuración de alternativas de contenido | `BR-MENU-015`, `BR-MENU-016`, `BR-MENU-017`, `BR-MENU-020` | `INV-MENU-004`, `INV-MENU-005`, `INV-MENU-008` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
+| `REQ-MENU-CONT-002` | Uso directo de un artículo de Inventario | `BR-MENU-018` | `INV-MENU-005` | — |
+| `REQ-MENU-CONT-003` | Configuración de una receta en una alternativa | `BR-MENU-017`, `BR-MENU-019`, `BR-MENU-020` | `INV-MENU-005`, `INV-MENU-008` | — |
 | `REQ-MENU-CONT-004` | Otra oferta como contenido | `BR-MENU-007`, `BR-MENU-015`, `BR-MENU-028`, `BR-MENU-029`, `BR-MENU-030` | `INV-MENU-008`, `INV-MENU-009` | — |
-| `REQ-MENU-REC-001` | Biblioteca de recetas reutilizables | `BR-MENU-018`, `BR-MENU-019`, `BR-MENU-020` | `INV-MENU-005`, `INV-MENU-008` | — |
-| `REQ-MENU-REC-002` | Uso y ajuste local de una receta | `BR-MENU-020`, `BR-MENU-021` | `INV-MENU-005` | — |
-| `REQ-MENU-REC-003` | Edición de recetas sin cambio retroactivo | `BR-MENU-020` | `INV-MENU-008` | — |
+| `REQ-MENU-REC-001` | Biblioteca de recetas | `BR-MENU-018`, `BR-MENU-019`, `BR-MENU-020` | `INV-MENU-005`, `INV-MENU-008` | — |
+| `REQ-MENU-REC-002` | Uso y ajustes administrativos locales de una receta | `BR-MENU-019`, `BR-MENU-020`, `BR-MENU-021` | `INV-MENU-005`, `INV-MENU-008` | — |
+| `REQ-MENU-REC-003` | Revisiones de recetas | `BR-MENU-020` | `INV-MENU-008` | — |
 
 ## Matriz de criterios no funcionales
 
@@ -65,9 +65,9 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `BR-MENU-015` | Alternativa contextual | `REQ-MENU-OFFER-002`, `REQ-MENU-CONT-001`, `REQ-MENU-CONT-004` |
 | `BR-MENU-016` | Estado de una alternativa | `REQ-MENU-CONT-001` |
 | `BR-MENU-017` | Un solo origen de contenido | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003` |
-| `BR-MENU-018` | Ownership de Inventario | `REQ-MENU-CONT-002`, `REQ-MENU-REC-001` |
-| `BR-MENU-019` | Líneas de receta | `REQ-MENU-CONT-002`, `REQ-MENU-REC-001` |
-| `BR-MENU-020` | Biblioteca y revisiones de receta | `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-REC-003` |
+| `BR-MENU-018` | Ownership de Inventario | `REQ-MENU-CONT-002`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001` |
+| `BR-MENU-019` | Líneas de receta | `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002` |
+| `BR-MENU-020` | Biblioteca y revisiones de receta | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-REC-003` |
 | `BR-MENU-021` | Ajustes administrativos locales | `REQ-MENU-REC-002` |
 | `BR-MENU-028` | Referencias recursivas | `REQ-MENU-CONT-004` |
 | `BR-MENU-029` | Revisión de ofertas referenciadas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-OFFER-006` |
@@ -81,9 +81,9 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `INV-MENU-002` | Publicación válida | `REQ-MENU-CAT-002`, `REQ-MENU-ENTRY-003`, `REQ-MENU-OFFER-004`, `REQ-MENU-OFFER-006`, `REQ-MENU-COMP-001` |
 | `INV-MENU-003` | Integridad de selección | `REQ-MENU-COMP-002` |
 | `INV-MENU-004` | Contenido determinado | `REQ-MENU-COMP-001`, `REQ-MENU-COMP-003`, `REQ-MENU-COMP-004`, `REQ-MENU-CONT-001` |
-| `INV-MENU-005` | Referencia íntegra de contenido de Inventario y receta | `REQ-MENU-CONT-002`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002` |
+| `INV-MENU-005` | Referencia íntegra de contenido de Inventario y receta | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-002`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002` |
 | `INV-MENU-007` | Precio base fijo | `REQ-MENU-OFFER-003` |
-| `INV-MENU-008` | Referencias acíclicas e históricas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-OFFER-006`, `REQ-MENU-CONT-004`, `REQ-MENU-REC-001`, `REQ-MENU-REC-003` |
+| `INV-MENU-008` | Referencias acíclicas e históricas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-OFFER-006`, `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003`, `REQ-MENU-CONT-004`, `REQ-MENU-REC-001`, `REQ-MENU-REC-002`, `REQ-MENU-REC-003` |
 | `INV-MENU-009` | Eliminación sin referencias vigentes colgantes | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-006`, `REQ-MENU-CONT-004` |
 
 ## Criterio de mantenimiento

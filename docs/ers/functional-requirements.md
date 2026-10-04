@@ -109,35 +109,35 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-CONT-001 — Alternativas de contenido
 
-- **Requisito:** El sistema deberá permitir definir cada alternativa de contenido mediante exactamente una de estas formas: preparación definida directamente para esa alternativa, artículo de Inventario, receta reutilizable o referencia a otra oferta del catálogo. El administrador deberá poder activar o inactivar cada alternativa y asignarle una etiqueta contextual.
-- **Criterio de aceptación:** Cada alternativa tiene un solo tipo de contenido. Una alternativa inactiva no se ofrece como nueva elección. Su etiqueta contextual no cambia la identidad del artículo, receta u oferta a la que hace referencia.
+- **Requisito:** El sistema deberá permitir definir cada alternativa de contenido mediante exactamente una de estas formas: artículo de Inventario, receta o referencia a otra oferta del catálogo. Para una receta, el administrador podrá seleccionar una receta existente de la biblioteca o definir una nueva durante la configuración de la alternativa. El administrador deberá poder activar o inactivar cada alternativa y asignarle una etiqueta contextual.
+- **Criterio de aceptación:** Cada alternativa tiene un solo tipo de contenido. Toda alternativa de tipo receta referencia una receta de la biblioteca mediante su identificador y revisión, tanto si se seleccionó una receta existente como si se definió durante la configuración; una receta nueva queda guardada en la biblioteca. Una alternativa inactiva no se ofrece como nueva elección. Su etiqueta contextual no cambia la identidad del artículo, receta u oferta a la que hace referencia.
 
 ### REQ-MENU-CONT-002 — Uso directo de un artículo de Inventario
 
 - **Requisito:** El sistema deberá permitir seleccionar como contenido un artículo de Inventario e indicar la cantidad y unidad correspondientes. El nombre mostrado podrá describirse para ese contexto sin crear otra identidad de artículo.
 - **Criterio de aceptación:** El contenido conserva la referencia al artículo de Inventario, la cantidad y la unidad; el nombre contextual no sustituye la identidad administrada por Inventario.
 
-### REQ-MENU-CONT-003 — Preparación definida en una alternativa
+### REQ-MENU-CONT-003 — Configuración de una receta en una alternativa
 
-- **Requisito:** El sistema deberá permitir al administrador definir directamente en una alternativa la preparación que compone su contenido, incluyendo los ingredientes o preparaciones reutilizables y sus cantidades.
-- **Criterio de aceptación:** La preparación queda asociada a esa alternativa y puede describirse sin convertir sus ingredientes de Inventario en identidades propiedad del catálogo.
+- **Requisito:** Al configurar una alternativa de tipo receta, el sistema deberá permitir al administrador seleccionar una receta existente de la biblioteca por su identificador y revisión, o definir una receta nueva con sus ingredientes o recetas y cantidades. Una receta nueva deberá guardarse en la biblioteca y la alternativa deberá referenciar esa definición por su identificador y revisión.
+- **Criterio de aceptación:** Al guardar la configuración, `RecipeLibrary` contiene la definición seleccionada o recién creada y la alternativa la referencia mediante su identificador y revisión.
 
 ### REQ-MENU-CONT-004 — Otra oferta como contenido
 
 - **Requisito:** El sistema deberá permitir usar una oferta existente como contenido de una posición en otra oferta. La oferta referenciada conservará su composición.
 - **Criterio de aceptación:** La oferta hija se reconoce como contenido reutilizado y su precio base no se suma automáticamente al precio base de la oferta que la contiene. La eliminación de la oferta o de su entrada propietaria se rechaza mientras exista esta referencia vigente, sin modificar la composición que la contiene.
 
-### REQ-MENU-REC-001 — Biblioteca de recetas reutilizables
+### REQ-MENU-REC-001 — Biblioteca de recetas
 
-- **Requisito:** El sistema deberá permitir al administrador crear y mantener una biblioteca de recetas reutilizables. Cada receta deberá poder tener una o más líneas con cantidades y unidades, referidas a artículos de Inventario o a otras recetas reutilizables.
-- **Criterio de aceptación:** Una receta de biblioteca puede utilizarse desde distintas ofertas y productos. Una línea identifica un único artículo de Inventario o una receta reutilizable, con su cantidad y unidad.
+- **Requisito:** El sistema deberá permitir al administrador crear y mantener recetas en una biblioteca. Cada receta deberá poder tener una o más líneas con cantidades y unidades, referidas a artículos de Inventario o a otras recetas. Las recetas podrán crearse desde la biblioteca o durante la configuración de una alternativa; en ambos casos se guardarán en la biblioteca.
+- **Criterio de aceptación:** Una receta de la biblioteca puede utilizarse desde distintas alternativas y ofertas. Una línea identifica un único artículo de Inventario o una receta de la biblioteca, con su cantidad y unidad. Toda alternativa que use una receta identifica su definición de biblioteca por ID y revisión.
 
-### REQ-MENU-REC-002 — Uso y ajuste local de una receta
+### REQ-MENU-REC-002 — Uso y ajuste administrativo local de una receta
 
 - **Requisito:** El sistema deberá permitir usar una receta publicada de la biblioteca tal como está o declarar ajustes administrativos propios de la alternativa que la utiliza.
-- **Criterio de aceptación:** Un ajuste local permite añadir, retirar, cambiar la cantidad o sustituir un artículo de Inventario cuando la operación corresponda; queda limitado a esa alternativa y no cambia la receta de biblioteca ni otros usos.
+- **Criterio de aceptación:** Un ajuste administrativo local permite añadir o retirar una línea, cambiar su cantidad o sustituir un artículo de Inventario cuando la operación corresponda; queda limitado a esa alternativa y no cambia la receta de biblioteca ni otros usos.
 
-### REQ-MENU-REC-003 — Edición de recetas sin cambio retroactivo
+### REQ-MENU-REC-003 — Revisiones de recetas sin cambio retroactivo
 
-- **Requisito:** El sistema deberá conservar revisiones identificables de las recetas reutilizables. Editar una receta publicada deberá crear una nueva revisión, sin alterar la revisión que ya utilizan ofertas existentes hasta que su administrador actualice expresamente esa referencia.
-- **Criterio de aceptación:** Después de editar y publicar una receta, una oferta que apuntaba a la revisión anterior conserva el contenido previamente referenciado; una oferta puede actualizarse para utilizar la nueva revisión mediante una acción administrativa.
+- **Requisito:** El sistema deberá conservar revisiones identificables de las recetas de la biblioteca. Editar una receta publicada deberá crear una nueva revisión, sin alterar la revisión que ya utilizan las alternativas existentes hasta que su administrador actualice expresamente esa referencia.
+- **Criterio de aceptación:** Después de editar y publicar una receta, una alternativa que apuntaba a la revisión anterior conserva el contenido previamente referenciado; una alternativa puede actualizarse para utilizar la nueva revisión mediante una acción administrativa.

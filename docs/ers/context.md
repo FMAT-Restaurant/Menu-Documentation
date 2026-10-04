@@ -25,11 +25,11 @@ La inclusión de slots y la elección de contenido son decisiones distintas:
 
 ### Contenido y recetas
 
-Cada `ComponentOption` es una aparición contextual con exactamente un `ComponentSource`. Las cuatro clases de contenido son `INLINE`, `INVENTORY_ITEM`, `PREPARATION` y `CATALOG_OFFER`. Varias apariciones pueden referir el mismo contenido.
+Cada `ComponentOption` es una aparición contextual con exactamente un `ComponentSource`. Las tres clases de contenido son `INVENTORY_ITEM`, `RECIPE` y `CATALOG_OFFER`. Varias apariciones pueden referir la misma definición de receta, artículo u oferta en apariciones distintas.
 
-Catálogo administra `RecipeDefinition` y sus líneas `ComponentIngredient`. `RecipeLibrary` agrupa recetas reutilizables; `InlineContent` contiene una receta local de alcance propio. `CompositionSnapshot` conserva la composición publicada de una revisión y pertenece únicamente a `CatalogOfferRevision`. `PreparationSource` referencia una receta de biblioteca y puede declarar ajustes locales mediante `RecipeAdjustment`. Esos ajustes describen diferencias para esa aparición y conservan la definición compartida como fuente común.
+Catálogo administra todas las `RecipeDefinition` en `RecipeLibrary` y sus líneas `ComponentIngredient`. Al configurar un `ComponentOption` de tipo `RECIPE`, se puede seleccionar una receta existente por ID o definir una receta desde el flujo de configuración de la opción. Una receta nueva se guarda en `RecipeLibrary`; la opción referencia su ID y la revisión fijada. `RecipeSource` identifica esa aparición mediante `recipeSourceId`, referencia la `RecipeDefinition` de la biblioteca mediante `recipeId` y su revisión fijada, y puede declarar ajustes administrativos locales mediante `RecipeAdjustment`. Los ajustes describen diferencias para esa aparición y conservan la definición de biblioteca como fuente común. `CompositionSnapshot` conserva la composición publicada de una revisión y pertenece únicamente a `CatalogOfferRevision`.
 
-Una línea `ComponentIngredient` identifica una aparición de un `InventoryItem` o de una receta reutilizable y expresa su cantidad y unidad. Una receta requiere una cantidad de rendimiento y una unidad; sus revisiones identifican la definición utilizada. Las referencias recursivas entre recetas se mantienen sin ciclos.
+Una línea `ComponentIngredient` identifica una aparición de un `InventoryItem` o de una receta de `RecipeLibrary` y expresa su cantidad y unidad. Una receta requiere una cantidad de rendimiento y una unidad; sus revisiones identifican la definición utilizada. Las referencias recursivas entre recetas se mantienen sin ciclos.
 
 Desactivar una oferta impide nuevos usos o su publicación sin eliminar las referencias existentes ni cambiar automáticamente otros recursos. Archivar una entrada desde `ACTIVE` o `INACTIVE` la retira del flujo normal sin modificar los estados de sus ofertas; desarchivarla la deja en `INACTIVE`.
 
@@ -63,15 +63,12 @@ flowchart LR
         Composition --> Slot[CompositionSlot]
         Slot --> Option[ComponentOption]
         Option --> Source["Un ComponentSource"]
-        Source --> Inline[INLINE]
         Source --> ItemSource[INVENTORY_ITEM]
-        Source --> PrepSource[PREPARATION]
+        Source --> RecipeSource[RECIPE]
         Source --> OfferSource[CATALOG_OFFER]
-        Inline --> InlineRecipe["RecipeDefinition<br/>scope INLINE"]
-        PrepSource --> LibraryRecipe["RecipeDefinition<br/>scope LIBRARY"]
-        RecipeLibrary[RecipeLibrary] --> LibraryRecipe
-        InlineRecipe --> Ingredient[ComponentIngredient]
-        LibraryRecipe --> Ingredient
+        RecipeLibrary[RecipeLibrary] --> RecipeDefinition[RecipeDefinition]
+        RecipeSource -. "recipeId + revisión fijada" .-> RecipeDefinition
+        RecipeDefinition --> Ingredient[ComponentIngredient]
     end
 
     subgraph Inventory["Inventario"]
@@ -120,13 +117,12 @@ La vista distingue la regla que incluye una posición de la alternativa de conte
 - **`CompositionSlot`:** posición funcional o espacial de una composición, con cantidad incluida y alternativas de contenido.
 - **`PlacementRegion`:** región semántica descriptiva de una composición que puede ser referida por un slot.
 - **`ComponentOption`:** aparición contextual de contenido admitida en un slot, con un origen único.
-- **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INLINE`, `INVENTORY_ITEM`, `PREPARATION` o `CATALOG_OFFER`.
-- **`InlineContent`:** contenido local de una opción que contiene una receta propia.
+- **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INVENTORY_ITEM`, `RECIPE` o `CATALOG_OFFER`.
 - **`InventoryItemSource`:** contenido que referencia un artículo externo de Inventario con cantidad y unidad.
-- **`PreparationSource`:** contenido que referencia una receta reutilizable y puede tener ajustes locales.
+- **`RecipeSource`:** aparición de una receta de `RecipeLibrary`, identificada por `recipeSourceId`, que referencia `recipeId` y una revisión fijada, y puede tener ajustes administrativos locales. Al configurar una opción `RECIPE`, se puede elegir una receta de la biblioteca o definir una nueva, que se guarda en la biblioteca y queda referenciada por ID y revisión.
 - **`CatalogOfferSource`:** contenido que referencia otra oferta vendible y fija la revisión publicada utilizada; una referencia vigente bloquea la eliminación de la oferta o su entrada.
 - **`InventoryItem`:** artículo cuya identidad y existencias pertenecen a Inventario.
-- **`RecipeLibrary`:** colección de recetas reutilizables administrada por Catálogo.
+- **`RecipeLibrary`:** colección administrada por Catálogo que almacena todas las recetas.
 - **`RecipeDefinition`:** definición de una elaboración con revisión, rendimiento y líneas de ingredientes.
-- **`ComponentIngredient`:** línea identificable de receta que referencia un artículo de Inventario o una receta reutilizable, con cantidad y unidad.
-- **`RecipeAdjustment`:** diferencia administrativa local aplicada a una `PreparationSource`.
+- **`ComponentIngredient`:** línea identificable de receta que referencia un artículo de Inventario o una receta de `RecipeLibrary`, con cantidad y unidad.
+- **`RecipeAdjustment`:** diferencia administrativa local aplicada a una aparición de receta mediante `RecipeSource`.

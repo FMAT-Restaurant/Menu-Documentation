@@ -6,7 +6,7 @@ Esta sección registra decisiones de requisitos que no quedan determinadas por e
 | :--- | :--- | :--- | :--- |
 | OPEN-001 | Importes de precios | Cada oferta tiene un precio base propio. El precio final de la orden se determina fuera del catálogo. | Moneda aplicable, precisión, redondeo y rangos admisibles de `CatalogOffer.basePrice`. |
 | OPEN-002 | Oferta predeterminada | Una entrada puede referenciar una oferta predeterminada mediante `defaultOfferId`. | Si la referencia determina una presentación inicial para consulta o selección, y cómo se resuelve cuando la oferta deja de estar activa. |
-| OPEN-003 | Alcance de reutilización de recetas | Las recetas reutilizables se agrupan en una `RecipeLibrary` y pueden usarse desde distintas ofertas. | Si una biblioteca puede compartirse entre varios menús o si su alcance corresponde a un solo menú. |
+| OPEN-003 | Alcance de la biblioteca de recetas | Toda receta se almacena en una `RecipeLibrary`; puede definirse mediante el ID de una receta existente o crearse directamente desde una alternativa. | Si una biblioteca puede compartirse entre varios menús o si su alcance corresponde a un solo menú. |
 | OPEN-006 | Cantidades y unidades | La cantidad de contenido directo de Inventario es positiva y compatible con la unidad del artículo. Los slots y las líneas de receta expresan cantidades, y las líneas identifican una unidad. | Rangos y precisión de cantidades en slots y recetas, reglas para valores fraccionarios y reglas de unidades de receta. |
 | OPEN-007 | Valores del curso sugerido | Un slot puede expresar un curso como sugerencia de servicio; se contemplan entrada, plato fuerte, postre y bebida. | Si esos valores forman una lista cerrada o si se permiten otros cursos configurables. |
 | OPEN-008 | Alternativas activas en composiciones activas | Las alternativas de contenido tienen estado activo o inactivo, y una oferta activa requiere una composición válida. | Si una composición válida exige que cada slot tenga al menos una alternativa activa o si basta con una alternativa estructuralmente definida. |
@@ -21,9 +21,9 @@ Definir las reglas de moneda, precisión, redondeo y rangos admisibles de `Catal
 
 Precisar para qué consultas o procesos se utiliza la oferta predeterminada de una entrada y qué resultado se presenta si la oferta referenciada está inactiva o no está disponible como elección vigente.
 
-## OPEN-003 — Alcance de reutilización de recetas
+## OPEN-003 — Alcance de la biblioteca de recetas
 
-Determinar si `RecipeLibrary` es compartida por varios menús o pertenece a un único menú, incluidas las consecuencias administrativas de reutilizar y publicar una receta en ese alcance.
+Determinar si `RecipeLibrary` es compartida por varios menús o tiene alcance de un solo menú.
 
 ## OPEN-006 — Cantidades y unidades
 
