@@ -7,6 +7,7 @@
 | Versión | 2.1.13 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-10-04 |
+| Fecha | 2026-10-04 |
 
 ## Identificación y Propósito
 
@@ -38,11 +39,13 @@ Las fuentes siguientes registran el análisis y las decisiones del proyecto. El 
 10. [**`Auditoria-4.md`**](../other/md/Auditoria-4.md) (revisión de responsabilidades y límites entre servicios).
 11. [**`Consultoria-3.md`**](../other/md/Consultoria-3.md) (revisión del ciclo de vida y responsabilidades operativas).
 12. [**`domain-model.md`**](../other/md/domain-model.md) (modelo conceptual vigente de entidades, relaciones, composición, recetas y límites del catálogo).
+12. [**`domain-model.md`**](../other/md/domain-model.md) (modelo conceptual vigente de entidades, relaciones, composición, recetas y límites del catálogo).
 
 ### Regla de Prevalencia
 
 La especificación vigente se aplica con este orden de autoridad:
 
+- El [modelo conceptual vigente](../other/md/domain-model.md) define el dominio autoritativo de Menú/Catálogo: entidades, relaciones, reglas de composición, contenido, recetas, precios declarados y límites con otros contextos.
 - El [modelo conceptual vigente](../other/md/domain-model.md) define el dominio autoritativo de Menú/Catálogo: entidades, relaciones, reglas de composición, contenido, recetas, precios declarados y límites con otros contextos.
 - Los documentos normativos de esta ERS en `docs/ers/` desarrollan y precisan ese modelo: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md), [reglas de negocio](business-rules.md), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos, reglas y criterios vigentes rigen la especificación; OPEN-005 conserva las restricciones de contenido y validación atómica de imágenes en los requisitos funcionales y su trazabilidad. Las operaciones y representaciones externas de API quedan pendientes bajo OPEN-010.
 - Las fuentes históricas enumeradas arriba aportan contexto sobre la evolución y las decisiones del proyecto; no constituyen norma vigente ni prevalecen sobre el modelo conceptual y los documentos normativos actuales.

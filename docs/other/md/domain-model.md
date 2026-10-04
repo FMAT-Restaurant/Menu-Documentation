@@ -3,13 +3,16 @@
 **Estado:** propuesta estructural consolidada.  
 **Alcance:** Bounded Context de Menú/Catálogo.  
 **Propósito:** describir qué ofrece el restaurante y cómo se compone cada oferta mediante slots, opciones de contenido y cantidades de selección. La configuración definida aquí termina al determinar la composición y sus opciones; no define el procesamiento de una orden ni un motor de configuración.
+**Propósito:** describir qué ofrece el restaurante y cómo se compone cada oferta mediante slots, opciones de contenido y cantidades de selección. La configuración definida aquí termina al determinar la composición y sus opciones; no define el procesamiento de una orden ni un motor de configuración.
 
 ## 1. Resumen del diseño
 
 ### 1.1. Estructura general
 
 El menú contiene un catálogo común de categorías y entradas comerciales (`CatalogEntry`). Una entrada puede pertenecer a varias categorías y funciona como agrupador de sus ofertas (`CatalogOffer`); cada oferta es individualmente vendible y seleccionable. La oferta no repite el nombre de su entrada: su etiqueta `presentationTag` es opcional y descriptiva. Por ejemplo, «Hamburguesa de la Casa · Grande» resulta de combinar el nombre comercial con la presentación.
+El menú contiene un catálogo común de categorías y entradas comerciales (`CatalogEntry`). Una entrada puede pertenecer a varias categorías y funciona como agrupador de sus ofertas (`CatalogOffer`); cada oferta es individualmente vendible y seleccionable. La oferta no repite el nombre de su entrada: su etiqueta `presentationTag` es opcional y descriptiva. Por ejemplo, «Hamburguesa de la Casa · Grande» resulta de combinar el nombre comercial con la presentación.
 
+**Toda `CatalogOffer` tiene una `Composition` de uno o más `CompositionSlot`; todos sus slots pertenecen estructuralmente a la composición.** Cada slot se configura como requerido u opcional. Una composición válida tiene al menos un slot requerido. Los slots requeridos y opcionales `ACTIVE` pueden participar en la oferta; un slot opcional `ACTIVE` puede omitirse. Esta estructura representa tanto una bebida o un espagueti individual —un único slot— como un combo de varias pizzas. No existe una clasificación previa y excluyente de la oferta como «ingrediente», «preparación» o «combo»; la composición determina qué contiene.
 **Toda `CatalogOffer` tiene una `Composition` de uno o más `CompositionSlot`; todos sus slots pertenecen estructuralmente a la composición.** Cada slot se configura como requerido u opcional. Una composición válida tiene al menos un slot requerido. Los slots requeridos y opcionales `ACTIVE` pueden participar en la oferta; un slot opcional `ACTIVE` puede omitirse. Esta estructura representa tanto una bebida o un espagueti individual —un único slot— como un combo de varias pizzas. No existe una clasificación previa y excluyente de la oferta como «ingrediente», «preparación» o «combo»; la composición determina qué contiene.
 
 Cada `CompositionSlot` agrupa una o más `SlotOption` (variantes) para una función del producto («Primera pizza», «Bebida», «Plato principal») y puede incluir un tiempo de servicio sugerido. Su estado es derivado: es `ACTIVE` si contiene al menos una opción `ACTIVE` y `INACTIVE` si no contiene ninguna. `CompositionSlot.quantity` indica cuántas rondas de selección tiene el grupo. Cada slot requerido `ACTIVE` participa; un slot opcional `ACTIVE` puede incluirse u omitirse. Solo los slots `ACTIVE` que participan generan rondas y, en cada ronda, se elige exactamente una opción `ACTIVE`. Si el grupo participante tiene una sola opción `ACTIVE`, esta se aplica en cada ronda.
@@ -26,27 +29,39 @@ Una `SlotOption` tiene exactamente un contenido polimórfico:
 ### 1.2. Slots y rondas de selección
 
 Todos los slots pertenecen estructuralmente a la `Composition`, pero no todos tienen que participar en una selección. Los slots requeridos `ACTIVE` participan; los opcionales `ACTIVE` pueden omitirse; los slots `INACTIVE` no se seleccionan. Solo los slots `ACTIVE` que participan generan rondas: `CompositionSlot.quantity` determina cuántas veces se elige una opción `ACTIVE` del grupo y, en cada ronda, se elige exactamente una. Si el grupo participante tiene una sola opción `ACTIVE`, esta se aplica en cada ronda. La cantidad del origen `InventoryItemSource` conserva su significado de cantidad y unidad del artículo.
+- **`RECIPE`:** referencia por identificador y revisión a una `RecipeDefinition` de `RecipeLibrary`.
+
+### 1.2. Slots y rondas de selección
+
+Todos los slots pertenecen estructuralmente a la `Composition`, pero no todos tienen que participar en una selección. Los slots requeridos `ACTIVE` participan; los opcionales `ACTIVE` pueden omitirse; los slots `INACTIVE` no se seleccionan. Solo los slots `ACTIVE` que participan generan rondas: `CompositionSlot.quantity` determina cuántas veces se elige una opción `ACTIVE` del grupo y, en cada ronda, se elige exactamente una. Si el grupo participante tiene una sola opción `ACTIVE`, esta se aplica en cada ronda. La cantidad del origen `InventoryItemSource` conserva su significado de cantidad y unidad del artículo.
 
 ### 1.3. Recetas y responsabilidades
 
 Inventario **posee** la identidad de sus artículos/ingredientes, su unidad de medida y su stock. Catálogo los referencia mediante identificadores externos y **posee** las definiciones de recetas. No se introduce un servicio Kitchen ni una segunda entidad autoritativa de ingrediente dentro de Catálogo.
+Inventario **posee** la identidad de sus artículos/ingredientes, su unidad de medida y su stock. Catálogo los referencia mediante identificadores externos y **posee** las definiciones de recetas. No se introduce un servicio Kitchen ni una segunda entidad autoritativa de ingrediente dentro de Catálogo.
 
+Una `RecipeDefinition` define nombre, descripción, instrucciones en texto y una o más líneas `ComponentIngredient`. Cada línea representa un ingrediente seleccionado de Inventario e indica su cantidad; al seleccionarlo y al consultar o editar la receta, se muestra la unidad autoritativa de ese artículo. Al configurar una opción, se puede seleccionar una receta existente o crearla desde ese flujo; en ambos casos pertenece a `RecipeLibrary` y `SlotOption` la referencia por identificador y revisión.
 Una `RecipeDefinition` define nombre, descripción, instrucciones en texto y una o más líneas `ComponentIngredient`. Cada línea representa un ingrediente seleccionado de Inventario e indica su cantidad; al seleccionarlo y al consultar o editar la receta, se muestra la unidad autoritativa de ese artículo. Al configurar una opción, se puede seleccionar una receta existente o crearla desde ese flujo; en ambos casos pertenece a `RecipeLibrary` y `SlotOption` la referencia por identificador y revisión.
 
 `CompositionSnapshot` conserva de forma inmutable los slots y opciones locales de la composición publicada en una revisión de oferta y pertenece únicamente a `CatalogOfferRevision`.
+`CompositionSnapshot` conserva de forma inmutable los slots y opciones locales de la composición publicada en una revisión de oferta y pertenece únicamente a `CatalogOfferRevision`.
 
+Las ofertas pueden reutilizar una receta mediante referencias al mismo identificador y revisión.
 Las ofertas pueden reutilizar una receta mediante referencias al mismo identificador y revisión.
 
 ### 1.4. Regla comercial de precios
 
 `CatalogOffer.basePrice` es el **precio base fijo de la oferta tal como se venda**. Los slots, sus opciones y las rondas de selección no aportan cargos a `basePrice`. Al copiar slots desde una oferta plantilla, no se copia ni se suma el precio base de esa oferta.
+`CatalogOffer.basePrice` es el **precio base fijo de la oferta tal como se venda**. Los slots, sus opciones y las rondas de selección no aportan cargos a `basePrice`. Al copiar slots desde una oferta plantilla, no se copia ni se suma el precio base de esa oferta.
 
+El catálogo **solo declara** el precio base: no calcula el precio final, no evalúa cambios de una orden y no determina aquí el algoritmo de cobro.
 El catálogo **solo declara** el precio base: no calcula el precio final, no evalúa cambios de una orden y no determina aquí el algoritmo de cobro.
 
 ### 1.5. Límites del modelo
 
 Se definen identidades, referencias y estructuras necesarias para que el dominio sea inequívoco; **no** se prescriben tablas, claves foráneas, arquitectura de persistencia, API, eventos ni motor de resolución. La cantidad pedida, las elecciones concretas, los asientos, los tiempos de marcha, la disponibilidad en tiempo real, la facturación y el cálculo de precio de una orden pertenecen a otros modelos.
 
+Una entrada solo puede eliminarse definitivamente si está archivada. Una oferta solo puede eliminarse individualmente si está inactiva y su eliminación no deja una entrada activa sin una oferta activa y válida. Las definiciones y estructuras poseídas exclusivamente por el recurso eliminado pueden retirarse junto con él; las revisiones históricas permanecen inmutables y consultables por `offerId` y `revision`.
 Una entrada solo puede eliminarse definitivamente si está archivada. Una oferta solo puede eliminarse individualmente si está inactiva y su eliminación no deja una entrada activa sin una oferta activa y válida. Las definiciones y estructuras poseídas exclusivamente por el recurso eliminado pueden retirarse junto con él; las revisiones históricas permanecen inmutables y consultables por `offerId` y `revision`.
 
 ---
@@ -59,7 +74,10 @@ Una entrada solo puede eliminarse definitivamente si está archivada. Una oferta
 | `Category` | Categoría reutilizable del menú que clasifica varias entradas. |
 | `CatalogEntry` | Identidad comercial que agrupa ofertas de un producto de la carta. |
 | `CatalogOffer` | Oferta individualmente vendible y seleccionable, con precio base y composición propia. |
+| `CatalogEntry` | Identidad comercial que agrupa ofertas de un producto de la carta. |
+| `CatalogOffer` | Oferta individualmente vendible y seleccionable, con precio base y composición propia. |
 | `CatalogOfferRevision` | Instantánea histórica e inmutable de una revisión publicada de oferta, consultable aunque se elimine su oferta vigente. |
+| `Composition` | Define slots requeridos y opcionales que pertenecen estructuralmente a la oferta; requiere al menos un slot requerido. |
 | `Composition` | Define slots requeridos y opcionales que pertenecen estructuralmente a la oferta; requiere al menos un slot requerido. |
 | `CompositionSnapshot` | Composición publicada e inmutable que forma parte de una `CatalogOfferRevision` histórica. |
 | `CompositionSlot` | Grupo requerido u opcional de opciones de contenido; su actividad se deriva de sus opciones y sus rondas dependen de su participación. |
@@ -67,7 +85,11 @@ Una entrada solo puede eliminarse definitivamente si está archivada. Una oferta
 | `ComponentSource` | Tipo conceptual que identifica el origen único de una `SlotOption`. |
 | `InventoryItemSource` | Referencia a un artículo o ingrediente cuyo catálogo pertenece a Inventario. |
 | `RecipeSource` | Referencia por identificador y revisión a una receta de la biblioteca. |
+| `RecipeSource` | Referencia por identificador y revisión a una receta de la biblioteca. |
 | `InventoryItem` *(externa)* | Artículo o ingrediente autoritativo de Inventario al que Catálogo hace referencia. |
+| `RecipeLibrary` | Colección propietaria de las recetas administradas por Catálogo. |
+| `RecipeDefinition` | Definición versionada con datos textuales y líneas de ingredientes de Inventario. |
+| `ComponentIngredient` | Aparición identificable de un artículo de Inventario dentro de una receta. |
 | `RecipeLibrary` | Colección propietaria de las recetas administradas por Catálogo. |
 | `RecipeDefinition` | Definición versionada con datos textuales y líneas de ingredientes de Inventario. |
 | `ComponentIngredient` | Aparición identificable de un artículo de Inventario dentro de una receta. |
@@ -97,9 +119,11 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 ### 3.3. `CatalogEntry`
 
 **Atributos:** `id`, `menuId`, `brandName`, `description`, `imageRef`, `status: ACTIVE | INACTIVE | ARCHIVED`, `categoryIds[]`, `offers[]`.
+**Atributos:** `id`, `menuId`, `brandName`, `description`, `imageRef`, `status: ACTIVE | INACTIVE | ARCHIVED`, `categoryIds[]`, `offers[]`.
 
 **Relaciones:** pertenece a `Menu`; tiene múltiples categorías y múltiples `CatalogOffer`.
 
+**Reglas e invariantes:** `brandName` es el nombre comercial autoritativo. La entrada agrupa sus ofertas. Puede guardarse una entrada incompleta. Su estado `ACTIVE` es administrativo e independiente de las ofertas: puede conservarse aunque no tenga una oferta `ACTIVE` válida, pero en ese caso no se publica ni se muestra en el catálogo. Solo se publica una entrada `ACTIVE` si tiene al menos una oferta `ACTIVE` y válida. El archivado es reversible y desarchivar deja siempre la entrada `INACTIVE`. El estado de una entrada no modifica automáticamente los estados administrativos de sus ofertas. Las categorías no alteran recetas ni composiciones. Solo una entrada `ARCHIVED` admite eliminación definitiva; sus definiciones vigentes poseídas pueden eliminarse en conjunto. Las revisiones históricas publicadas permanecen inmutables y consultables.
 **Reglas e invariantes:** `brandName` es el nombre comercial autoritativo. La entrada agrupa sus ofertas. Puede guardarse una entrada incompleta. Su estado `ACTIVE` es administrativo e independiente de las ofertas: puede conservarse aunque no tenga una oferta `ACTIVE` válida, pero en ese caso no se publica ni se muestra en el catálogo. Solo se publica una entrada `ACTIVE` si tiene al menos una oferta `ACTIVE` y válida. El archivado es reversible y desarchivar deja siempre la entrada `INACTIVE`. El estado de una entrada no modifica automáticamente los estados administrativos de sus ofertas. Las categorías no alteran recetas ni composiciones. Solo una entrada `ARCHIVED` admite eliminación definitiva; sus definiciones vigentes poseídas pueden eliminarse en conjunto. Las revisiones históricas publicadas permanecen inmutables y consultables.
 
 ### 3.4. `CatalogOffer`
@@ -107,7 +131,9 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 **Atributos:** `id`, `entryId`, `presentationTag`, `basePrice`, `status: ACTIVE | INACTIVE`, `offerImageRef`, `composition`.
 
 **Relaciones:** pertenece a una `CatalogEntry` y contiene exactamente una `Composition`. Sus revisiones publicadas producen `CatalogOfferRevision` independientes de la definición vigente.
+**Relaciones:** pertenece a una `CatalogEntry` y contiene exactamente una `Composition`. Sus revisiones publicadas producen `CatalogOfferRevision` independientes de la definición vigente.
 
+**Reglas e invariantes:** no duplica `brandName`. Su nombre visible resulta de la entrada y la presentación opcional. `presentationTag` describe, pero **no determina cantidades físicas**. `basePrice` no depende de las opciones de sus slots; importar slots desde otra oferta no suma su precio base. La oferta se inactiva automáticamente cuando ninguno de los slots requeridos de su composición está `ACTIVE`; la entrada no cambia de estado por esta transición. La composición debe ser válida para activar administrativamente la oferta, y la oferta no vuelve a `ACTIVE` automáticamente si un slot requerido recupera el estado `ACTIVE`: requiere activación administrativa. Solo se publica una oferta `ACTIVE` y válida bajo una entrada `ACTIVE`; una entrada `ACTIVE` sin oferta `ACTIVE` válida permanece sin publicarse. El estado administrativo de la oferta es independiente del de su entrada, salvo la inactivación automática indicada por la composición. Cada oferta se puede seleccionar y vender de forma individual. Solo una oferta `INACTIVE` puede eliminarse individualmente si su eliminación no deja una entrada `ACTIVE` sin oferta `ACTIVE` y válida. Sus estructuras poseídas exclusivamente pueden eliminarse con la oferta; sus revisiones históricas publicadas permanecen inmutables y consultables aunque la definición vigente desaparezca. La cantidad de ofertas solicitadas pertenece a una orden futura, no a esta entidad.
 **Reglas e invariantes:** no duplica `brandName`. Su nombre visible resulta de la entrada y la presentación opcional. `presentationTag` describe, pero **no determina cantidades físicas**. `basePrice` no depende de las opciones de sus slots; importar slots desde otra oferta no suma su precio base. La oferta se inactiva automáticamente cuando ninguno de los slots requeridos de su composición está `ACTIVE`; la entrada no cambia de estado por esta transición. La composición debe ser válida para activar administrativamente la oferta, y la oferta no vuelve a `ACTIVE` automáticamente si un slot requerido recupera el estado `ACTIVE`: requiere activación administrativa. Solo se publica una oferta `ACTIVE` y válida bajo una entrada `ACTIVE`; una entrada `ACTIVE` sin oferta `ACTIVE` válida permanece sin publicarse. El estado administrativo de la oferta es independiente del de su entrada, salvo la inactivación automática indicada por la composición. Cada oferta se puede seleccionar y vender de forma individual. Solo una oferta `INACTIVE` puede eliminarse individualmente si su eliminación no deja una entrada `ACTIVE` sin oferta `ACTIVE` y válida. Sus estructuras poseídas exclusivamente pueden eliminarse con la oferta; sus revisiones históricas publicadas permanecen inmutables y consultables aunque la definición vigente desaparezca. La cantidad de ofertas solicitadas pertenece a una orden futura, no a esta entidad.
 
 ### 3.4.1. `CatalogOfferRevision`
@@ -129,6 +155,9 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 - La composición contiene uno o más slots y al menos uno está configurado como requerido. `requiredSlots` es el subconjunto derivado de `slots[]` cuyo atributo `required` es `true`.
 - Todos los slots pertenecen estructuralmente a la composición. Los slots requeridos `ACTIVE` participan en la selección; los slots opcionales `ACTIVE` pueden incluirse u omitirse; los slots `INACTIVE` no pueden seleccionarse.
 - La oferta se inactiva automáticamente si ningún elemento de `requiredSlots` tiene estado `ACTIVE`. La reactivación posterior de un slot requerido no reactiva automáticamente la oferta.
+- La composición contiene uno o más slots y al menos uno está configurado como requerido. `requiredSlots` es el subconjunto derivado de `slots[]` cuyo atributo `required` es `true`.
+- Todos los slots pertenecen estructuralmente a la composición. Los slots requeridos `ACTIVE` participan en la selección; los slots opcionales `ACTIVE` pueden incluirse u omitirse; los slots `INACTIVE` no pueden seleccionarse.
+- La oferta se inactiva automáticamente si ningún elemento de `requiredSlots` tiene estado `ACTIVE`. La reactivación posterior de un slot requerido no reactiva automáticamente la oferta.
 
 ### 3.5.1. `CompositionSnapshot`
 
@@ -136,6 +165,7 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 
 **Relaciones:** pertenece a una `CatalogOfferRevision` y conserva la composición publicada correspondiente a esa revisión.
 
+**Reglas e invariantes:** conserva de forma inmutable la composición publicada de una revisión, incluidos slots, su atributo `required`, opciones con sus estados y cantidades de selección. `requiredSlots` es el subconjunto de slots de la instantánea cuyo atributo `required` es `true`. El estado del slot se deriva de las opciones conservadas en la instantánea. Sus identidades internas pertenecen al ámbito de la revisión histórica. No conserva la identidad de una oferta que se usó como plantilla al configurar la composición.
 **Reglas e invariantes:** conserva de forma inmutable la composición publicada de una revisión, incluidos slots, su atributo `required`, opciones con sus estados y cantidades de selección. `requiredSlots` es el subconjunto de slots de la instantánea cuyo atributo `required` es `true`. El estado del slot se deriva de las opciones conservadas en la instantánea. Sus identidades internas pertenecen al ámbito de la revisión histórica. No conserva la identidad de una oferta que se usó como plantilla al configurar la composición.
 
 ### 3.6. `CompositionSlot`
@@ -155,17 +185,23 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 ### 3.7. `SlotOption`
 
 **Atributos:** `id`, `slotId`, `displayName`, `status: ACTIVE | INACTIVE`, `source` (exactamente uno).
+**Atributos:** `id`, `slotId`, `displayName`, `status: ACTIVE | INACTIVE`, `source` (exactamente uno).
 
 **Relaciones:** pertenece a un `CompositionSlot`; contiene un `ComponentSource` concreto.
+**Relaciones:** pertenece a un `CompositionSlot`; contiene un `ComponentSource` concreto.
 
+**Reglas e invariantes:** es una variante local de un slot. Dos `SlotOption` con el mismo origen siguen siendo opciones distintas. `displayName` puede sobrescribir la etiqueta contextual, sin redefinir la identidad global del artículo o receta. Una opción inactiva no se presenta como opción para una nueva selección; si todas las opciones del slot están inactivas, el estado derivado del slot es `INACTIVE`. La opción no tiene cantidad de selección propia ni aporta un precio a `basePrice`.
 **Reglas e invariantes:** es una variante local de un slot. Dos `SlotOption` con el mismo origen siguen siendo opciones distintas. `displayName` puede sobrescribir la etiqueta contextual, sin redefinir la identidad global del artículo o receta. Una opción inactiva no se presenta como opción para una nueva selección; si todas las opciones del slot están inactivas, el estado derivado del slot es `INACTIVE`. La opción no tiene cantidad de selección propia ni aporta un precio a `basePrice`.
 
 ### 3.8. `ComponentSource` (tipo conceptual)
 
 **Atributos:** `type: INVENTORY_ITEM | RECIPE`.
+**Atributos:** `type: INVENTORY_ITEM | RECIPE`.
 
 **Relaciones:** especialización exclusiva hacia `InventoryItemSource` o `RecipeSource`.
+**Relaciones:** especialización exclusiva hacia `InventoryItemSource` o `RecipeSource`.
 
+**Reglas e invariantes:** cada `SlotOption` posee un solo origen válido de contenido.
 **Reglas e invariantes:** cada `SlotOption` posee un solo origen válido de contenido.
 
 ### 3.9. `InventoryItemSource`
@@ -179,9 +215,12 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 ### 3.10. `RecipeSource`
 
 **Atributos:** `recipeId`, `recipeRevision`.
+**Atributos:** `recipeId`, `recipeRevision`.
 
 **Relaciones:** referencia por `recipeId` y `recipeRevision` una `RecipeDefinition` publicada de `RecipeLibrary`.
+**Relaciones:** referencia por `recipeId` y `recipeRevision` una `RecipeDefinition` publicada de `RecipeLibrary`.
 
+**Reglas e invariantes:** la opción referencia la receta sin modificar sus datos. Puede apuntar a una receta existente o a una recién creada durante la configuración; en ambos casos la receta pertenece a `RecipeLibrary` y la referencia fija su identificador y revisión.
 **Reglas e invariantes:** la opción referencia la receta sin modificar sus datos. Puede apuntar a una receta existente o a una recién creada durante la configuración; en ambos casos la receta pertenece a `RecipeLibrary` y la referencia fija su identificador y revisión.
 
 ### 3.11. `InventoryItem` (concepto externo)
@@ -189,7 +228,9 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 **Atributos de referencia:** `id`, `name`, `baseUnit` (definidos por Inventario; Catálogo no los administra).
 
 **Relaciones:** puede ser referenciado por `InventoryItemSource` y `ComponentIngredient`.
+**Relaciones:** puede ser referenciado por `InventoryItemSource` y `ComponentIngredient`.
 
+**Reglas e invariantes:** Inventario es autoridad de identidad y unidad del artículo. Catálogo muestra `baseUnit` al seleccionar un ingrediente y al consultar o editar su receta, y no crea ni cambia la identidad, unidad o existencias del artículo. Los límites de stock no forman parte de la validez estructural de la receta.
 **Reglas e invariantes:** Inventario es autoridad de identidad y unidad del artículo. Catálogo muestra `baseUnit` al seleccionar un ingrediente y al consultar o editar su receta, y no crea ni cambia la identidad, unidad o existencias del artículo. Los límites de stock no forman parte de la validez estructural de la receta.
 
 ### 3.12. `RecipeLibrary`
@@ -199,21 +240,30 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 **Relaciones:** reúne las definiciones vigentes y las revisiones históricas publicadas de `RecipeDefinition`.
 
 **Reglas e invariantes:** es el conjunto propietario de las definiciones vigentes de receta y conserva sus revisiones históricas publicadas. Una receta puede existir sin venderse individualmente y se administra en esta biblioteca independientemente de si se eligió de ella o se creó durante la configuración de una opción.
+**Relaciones:** reúne las definiciones vigentes y las revisiones históricas publicadas de `RecipeDefinition`.
+
+**Reglas e invariantes:** es el conjunto propietario de las definiciones vigentes de receta y conserva sus revisiones históricas publicadas. Una receta puede existir sin venderse individualmente y se administra en esta biblioteca independientemente de si se eligió de ella o se creó durante la configuración de una opción.
 
 ### 3.13. `RecipeDefinition`
 
 **Atributos:** `id`, `name`, `description`, `instructions: Text`, `revision`, `yieldQuantity`, `yieldUnit`, `ingredients[]`, `status: ACTIVE | INACTIVE`.
+**Atributos:** `id`, `name`, `description`, `instructions: Text`, `revision`, `yieldQuantity`, `yieldUnit`, `ingredients[]`, `status: ACTIVE | INACTIVE`.
 
 **Relaciones:** pertenece siempre a `RecipeLibrary`; contiene una o más líneas `ComponentIngredient`, cada una referida a un `InventoryItem`.
+**Relaciones:** pertenece siempre a `RecipeLibrary`; contiene una o más líneas `ComponentIngredient`, cada una referida a un `InventoryItem`.
 
+**Reglas e invariantes:** define nombre, descripción, instrucciones textuales y al menos una línea de ingrediente de Inventario con cantidad. El artículo seleccionado y su unidad se consultan desde Inventario; la unidad se muestra al seleccionar el artículo y al consultar o editar la receta. Las líneas tienen identidad estable dentro de su revisión y guardan cantidad y unidad compatible con la del artículo. Editar una receta publicada crea una revisión nueva; cada revisión publicada permanece inmutable y las referencias de `SlotOption` fijan `id` y revisión, sin cambios retroactivos. Eliminar la definición vigente solo se permite cuando ninguna oferta vigente, activa o inactiva, mantiene una referencia `RecipeSource` a su `recipeId`, cualquiera que sea la revisión referenciada. La eliminación no retira las revisiones históricas publicadas. Una receta **no** es una lista de productos comerciales incluidos en una oferta.
 **Reglas e invariantes:** define nombre, descripción, instrucciones textuales y al menos una línea de ingrediente de Inventario con cantidad. El artículo seleccionado y su unidad se consultan desde Inventario; la unidad se muestra al seleccionar el artículo y al consultar o editar la receta. Las líneas tienen identidad estable dentro de su revisión y guardan cantidad y unidad compatible con la del artículo. Editar una receta publicada crea una revisión nueva; cada revisión publicada permanece inmutable y las referencias de `SlotOption` fijan `id` y revisión, sin cambios retroactivos. Eliminar la definición vigente solo se permite cuando ninguna oferta vigente, activa o inactiva, mantiene una referencia `RecipeSource` a su `recipeId`, cualquiera que sea la revisión referenciada. La eliminación no retira las revisiones históricas publicadas. Una receta **no** es una lista de productos comerciales incluidos en una oferta.
 
 ### 3.14. `ComponentIngredient`
 
 **Atributos:** `id`, `recipeId`, `inventoryItemId`, `quantity`, `unit`.
+**Atributos:** `id`, `recipeId`, `inventoryItemId`, `quantity`, `unit`.
 
 **Relaciones:** pertenece a una `RecipeDefinition` y referencia exactamente un artículo de Inventario.
+**Relaciones:** pertenece a una `RecipeDefinition` y referencia exactamente un artículo de Inventario.
 
+**Reglas e invariantes:** cada línea tiene una identidad propia y referencia un `InventoryItem`. Cantidad y unidad son obligatorias. La unidad de Inventario se muestra al seleccionar el artículo y al consultar o editar la receta; la unidad de la línea debe ser compatible con `InventoryItem.baseUnit`. No se definen conversiones.
 **Reglas e invariantes:** cada línea tiene una identidad propia y referencia un `InventoryItem`. Cantidad y unidad son obligatorias. La unidad de Inventario se muestra al seleccionar el artículo y al consultar o editar la receta; la unidad de la línea debe ser compatible con `InventoryItem.baseUnit`. No se definen conversiones.
 
 ### 3.15. Reglas transversales de coherencia
@@ -225,11 +275,18 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 5. El catálogo declara `basePrice`, pero **no** contiene un `finalPrice` ni cálculos sobre selección de slots.
 6. Una definición vigente de receta solo puede eliminarse si ninguna oferta vigente, activa o inactiva, mantiene una referencia `RecipeSource` a su `recipeId`, cualquiera que sea la revisión referenciada. Si existe una referencia, la eliminación se rechaza sin cambios; las revisiones históricas publicadas se conservan.
 7. Una `CatalogEntry` `ARCHIVED` puede eliminarse junto con sus definiciones vigentes poseídas. Una `CatalogOffer` `INACTIVE` puede eliminarse individualmente si su eliminación no deja una entrada activa sin oferta activa y válida. Las revisiones históricas permanecen inmutables.
+2. `CatalogOffer`, `Composition`, `CompositionSlot` y `SlotOption` son conceptos diferentes incluso en una oferta con un único slot y una única opción.
+3. Todos los slots pertenecen estructuralmente a la composición, pero solo los slots `ACTIVE` que participan generan rondas. Los slots opcionales `ACTIVE` pueden omitirse; los `INACTIVE` no generan rondas. En cada ronda se elige exactamente una opción `ACTIVE`.
+4. Cada versión publicada de una receta se identifica por `recipeId` y revisión y no altera retroactivamente las ofertas que la referencian. Las revisiones de ofertas eliminadas permanecen consultables por `offerId` y `revision`.
+5. El catálogo declara `basePrice`, pero **no** contiene un `finalPrice` ni cálculos sobre selección de slots.
+6. Una definición vigente de receta solo puede eliminarse si ninguna oferta vigente, activa o inactiva, mantiene una referencia `RecipeSource` a su `recipeId`, cualquiera que sea la revisión referenciada. Si existe una referencia, la eliminación se rechaza sin cambios; las revisiones históricas publicadas se conservan.
+7. Una `CatalogEntry` `ARCHIVED` puede eliminarse junto con sus definiciones vigentes poseídas. Una `CatalogOffer` `INACTIVE` puede eliminarse individualmente si su eliminación no deja una entrada activa sin oferta activa y válida. Las revisiones históricas permanecen inmutables.
 
 ---
 
 ## 4. Diagrama de clases del dominio
 
+El diagrama siguiente resume el modelo. Composición (`*--`) representa pertenencia conceptual; asociación o dependencia indica referencia, no una clave foránea prescrita. Las dos subclases de `ComponentSource` son **alternativas excluyentes**; toda `RecipeDefinition` pertenece a `RecipeLibrary`, y `CompositionSnapshot` pertenece únicamente a `CatalogOfferRevision`. `InventoryItem` pertenece a otro Bounded Context. Los campos resumidos del diagrama están desglosados en la sección 3.
 El diagrama siguiente resume el modelo. Composición (`*--`) representa pertenencia conceptual; asociación o dependencia indica referencia, no una clave foránea prescrita. Las dos subclases de `ComponentSource` son **alternativas excluyentes**; toda `RecipeDefinition` pertenece a `RecipeLibrary`, y `CompositionSnapshot` pertenece únicamente a `CatalogOfferRevision`. `InventoryItem` pertenece a otro Bounded Context. Los campos resumidos del diagrama están desglosados en la sección 3.
 
 ### 4.1. Menú, composición y tipos de contenido
@@ -270,6 +327,7 @@ classDiagram
     class Composition {
         +id
         +requiredSlots[] (derived)
+        +requiredSlots[] (derived)
     }
     class CompositionSnapshot {
         +slots[]
@@ -280,9 +338,12 @@ classDiagram
         +name
         +required
         +status (derived)
+        +required
+        +status (derived)
         +quantity
         +course?
     }
+    class SlotOption {
     class SlotOption {
         +id
         +displayName
@@ -297,6 +358,7 @@ classDiagram
         +quantity
         +unit
     }
+    class RecipeSource {
     class RecipeSource {
         +recipeId
         +recipeRevision
@@ -316,12 +378,16 @@ classDiagram
         +name
         +description
         +instructions
+        +name
+        +description
+        +instructions
         +revision
         +yieldQuantity
         +yieldUnit
     }
     class ComponentIngredient {
         +id
+        +inventoryItemId
         +inventoryItemId
         +quantity
         +unit
@@ -339,11 +405,15 @@ classDiagram
 
     ComponentSource <|-- InventoryItemSource
     ComponentSource <|-- RecipeSource
+    ComponentSource <|-- RecipeSource
 
     InventoryItemSource "0..*" --> "1" InventoryItem : articulo externo
     RecipeLibrary "1" *-- "0..*" RecipeDefinition : definiciones y revisiones
     RecipeSource "0..*" --> "1" RecipeDefinition : receta y revision fijadas
+    RecipeLibrary "1" *-- "0..*" RecipeDefinition : definiciones y revisiones
+    RecipeSource "0..*" --> "1" RecipeDefinition : receta y revision fijadas
     RecipeDefinition "1" *-- "1..*" ComponentIngredient : lineas
+    ComponentIngredient "0..*" --> "1" InventoryItem : ingrediente
     ComponentIngredient "0..*" --> "1" InventoryItem : ingrediente
 ```
 
@@ -352,9 +422,12 @@ classDiagram
 > Si está presente, `course` acepta exactamente `entrada`, `plato fuerte`, `postre` o `bebida` y sugiere un tiempo de servicio, no un estado de marcha.
 >
 > Esta vista describe definiciones del catálogo; no modela elecciones concretas ni procesamiento de órdenes, cálculo del precio final, disponibilidad en tiempo real o gestión de stock.
+> Esta vista describe definiciones del catálogo; no modela elecciones concretas ni procesamiento de órdenes, cálculo del precio final, disponibilidad en tiempo real o gestión de stock.
 >
 > `CompositionSlot.status` es `ACTIVE` cuando al menos una `SlotOption` está `ACTIVE`, y `INACTIVE` cuando ninguna lo está. Un slot requerido `ACTIVE` participa; un slot opcional `ACTIVE` puede omitirse; un slot `INACTIVE` no se selecciona ni genera rondas. Solo los slots `ACTIVE` que participan generan `quantity` rondas y en cada ronda se elige exactamente una opción `ACTIVE`. Si el grupo participante tiene una sola opción `ACTIVE`, esta se aplica en cada ronda. Las opciones no tienen una cantidad de selección propia. Si ningún `requiredSlot` permanece `ACTIVE`, la oferta pasa automáticamente a `INACTIVE`; al reactivarse un slot, la oferta requiere activación administrativa y no se reactiva por sí sola.
+> `CompositionSlot.status` es `ACTIVE` cuando al menos una `SlotOption` está `ACTIVE`, y `INACTIVE` cuando ninguna lo está. Un slot requerido `ACTIVE` participa; un slot opcional `ACTIVE` puede omitirse; un slot `INACTIVE` no se selecciona ni genera rondas. Solo los slots `ACTIVE` que participan generan `quantity` rondas y en cada ronda se elige exactamente una opción `ACTIVE`. Si el grupo participante tiene una sola opción `ACTIVE`, esta se aplica en cada ronda. Las opciones no tienen una cantidad de selección propia. Si ningún `requiredSlot` permanece `ACTIVE`, la oferta pasa automáticamente a `INACTIVE`; al reactivarse un slot, la oferta requiere activación administrativa y no se reactiva por sí sola.
 >
+> `CatalogOffer.basePrice` es fijo para la oferta: sus slots y opciones no lo incrementan. Copiar slots desde otra oferta no copia ni suma el precio base de esa oferta. `presentationTag` solo describe la presentación; no determina cantidades físicas.
 > `CatalogOffer.basePrice` es fijo para la oferta: sus slots y opciones no lo incrementan. Copiar slots desde otra oferta no copia ni suma el precio base de esa oferta. `presentationTag` solo describe la presentación; no determina cantidades físicas.
 >
 > Inventario es dueño de la identidad de `InventoryItem` y del stock; Catálogo mantiene referencias externas y no administra existencias. La validez estructural de una receta no depende de disponibilidad.
