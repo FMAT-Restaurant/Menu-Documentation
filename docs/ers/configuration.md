@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 2.1.5 (Consolidada Vigente) |
+| Versión | 2.1.6 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-10-03 |
 
@@ -12,11 +12,11 @@
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **2.1.5** (fecha 2026-10-03) fija como autoridad el modelo vigente de Menú/Catálogo en [`domain-model.md`](../other/md/domain-model.md). El alcance operativo contempla un catálogo por sucursal, provisionado con su instalación, sin administración de menús. Se conservan las restricciones de contenido y validación atómica de imágenes de **OPEN-005**; las operaciones, los datos y las representaciones externas de la API permanecen pendientes bajo **OPEN-010**.
+La versión **2.1.6** (fecha 2026-10-03) fija como autoridad el modelo vigente de Menú/Catálogo en [`domain-model.md`](../other/md/domain-model.md). Cada `CatalogOffer` contiene una `Composition` con todos sus grupos (`CompositionSlot`) incluidos. Cada grupo presenta opciones (`SlotOption`): si hay una, se toma por defecto; si hay varias, cada ronda selecciona exactamente una opción activa y `SlotOption.quantity` indica cuántas rondas presenta el grupo. Al configurar una oferta, otra oferta del catálogo puede servir como plantilla para copiar sus grupos y opciones a la composición actual; la copia es editable e independiente, conserva las fuentes de contenido de sus opciones y no mantiene referencia, precio ni sincronización con la oferta plantilla. `ComponentSource` admite únicamente `INVENTORY_ITEM` y `RECIPE`. El alcance operativo contempla un catálogo por sucursal, provisionado con su instalación, sin administración de menús. Se conservan las restricciones de contenido y validación atómica de imágenes de **OPEN-005**; las operaciones, los datos y las representaciones externas de la API permanecen pendientes bajo **OPEN-010**.
 
 ### Ciclo de vida y referencias
 
-Una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina una entrada ARCHIVED o una oferta INACTIVE cuando no hay referencias vigentes externas; la eliminación individual de una oferta también se rechaza si corresponde a defaultOfferId o si invalidaría una entrada ACTIVE. Estas eliminaciones aplican RESTRICT: ante una restricción, se rechazan sin modificar las definiciones dependientes ni alterar sus referencias vigentes. Las revisiones históricas publicadas permanecen inmutables y consultables. Se conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo.
+Una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina definitivamente una entrada ARCHIVED. Una oferta solo puede eliminarse individualmente si está INACTIVE, no corresponde a `defaultOfferId` y su eliminación no deja una entrada ACTIVE sin al menos una oferta ACTIVE y válida. Las definiciones poseídas exclusivamente se eliminan con el recurso; las revisiones históricas publicadas permanecen inmutables y consultables.
 
 ## Alcance operativo vigente
 
