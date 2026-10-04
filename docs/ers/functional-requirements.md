@@ -100,11 +100,6 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 - **Requisito:** El sistema deberá permitir configurar opcionalmente en un grupo el curso sugerido de servicio, con uno de estos valores: entrada, plato fuerte, postre o bebida.
 - **Criterio de aceptación:** Si se informa el curso, el sistema acepta exactamente entrada, plato fuerte, postre o bebida y rechaza cualquier otro valor. El curso aceptado se muestra asociado al grupo como sugerencia de tiempo de servicio y no cambia sus opciones, las rondas de selección del grupo ni el precio.
 
-### REQ-MENU-COMP-006 — Ubicación espacial descriptiva
-
-- **Requisito:** El sistema deberá permitir nombrar ubicaciones o regiones de una composición y asociarlas a grupos, para describir dónde se ubica un contenido, por ejemplo, izquierda, derecha u orilla.
-- **Criterio de aceptación:** La ubicación se conserva como una etiqueta descriptiva asociada al grupo y no determina las opciones que pueden elegirse ni calcula cobertura o consumo de ingredientes.
-
 ## Contenido y recetas
 
 ### REQ-MENU-CONT-001 — Opciones de contenido

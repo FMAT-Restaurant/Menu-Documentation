@@ -23,7 +23,6 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 | `REQ-MENU-COMP-003` | Opciones por grupo | `BR-MENU-006`, `BR-MENU-009`, `BR-MENU-011`, `BR-MENU-012`, `BR-MENU-016` | `INV-MENU-003`, `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
 | `REQ-MENU-COMP-004` | Cantidad de rondas del grupo | `BR-MENU-010`, `BR-MENU-011`, `BR-MENU-012` | `INV-MENU-003`, `INV-MENU-004` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
 | `REQ-MENU-COMP-005` | Tiempo sugerido de servicio | `BR-MENU-013` | — | — |
-| `REQ-MENU-COMP-006` | Ubicación espacial descriptiva | `BR-MENU-013`, `BR-MENU-014` | — | — |
 | `REQ-MENU-CONT-001` | Tipos y configuración de opciones de contenido | `BR-MENU-004`, `BR-MENU-006`, `BR-MENU-008`, `BR-MENU-015`, `BR-MENU-016`, `BR-MENU-017`, `BR-MENU-018`, `BR-MENU-020` | `INV-MENU-002`, `INV-MENU-003`, `INV-MENU-004`, `INV-MENU-005`, `INV-MENU-008` | `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
 | `REQ-MENU-CONT-002` | Uso directo de un artículo de Inventario | `BR-MENU-018` | `INV-MENU-005` | — |
 | `REQ-MENU-CONT-003` | Selección de una receta para un slot | `BR-MENU-017`, `BR-MENU-018`, `BR-MENU-019`, `BR-MENU-020` | `INV-MENU-004`, `INV-MENU-005`, `INV-MENU-008` | `NFR-MENU-PERF-01`, `NFR-MENU-PERF-02`, `NFR-MENU-PERF-03` |
@@ -61,8 +60,7 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `BR-MENU-010` | Cantidad de rondas del grupo | `REQ-MENU-COMP-004` |
 | `BR-MENU-011` | Selección por ronda | `REQ-MENU-COMP-003`, `REQ-MENU-COMP-004` |
 | `BR-MENU-012` | Identidad de slots y opciones | `REQ-MENU-COMP-003`, `REQ-MENU-COMP-004` |
-| `BR-MENU-013` | Curso y ubicación | `REQ-MENU-COMP-005`, `REQ-MENU-COMP-006` |
-| `BR-MENU-014` | Región descriptiva | `REQ-MENU-COMP-006` |
+| `BR-MENU-013` | Curso | `REQ-MENU-COMP-005` |
 | `BR-MENU-015` | Opción contextual y copia de composición | `REQ-MENU-OFFER-005`, `REQ-MENU-CONT-001` |
 | `BR-MENU-016` | Estado de una opción | `REQ-MENU-OFFER-004`, `REQ-MENU-COMP-003`, `REQ-MENU-CONT-001` |
 | `BR-MENU-017` | Un solo origen de contenido | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003` |

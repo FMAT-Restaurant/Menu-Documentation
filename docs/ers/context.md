@@ -15,9 +15,9 @@ El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationT
 ### Composición y selección
 
 - Cada oferta contiene exactamente una composición con uno o más `CompositionSlot`. Cada slot tiene `required: boolean`; `requiredSlots` es el subconjunto derivado de los slots con `required=true`, y una composición válida contiene al menos un slot requerido. Todos los slots siguen perteneciendo estructuralmente a la composición.
-- Cada `CompositionSlot` representa un grupo por su función o posición y contiene una o más `SlotOption`. Un slot requerido `ACTIVE` participa en la selección; un slot opcional `ACTIVE` puede omitirse; un slot `INACTIVE` no se selecciona ni genera rondas.
+- Cada `CompositionSlot` representa un grupo por su función y contiene una o más `SlotOption`. Un slot requerido `ACTIVE` participa en la selección; un slot opcional `ACTIVE` puede omitirse; un slot `INACTIVE` no se selecciona ni genera rondas.
 - `CompositionSlot.quantity` indica cuántas rondas de selección tiene el grupo cuando participa. En cada ronda se resuelve exactamente una opción `ACTIVE` de ese grupo; si el grupo participante tiene una sola opción `ACTIVE`, se resuelve directamente en cada ronda. Por ejemplo, un grupo de acompañamientos con `quantity` 3 tiene tres rondas si participa, y en cada una se elige una opción `ACTIVE` entre papas, aros de cebolla y nuggets. Si ninguna opción del slot está `ACTIVE`, el slot queda `INACTIVE`. Si ningún elemento de `requiredSlots` queda `ACTIVE`, la oferta pasa a `INACTIVE` y no se reactiva automáticamente al restaurar opciones.
-- `course` es opcional; cuando está presente, admite únicamente `entrada`, `plato fuerte`, `postre` o `bebida` y sugiere un tiempo de servicio. `positionRef` señala una ubicación y no determina qué opción se elige. `PlacementRegion.name` es descriptivo; `surface` y `coverage` son atributos opcionales reservados para el futuro.
+- `course` es opcional; cuando está presente, admite únicamente `entrada`, `plato fuerte`, `postre` o `bebida` y sugiere un tiempo de servicio.
 - Durante la configuración, se puede elegir otra `CatalogOffer` como origen para copiar sus grupos y opciones a la composición destino. La copia conserva el atributo `required` de cada grupo y el estado de sus opciones; el estado de cada slot se deriva de las opciones copiadas. Las definiciones quedan locales, independientes y editables. La oferta destino no conserva el ID ni una referencia a la oferta origen, no sincroniza cambios con ella y no copia su precio.
 
 ### Contenido y recetas
@@ -119,7 +119,6 @@ La composición conserva todos sus grupos; los requeridos `ACTIVE` participan, l
 - **`Composition`:** estructura de una oferta que conserva todos sus grupos requeridos y opcionales y las variantes de cada grupo; contiene al menos un grupo requerido.
 - **`CompositionSnapshot`:** composición publicada e inmutable que pertenece únicamente a una `CatalogOfferRevision` histórica de la oferta.
 - **`CompositionSlot`:** grupo requerido u opcional de una composición. `required: boolean` distingue ambos; su estado es `ACTIVE` si tiene al menos una opción `ACTIVE`, e `INACTIVE` si no. Los requeridos `ACTIVE` participan, los opcionales `ACTIVE` pueden omitirse y los `INACTIVE` no generan rondas. `quantity` es la cantidad de rondas del grupo participante.
-- **`PlacementRegion`:** región semántica descriptiva de una composición que puede ser referida por un grupo.
 - **`SlotOption`:** aparición contextual que representa una variante dentro de un grupo y contiene un origen único. Las opciones inactivas no se ofrecen; el estado del grupo depende de si hay al menos una opción activa.
 - **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INVENTORY_ITEM` o `RECIPE`.
 - **`InventoryItemSource`:** contenido que referencia un artículo externo de Inventario con su cantidad física y unidad.

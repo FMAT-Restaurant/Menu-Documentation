@@ -32,7 +32,7 @@ Una CatalogEntry solo puede eliminarse desde ARCHIVED. Una CatalogOffer solo pue
 
 ## Entidades y Atributos Principales
 
-La siguiente tabla resume los 17 conceptos del modelo, sus responsabilidades, atributos y relaciones. CatalogEntry declara ACTIVE, INACTIVE o ARCHIVED; CatalogOffer, CompositionSlot, SlotOption y RecipeDefinition declaran ACTIVE o INACTIVE. El estado de CompositionSlot es derivado de las opciones. Los identificadores son conceptuales: no prescriben claves de base de datos ni un esquema de almacenamiento.
+La siguiente tabla resume los 16 conceptos del modelo, sus responsabilidades, atributos y relaciones. CatalogEntry declara ACTIVE, INACTIVE o ARCHIVED; CatalogOffer, CompositionSlot, SlotOption y RecipeDefinition declaran ACTIVE o INACTIVE. El estado de CompositionSlot es derivado de las opciones. Los identificadores son conceptuales: no prescriben claves de base de datos ni un esquema de almacenamiento.
 
 | Entidad o concepto | Responsabilidad | Atributos y relaciones principales |
 | :--- | :--- | :--- |
@@ -41,10 +41,9 @@ La siguiente tabla resume los 17 conceptos del modelo, sus responsabilidades, at
 | CatalogEntry | Identidad comercial que agrupa las ofertas de un producto de la carta. | id, menuId, brandName, description, imageRef, status, categoryIds[]; pertenece a Menu, agrupa CatalogOffer y usa categorías del mismo menú. Se publica solo si está ACTIVE y tiene al menos una oferta ACTIVE válida; si no, permanece ACTIVE pero oculta. La oferta no cambia el estado administrativo de la entrada. |
 | CatalogOffer | Oferta concreta, individualmente vendible y seleccionable, con precio base y composición propia. | id, entryId, presentationTag?, basePrice, status (ACTIVE/INACTIVE), offerImageRef; pertenece a CatalogEntry y contiene exactamente una Composition. Pasa a INACTIVE si ningún requiredSlot está ACTIVE y no se reactiva automáticamente. La eliminación individual requiere INACTIVE y no invalidar una entrada ACTIVE; las revisiones publicadas se conservan como historia consultable. |
 | CatalogOfferRevision | Instantánea inmutable de una revisión publicada de oferta. | entryId, offerId, revision, brandNameSnapshot, basePrice, offerImageRef, compositionSnapshot; conserva la composición histórica consultable aunque se elimine la oferta vigente. |
-| Composition | Define los grupos de opciones de una oferta. | id, offerId, slots[], requiredSlots[] (subconjunto derivado), placementRegions[]?; pertenece a CatalogOffer, conserva todos sus slots como miembros estructurales y requiere al menos un slot requerido. |
-| CompositionSnapshot | Copia histórica completa de la composición de una revisión publicada. | slots[], requiredSlots[] (derivado), placementRegions[]?; pertenece exclusivamente a CatalogOfferRevision y conserva slots, atributos required y estados de opciones de esa revisión. |
-| CompositionSlot | Grupo requerido u opcional de una composición, propietario de sus rondas cuando participa. | id, compositionId, name, required:boolean, status (ACTIVE/INACTIVE, derivado), quantity, course? (entrada, plato fuerte, postre o bebida), positionRef?, options[]; el curso es una sugerencia de tiempo de servicio; pertenece a Composition y contiene una o más SlotOption. Solo required ACTIVE participa; optional ACTIVE puede omitirse; INACTIVE no genera rondas. |
-| PlacementRegion | Región o ubicación semántica descriptiva de una composición. | id, compositionId, name, parentRegionId?, surface?, coverage?; puede tener región padre y ser referida por CompositionSlot. |
+| Composition | Define los grupos de opciones de una oferta. | id, offerId, slots[], requiredSlots[] (subconjunto derivado); pertenece a CatalogOffer, conserva todos sus slots como miembros estructurales y requiere al menos un slot requerido. |
+| CompositionSnapshot | Copia histórica completa de la composición de una revisión publicada. | slots[], requiredSlots[] (derivado); pertenece exclusivamente a CatalogOfferRevision y conserva slots, atributos required y estados de opciones de esa revisión. |
+| CompositionSlot | Grupo requerido u opcional de una composición, propietario de sus rondas cuando participa. | id, compositionId, name, required:boolean, status (ACTIVE/INACTIVE, derivado), quantity, course? (entrada, plato fuerte, postre o bebida), options[]; el curso es una sugerencia de tiempo de servicio; pertenece a Composition y contiene una o más SlotOption. Solo required ACTIVE participa; optional ACTIVE puede omitirse; INACTIVE no genera rondas. |
 | SlotOption | Variante de contenido dentro de un grupo. | id, slotId, displayName, status, source; pertenece a CompositionSlot y posee un ComponentSource. Un slot es ACTIVE si al menos una opción está ACTIVE. |
 | ComponentSource | Tipo conceptual del origen único de una opción. | type: INVENTORY_ITEM o RECIPE; especialización exclusiva en InventoryItemSource o RecipeSource. |
 | InventoryItemSource | Referencia directa a un artículo externo de Inventario. | inventoryItemId, quantity, unit, displayNameSnapshot?; referencia exactamente un InventoryItem. |
@@ -65,8 +64,7 @@ Todos los grupos pertenecen estructuralmente a la composición, pero solo los pa
 - Si un grupo participante tiene una sola opción ACTIVE, se selecciona automáticamente en cada ronda. Si tiene varias opciones ACTIVE, no se configura una opción predeterminada en el catálogo.
 - Si ningún elemento de requiredSlots está ACTIVE, CatalogOffer pasa automáticamente a INACTIVE. Si posteriormente vuelve a haber un requiredSlot ACTIVE, la oferta no se reactiva sin una activación administrativa.
 - La cantidad de InventoryItemSource expresa la cantidad y unidad física del artículo; no sustituye las rondas definidas por CompositionSlot.quantity.
-- course es opcional; cuando se informa, acepta exactamente entrada, plato fuerte, postre o bebida y sugiere un tiempo de servicio. positionRef señala ubicación espacial y no determina inclusión.
-- PlacementRegion.name es una etiqueta descriptiva; surface y coverage son opcionales y quedan reservados para futuras implementaciones, sin comportamiento de cobertura en este modelo.
+- course es opcional; cuando se informa, acepta exactamente entrada, plato fuerte, postre o bebida y sugiere un tiempo de servicio.
 - Una SlotOption INACTIVE no se presenta como opción para una nueva selección.
 
 ### Recetas y precios
@@ -141,12 +139,10 @@ classDiagram
         +offerId
         +slots[]
         +requiredSlots[] (derived)
-        +placementRegions[]
     }
     class CompositionSnapshot {
         +slots[]
         +requiredSlots[] (derived)
-        +placementRegions[]
     }
     class CompositionSlot {
         +required: boolean
@@ -154,13 +150,6 @@ classDiagram
         +name
         +quantity
         +course?
-        +positionRef?
-    }
-    class PlacementRegion {
-        +name
-        +parentRegionId?
-        +surface?
-        +coverage?
     }
     class SlotOption {
         +displayName
@@ -210,11 +199,7 @@ classDiagram
     CatalogOffer "1" *-- "1" Composition : define
     CatalogOfferRevision "1" *-- "1" CompositionSnapshot : definición histórica
     Composition "1" *-- "1..*" CompositionSlot : miembros estructurales
-    Composition "1" *-- "0..*" PlacementRegion : regiones
     CompositionSnapshot "1" *-- "1..*" CompositionSlot : grupos históricos
-    CompositionSnapshot "1" *-- "0..*" PlacementRegion : regiones históricas
-    CompositionSlot "0..*" --> "0..1" PlacementRegion : ubicación
-    PlacementRegion "0..*" --> "0..1" PlacementRegion : región padre
     CompositionSlot "1" *-- "1..*" SlotOption : variantes
     SlotOption "1" *-- "1" ComponentSource : origen único
     ComponentSource <|-- InventoryItemSource
