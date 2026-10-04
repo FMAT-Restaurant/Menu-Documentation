@@ -1,6 +1,6 @@
 {
   "verdict": "PASS",
-  "summary": "Los ocho documentos permitidos satisfacen los criterios auditados; la cardinalidad INLINE y las relaciones de trazabilidad quedaron alineadas.",
+  "summary": "Cierre correcto en los ocho documentos autorizados: course? admite exactamente entrada, plato fuerte, postre y bebida; OPEN-007 ya no aparece en docs/ers; permanecen OPEN-001, OPEN-003, OPEN-006, OPEN-008, OPEN-009 y OPEN-010; REQ-MENU-COMP-005 conserva su vínculo con BR-MENU-013; la versión es 2.1.11 y la fecha 2026-10-04.",
   "issues": [],
   "next_action": "NONE"
 }
