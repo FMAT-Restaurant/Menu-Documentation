@@ -41,7 +41,7 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 ### REQ-MENU-ENTRY-004 — Eliminación de una entrada archivada
 
 - **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada únicamente cuando se encuentre archivada y ninguna de sus ofertas mantenga referencias vigentes externas desde otras definiciones del catálogo.
-- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Si alguna de las ofertas de una entrada archivada es utilizada por un `CatalogOfferSource`, un `AddOption` de tipo `CATALOG_OFFER` u otra referencia vigente que requiera su existencia, la eliminación se rechaza sin realizar modificaciones parciales y se informa qué dependencias la impiden. Cuando no existen dichas referencias, se eliminan la entrada y sus definiciones vigentes poseídas. Las revisiones históricas publicadas permanecen intactas y consultables.
+- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Si alguna de las ofertas de una entrada archivada es utilizada por un `CatalogOfferSource` u otra referencia vigente que requiera su existencia, la eliminación se rechaza sin realizar modificaciones parciales y se informa qué dependencias la impiden. Cuando no existen dichas referencias, se eliminan la entrada y sus definiciones vigentes poseídas. Las revisiones históricas publicadas permanecen intactas y consultables.
 
 ## Ofertas y composición
 
@@ -73,7 +73,7 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 ### REQ-MENU-OFFER-006 — Eliminación de una oferta
 
 - **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y no mantenga referencias vigentes externas.
-- **Criterio de aceptación:** La eliminación de una oferta activa se rechaza. También se rechaza si la oferta es utilizada por un `CatalogOfferSource`, por un `AddOption` de tipo `CATALOG_OFFER` o si corresponde al `defaultOfferId` de su entrada. La operación no modifica automáticamente los recursos que la referencian. Si no existen dependencias impeditivas, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
+- **Criterio de aceptación:** La eliminación de una oferta activa se rechaza. También se rechaza si la oferta es utilizada por un `CatalogOfferSource` o si corresponde al `defaultOfferId` de su entrada. La operación no modifica automáticamente los recursos que la referencian. Si no existen dependencias impeditivas, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 
@@ -87,13 +87,13 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-COMP-003 — Alternativas de contenido por posición
 
-- **Requisito:** El sistema deberá permitir al administrador definir una o más alternativas de contenido para cada posición. Para una posición incluida deberá quedar determinada una de sus alternativas; si hay varias, el cliente podrá elegir exactamente una para esa posición.
+- **Requisito:** El sistema deberá permitir al administrador definir una o más alternativas de contenido (`ComponentOption`) para cada posición. Para cada posición incluida deberá quedar seleccionada exactamente una de sus alternativas; si hay varias, el cliente podrá elegir una para esa posición.
 - **Criterio de aceptación:** Elegir si una posición se incluye es una decisión distinta de elegir qué contenido ocupa esa posición. Una posición obligatoria que tenga varias alternativas sigue permitiendo elegir su contenido.
 
 ### REQ-MENU-COMP-004 — Cantidad incluida por posición
 
-- **Requisito:** El sistema deberá permitir indicar cuántas unidades del contenido incluye una posición. Cuando unidades iguales deban personalizarse por separado, el administrador deberá poder representarlas como posiciones independientes.
-- **Criterio de aceptación:** La cantidad se muestra asociada a su posición. Dos unidades destinadas a recibir personalizaciones independientes se identifican en posiciones distintas.
+- **Requisito:** El sistema deberá permitir indicar cuántas unidades del contenido incluye una posición.
+- **Criterio de aceptación:** La cantidad se muestra asociada a su posición.
 
 ### REQ-MENU-COMP-005 — Tiempo sugerido de servicio
 
@@ -124,7 +124,7 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-CONT-004 — Otra oferta como contenido
 
-- **Requisito:** El sistema deberá permitir usar una oferta existente como contenido de una posición en otra oferta. La oferta referenciada conservará su composición y sus posibilidades de personalización propias.
+- **Requisito:** El sistema deberá permitir usar una oferta existente como contenido de una posición en otra oferta. La oferta referenciada conservará su composición.
 - **Criterio de aceptación:** La oferta hija se reconoce como contenido reutilizado y su precio base no se suma automáticamente al precio base de la oferta que la contiene. La eliminación de la oferta o de su entrada propietaria se rechaza mientras exista esta referencia vigente, sin modificar la composición que la contiene.
 
 ### REQ-MENU-REC-001 — Biblioteca de recetas reutilizables
@@ -141,35 +141,3 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 - **Requisito:** El sistema deberá conservar revisiones identificables de las recetas reutilizables. Editar una receta publicada deberá crear una nueva revisión, sin alterar la revisión que ya utilizan ofertas existentes hasta que su administrador actualice expresamente esa referencia.
 - **Criterio de aceptación:** Después de editar y publicar una receta, una oferta que apuntaba a la revisión anterior conserva el contenido previamente referenciado; una oferta puede actualizarse para utilizar la nueva revisión mediante una acción administrativa.
-
-## Personalizaciones
-
-### REQ-MENU-PERS-001 — Personalizaciones de una alternativa
-
-- **Requisito:** El sistema deberá permitir declarar personalizaciones opcionales para cada alternativa de contenido, de modo que dos apariciones del mismo artículo, receta u oferta puedan tener opciones distintas. Deberá permitir nombrar los grupos y las alternativas para que se entiendan en su contexto.
-- **Criterio de aceptación:** Las personalizaciones quedan asociadas a una sola aparición. Modificar las de una alternativa no cambia las personalizaciones de otra que comparta el mismo contenido de origen.
-
-### REQ-MENU-PERS-002 — Cambios a ingredientes de una receta
-
-- **Requisito:** Cuando la alternativa tenga una receta efectiva, el administrador deberá poder ofrecer cambios de cantidad o eliminación para líneas directas de artículos de Inventario ya presentes en esa receta.
-- **Criterio de aceptación:** Cada cambio identifica inequívocamente una línea existente de la receta efectiva. No se usa esta opción para modificar líneas internas de una oferta hija ni de una subreceta referenciada.
-
-### REQ-MENU-PERS-003 — Opciones para agregar contenido
-
-- **Requisito:** El sistema deberá permitir definir grupos de contenido adicional para una alternativa ya incluida, con límites de cuántas opciones adicionales pueden elegirse. Cada opción utilizará exactamente uno de estos destinos: artículo de Inventario, receta reutilizable u oferta del catálogo. Podrá declarar su ajuste de precio y, cuando corresponda, su cantidad y unidad.
-- **Criterio de aceptación:** Los límites del grupo rigen solo la selección de contenido adicional y no alteran las reglas de inclusión de posiciones. Cada opción tiene un único destino. La eliminación de una oferta o de su entrada propietaria se rechaza mientras esta opción mantenga una referencia vigente a esa oferta; la opción y la personalización que la contiene no se modifican.
-
-### REQ-MENU-PERS-004 — Sustitución de un ingrediente
-
-- **Requisito:** Cuando la alternativa tenga una receta efectiva, el administrador deberá poder señalar una línea directa de artículo de Inventario que pueda sustituirse y definir uno o más artículos de Inventario como reemplazo, con la cantidad, unidad y ajuste de precio aplicables.
-- **Criterio de aceptación:** Cada grupo de reemplazo identifica la línea de ingrediente que sustituye. Los reemplazos son artículos de Inventario y no recetas ni ofertas completas.
-
-### REQ-MENU-PERS-005 — Instrucciones de preparación
-
-- **Requisito:** El sistema deberá permitir definir grupos de instrucciones seleccionables para una alternativa, asignarles nombres y registrar el texto de cada instrucción. Una instrucción podrá referirse a una parte identificable de la preparación.
-- **Criterio de aceptación:** Las instrucciones se muestran como indicaciones de elaboración o servicio. Por sí solas no añaden, retiran ni sustituyen cantidades físicas.
-
-### REQ-MENU-PERS-006 — Ajustes de precio de personalizaciones
-
-- **Requisito:** El sistema deberá permitir declarar un ajuste de precio para cada personalización que lo requiera. El catálogo conservará el importe declarado sin calcular el precio final de una orden.
-- **Criterio de aceptación:** El ajuste queda asociado a la personalización correspondiente y no modifica el precio base de la oferta.

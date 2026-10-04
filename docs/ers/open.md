@@ -4,7 +4,7 @@ Esta sección registra decisiones de requisitos que no quedan determinadas por e
 
 | Identificador | Cuestión | Alcance establecido | Decisión pendiente |
 | :--- | :--- | :--- | :--- |
-| OPEN-001 | Importes de precios | Cada oferta tiene un precio base propio; las personalizaciones que corresponda pueden declarar un `priceDelta`. El precio final de la orden se determina fuera del catálogo. | Moneda aplicable, precisión, redondeo y rangos admisibles de `basePrice` y `priceDelta`. |
+| OPEN-001 | Importes de precios | Cada oferta tiene un precio base propio. El precio final de la orden se determina fuera del catálogo. | Moneda aplicable, precisión, redondeo y rangos admisibles de `CatalogOffer.basePrice`. |
 | OPEN-002 | Oferta predeterminada | Una entrada puede referenciar una oferta predeterminada mediante `defaultOfferId`. | Si la referencia determina una presentación inicial para consulta o selección, y cómo se resuelve cuando la oferta deja de estar activa. |
 | OPEN-003 | Alcance de reutilización de recetas | Las recetas reutilizables se agrupan en una `RecipeLibrary` y pueden usarse desde distintas ofertas. | Si una biblioteca puede compartirse entre varios menús o si su alcance corresponde a un solo menú. |
 | OPEN-006 | Cantidades y unidades | La cantidad de contenido directo de Inventario es positiva y compatible con la unidad del artículo. Los slots y las líneas de receta expresan cantidades, y las líneas identifican una unidad. | Rangos y precisión de cantidades en slots y recetas, reglas para valores fraccionarios y reglas de unidades de receta. |
@@ -15,7 +15,7 @@ Esta sección registra decisiones de requisitos que no quedan determinadas por e
 
 ## OPEN-001 — Importes de precios
 
-Definir las reglas de moneda, precisión, redondeo y rangos para los precios base de las ofertas y los ajustes de precio declarados por personalizaciones. La política debe permitir expresar ajustes que aumenten, reduzcan o no cambien el importe cuando corresponda al tipo de personalización.
+Definir las reglas de moneda, precisión, redondeo y rangos admisibles de `CatalogOffer.basePrice`.
 
 ## OPEN-002 — Oferta predeterminada
 

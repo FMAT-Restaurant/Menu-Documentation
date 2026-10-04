@@ -4,15 +4,19 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 2.1.3 (Consolidada Vigente) |
+| Versión | 2.1.4 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
-| Fecha | 2026-09-30 |
+| Fecha | 2026-10-03 |
 
 ## Identificación y Propósito
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **2.1.3** (fecha 2026-09-30) conserva de **OPEN-005** las restricciones de contenido y validación atómica de imágenes. Las operaciones, los datos y las representaciones externas de la API quedan pendientes de revisión de los mockups, según **OPEN-010**. Esta versión actualiza el ciclo de vida y la eliminación del catálogo: una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina una entrada ARCHIVED o una oferta INACTIVE cuando no hay referencias vigentes externas; la eliminación individual de una oferta también se rechaza si corresponde a defaultOfferId o si invalidaría una entrada ACTIVE. Estas eliminaciones aplican RESTRICT: ante una restricción, se rechazan sin modificar las definiciones dependientes ni convertir referencias vigentes en INLINE. Las revisiones históricas publicadas permanecen inmutables y consultables. Se conserva además el cierre de entradas archivadas y la base de reespecificación integral del catálogo de las versiones anteriores. Su fuente conceptual principal es [`domain-model.md`](../other/md/domain-model.md), que define el modelo vigente de Menú/Catálogo.
+La versión **2.1.4** (fecha 2026-10-03) fija como autoridad el modelo vigente de Menú/Catálogo en [`domain-model.md`](../other/md/domain-model.md). El alcance operativo contempla un catálogo por sucursal, provisionado con su instalación, sin administración de menús. Se conservan las restricciones de contenido y validación atómica de imágenes de **OPEN-005**; las operaciones, los datos y las representaciones externas de la API permanecen pendientes bajo **OPEN-010**.
+
+### Ciclo de vida y referencias
+
+Una entrada se archiva desde ACTIVE o INACTIVE y al desarchivarla queda INACTIVE; una entrada ACTIVE requiere al menos una oferta ACTIVE y válida, sin cambios automáticos entre estados. Solo se elimina una entrada ARCHIVED o una oferta INACTIVE cuando no hay referencias vigentes externas; la eliminación individual de una oferta también se rechaza si corresponde a defaultOfferId o si invalidaría una entrada ACTIVE. Estas eliminaciones aplican RESTRICT: ante una restricción, se rechazan sin modificar las definiciones dependientes ni convertir referencias vigentes en INLINE. Las revisiones históricas publicadas permanecen inmutables y consultables. Se conserva el cierre de entradas archivadas y la base de reespecificación integral del catálogo.
 
 ## Alcance operativo vigente
 
@@ -33,12 +37,12 @@ Las fuentes siguientes registran el análisis y las decisiones del proyecto. El 
 9. [**`Auditoria-3.md`**](../other/md/Auditoria-3.md) (revisión del modelo de dominio y las reglas comerciales).
 10. [**`Auditoria-4.md`**](../other/md/Auditoria-4.md) (revisión de responsabilidades y límites entre servicios).
 11. [**`Consultoria-3.md`**](../other/md/Consultoria-3.md) (revisión del ciclo de vida y responsabilidades operativas).
-12. [**`domain-model.md`**](../other/md/domain-model.md) (modelo conceptual vigente de entidades, relaciones, composición, recetas, personalizaciones y límites del catálogo).
+12. [**`domain-model.md`**](../other/md/domain-model.md) (modelo conceptual vigente de entidades, relaciones, composición, recetas y límites del catálogo).
 
 ### Regla de Prevalencia
 
 La especificación vigente se aplica con este orden de autoridad:
 
-- El [modelo conceptual vigente](../other/md/domain-model.md) define el dominio autoritativo de Menú/Catálogo: entidades, relaciones, reglas de composición, contenido, recetas, personalizaciones, precios declarados y límites con otros contextos.
+- El [modelo conceptual vigente](../other/md/domain-model.md) define el dominio autoritativo de Menú/Catálogo: entidades, relaciones, reglas de composición, contenido, recetas, precios declarados y límites con otros contextos.
 - Los documentos normativos de esta ERS en `docs/ers/` desarrollan y precisan ese modelo: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md), [reglas de negocio](business-rules.md), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos, reglas y criterios vigentes rigen la especificación; OPEN-005 conserva las restricciones de contenido y validación atómica de imágenes en los requisitos funcionales y su trazabilidad. Las operaciones y representaciones externas de API quedan pendientes bajo OPEN-010.
 - Las fuentes históricas enumeradas arriba aportan contexto sobre la evolución y las decisiones del proyecto; no constituyen norma vigente ni prevalecen sobre el modelo conceptual y los documentos normativos actuales.
