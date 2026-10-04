@@ -1,53 +1,94 @@
 {
-  "change_id": "draft-reusable-sonarqube-ticket-2026-10-01",
-  "objective": "Redactar en español un único ticket de integración de SonarQube que pueda copiarse sin cambios semánticos a los repositorios frontend y backend, siguiendo docs/templates/ticket-template.md y sin crear issues ni modificar documentos del producto.",
+  "change_id": "menu-close-open-008-required-optional-slots-2026-10-04",
+  "objective": "Distinguir CompositionSlot requeridos y opcionales; derivar su actividad de las opciones; inactivar CatalogOffer cuando no quede ningún slot requerido activo; cerrar OPEN-008 y propagar la decisión al ERS y modelo vigente.",
   "decisions": [
-    {
-      "id": "D1",
-      "decision": "El ticket trata la integración del análisis de SonarQube en cada repositorio por separado. Provisionar y administrar la plataforma SonarQube constituye un trabajo distinto."
-    },
-    {
-      "id": "D2",
-      "decision": "La redacción será neutral respecto al lenguaje y la herramienta de compilación; cada ejecución en frontend o backend seleccionará el scanner/plugin compatible con su stack y una clave de proyecto propia."
-    },
-    {
-      "id": "D3",
-      "decision": "El ticket exigirá configuración reproducible, parámetros y secretos externos al código, comando de ejecución documentado y evidencia de un análisis visible en el proyecto SonarQube elegido."
-    },
-    {
-      "id": "D4",
-      "decision": "Permanecen abiertos la modalidad Cloud/Server, URL y credenciales, ejecución en CI, Quality Gate y Quality Profile, métricas/umbrales de cobertura y estrategia de análisis de ramas/PR, inclusiones y exclusiones."
-    }
+    "Cada CompositionSlot configura explícitamente required=true/false; requiredSlots denota el subconjunto requerido de Composition.slots. Una Composition publicable tiene al menos un slot requerido.",
+    "CompositionSlot.status es derivado: ACTIVE si existe al menos una SlotOption ACTIVE; INACTIVE si no existe ninguna. Las opciones inactivas no pueden seleccionarse.",
+    "Un slot opcional ACTIVE puede omitirse al resolver la oferta; un slot requerido ACTIVE participa en la selección. Solo los slots ACTIVE que participan generan rondas según CompositionSlot.quantity.",
+    "Si no queda ningún requiredSlot ACTIVE, CatalogOffer pasa automáticamente a INACTIVE. Recuperar opciones puede reactivar el slot derivado, pero la oferta vuelve a ACTIVE únicamente con activación administrativa y composición válida.",
+    "CatalogEntry conserva su estado administrativo cuando una oferta se inactiva; deja de publicarse si no tiene una oferta ACTIVE válida. Así se conserva la independencia de estados ya vigente y se ajusta la antigua implicación fuerte ACTIVE=>oferta ACTIVE.",
+    "Eliminar OPEN-008 sin explicación histórica; conservar IDs OPEN restantes y elevar versión documental 2.1.11 a 2.1.12 con la fecha actual."
   ],
-  "permitted_writes": [],
-  "invariants": [
-    "Conservar el orden y los encabezados de docs/templates/ticket-template.md.",
-    "No atribuir a la ERS un requisito funcional ni reglas de negocio de SonarQube inexistentes.",
-    "No especificar configuración exclusiva de Java/Gradle o TypeScript/npm en el ticket común.",
-    "No presentar la provisión de la plataforma ni las decisiones abiertas como ya aprobadas.",
-    "No crear issues ni escribir en archivos de producto, código, configuración o Git."
+  "permitted_writes": [
+    "docs/other/md/domain-model.md",
+    "docs/ers/functional-requirements.md",
+    "docs/ers/business-rules.md",
+    "docs/ers/context.md",
+    "docs/ers/architechture.md",
+    "docs/ers/non-functional-requirements.md",
+    "docs/ers/open.md",
+    "docs/ers/traceability.md",
+    "docs/ers/README.md",
+    "docs/ers/configuration.md"
   ],
   "affected_files": [
     {
-      "path": "docs/templates/ticket-template.md",
-      "operation": "VERIFY",
-      "instructions": [
-        "Usar sus secciones Descripción, Requisitos implicados, Reglas de negocio implicadas, Invariantes implicadas, Criterios de aceptación, Decisiones abiertas y Referencias para estructurar el borrador."
-      ],
-      "acceptance": [
-        "El borrador contiene todas las secciones en el mismo orden y sin texto de relleno."
-      ]
+      "path": "docs/other/md/domain-model.md",
+      "operation": "MODIFY",
+      "instructions": "En descripciones, atributos y Mermaid de Composition/CompositionSlot, introducir required:boolean explícito y status ACTIVE|INACTIVE derivado de existencia de SlotOption ACTIVE. requiredSlots es el subconjunto requerido de slots[]; composición activable exige al menos uno y oferta se inactiva si ninguno permanece ACTIVE. Distinguir inclusión estructural de participación en selección: slots requeridos ACTIVE se resuelven; opcionales ACTIVE pueden omitirse; INACTIVE no generan selección. Copias e instantáneas conservan required y actividad de las opciones. Ajustar invariantes de CatalogOffer/CatalogEntry: la entrada puede seguir administrativamente ACTIVE pero se oculta si pierde su última oferta ACTIVE válida; no propagar estado automáticamente a la entrada. Revisar ejemplos, reglas transversales y notas del diagrama sin cambiar cantidad del grupo ni fuentes de contenido."
     },
     {
-      "path": "docs/stack.md",
+      "path": "docs/ers/functional-requirements.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar REQ-MENU-CAT-002, REQ-MENU-ENTRY-003 y REQ-MENU-OFFER-004 para publicación condicional, inactivación automática de oferta por cero requiredSlots ACTIVE, reactivación administrativa y entrada ACTIVE temporalmente no publicable sin oferta elegible. Actualizar REQ-MENU-COMP-001/002 para configuración explícita de required vs optional con >=1 requerido, inclusión estructural y selección de slots activos; REQ-MENU-COMP-003/004 para opciones activas, status derivado de grupo y rondas solo de grupos que participan. Actualizar REQ-MENU-CONT-001 con criterio verificable de transición al inactivar/activar opciones y cascada. Al copiar una composición en REQ-MENU-OFFER-005, conservar required y estado de opciones. Mantener IDs y criterios atómicos, sin definir API de OPEN-010."
+    },
+    {
+      "path": "docs/ers/business-rules.md",
+      "operation": "MODIFY",
+      "instructions": "Modificar BR-MENU-004/006/008/009/010/011/015/016 e INV-MENU-002/003/004 donde corresponda: required explícito y al menos uno; slot ACTIVE iff >=1 opción ACTIVE; cero opciones ACTIVE => slot INACTIVE; si no queda requiredSlot ACTIVE => oferta INACTIVE automática; oferta no vuelve a ACTIVE automáticamente; opción única solo se aplica si ACTIVE. Estado administrativo de entrada independiente, publicable solo si existe oferta ACTIVE válida; corregir implicación antigua de entrada ACTIVE. Opcionales ACTIVE pueden omitirse y los inactivos no se resuelven. Preservar cantidad del grupo, precio e IDs."
+    },
+    {
+      "path": "docs/ers/context.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar alcance, composición/selección, estados, glosario y diagramas pertinentes para requerido/opcional, actividad derivada del grupo, cascada a oferta y publicación condicional de entrada. Reemplazar afirmación de que todos los grupos se seleccionan o no existe inclusión opcional; conservar pertenencia estructural de todos a la composición y límites con Órdenes."
+    },
+    {
+      "path": "docs/ers/architechture.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar vista conceptual, tabla de 17 entidades, classDiagram, sección de selección, resumen de estados y flowchart para required:boolean, status derivado del CompositionSlot, opcionales omitibles, grupos INACTIVE sin rondas, oferta INACTIVE automática si cero requiredSlots ACTIVE y entrada no publicable sin oferta elegible. Mantener copia de slots con required/opciones, ownership y límites. Evitar afirmar que toda oferta selecciona todos sus grupos."
+    },
+    {
+      "path": "docs/ers/non-functional-requirements.md",
+      "operation": "MODIFY",
+      "instructions": "Ajustar solo frases de NFR-MENU-PERF-01/02/03 que dicen validar todos los CompositionSlot: la evaluación abarca todos los requeridos ACTIVE y los opcionales ACTIVE efectivamente incluidos; grupos INACTIVE no generan rondas. Conservar métricas, cargas y latencias."
+    },
+    {
+      "path": "docs/ers/open.md",
+      "operation": "MODIFY",
+      "instructions": "Eliminar fila y sección OPEN-008, sin nota de cierre ni renumeración. Mantener OPEN-001/003/006/009/010 y sus decisiones pendientes."
+    },
+    {
+      "path": "docs/ers/traceability.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar temas y relaciones de REQ-MENU-CAT-002, ENTRY-003, OFFER-004/005, COMP-001/002/003/004 y CONT-001 a las BR/INV que gobiernan actividad del grupo, required/optional y cascada. Ajustar matrices inversas correspondientes y quitar cualquier OPEN-008; conservar IDs y enlaces bidireccionales."
+    },
+    {
+      "path": "docs/ers/README.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar versión a 2.1.12; alcance y límites para slots requeridos/opcionales y cascada de inactividad; lista de OPEN pendientes a 001/003/006/009/010 y dos recuentos de seis a cinco. Conservar demás mapa y conteos normativos si los IDs no cambian."
+    },
+    {
+      "path": "docs/ers/configuration.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar versión en tabla y párrafo a 2.1.12, conservar fecha 2026-10-04; resumir distinción, actividad derivada, cascada a oferta y publicación condicional de entrada en secciones de propósito/ciclo de vida. Conservar autoridad y alcance operativo."
+    },
+    {
+      "path": "docs/ers",
       "operation": "VERIFY",
-      "instructions": [
-        "Confirmar que frontend y backend usan stacks distintos para no prescribir un scanner/plugin propio de solo uno de ellos."
-      ],
-      "acceptance": [
-        "La tarea común permite implementación propia en ambos repositorios sin asumir un lenguaje o sistema de build único."
-      ]
+      "instructions": "Buscar OPEN-008 (cero referencias), frases que exijan todos los slots en la selección o entrada ACTIVE con oferta válida como invariante administrativo, y consistencia entre requisitos, reglas, modelo, diagramas, NFR y trazabilidad. Verificar cinco OPEN restantes y versión 2.1.12 en README/configuration."
+    },
+    {
+      "path": "docs/other/md/domain-model.md",
+      "operation": "VERIFY",
+      "instructions": "Comprobar que atributo/relación/reglas/diagrama usan required y status derivado coherentemente, y que ejemplos de una sola opción requieren opción ACTIVE."
     }
+  ],
+  "invariants": [
+    "Cada slot pertenece a la composición aun si es opcional o INACTIVE; solo los participantes ACTIVE generan rondas.",
+    "El número de rondas sigue siendo CompositionSlot.quantity; SlotOption no recibe cantidad de selección.",
+    "Estado de grupo derivado de sus opciones; CatalogOffer se inactiva automáticamente al quedar cero requiredSlots ACTIVE, pero no se reactiva automáticamente.",
+    "CatalogEntry no cambia de estado por la cascada; la publicación exige entrada ACTIVE y al menos una oferta ACTIVE válida.",
+    "No se alteran otras decisiones OPEN, contratos API, documentos históricos o salidas derivadas."
   ],
   "blockers": []
 }

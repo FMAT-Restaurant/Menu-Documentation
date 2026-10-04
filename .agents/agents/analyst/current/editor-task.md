@@ -1,63 +1,37 @@
 # Surgical editor task
 
-## Only writable target
+## Only writable targets
 
-- Ningún archivo del repositorio. Entregar el ticket como texto en la respuesta.
+- `docs/other/md/domain-model.md`
+- `docs/ers/functional-requirements.md`
+- `docs/ers/business-rules.md`
+- `docs/ers/context.md`
+- `docs/ers/architechture.md`
+- `docs/ers/non-functional-requirements.md`
+- `docs/ers/open.md`
+- `docs/ers/traceability.md`
+- `docs/ers/README.md`
+- `docs/ers/configuration.md`
+
+Invoke an editor once per exact file. Preserve current dirty work and all unrelated content. The authoritative plan is `.agents/agents/analyst/current/plan.json`.
 
 ## Instructions
 
-- Usar el título y cuerpo siguientes como borrador común, listo para copiar en el repositorio frontend y en el backend. No insertar nombres de archivos o comandos exclusivos de uno de los dos stacks.
-- Mantener las secciones y el orden del template. Corregir solo redacción necesaria para legibilidad, sin cerrar decisiones abiertas.
-
-### Título
-
-Configurar el análisis de código con SonarQube en este repositorio
-
-### Cuerpo
-
-## Descripción
-
-Integrar este repositorio con SonarQube para ejecutar análisis de calidad del código y consultar sus resultados en un proyecto propio. Configurar el mecanismo de análisis compatible con el stack de este repositorio, sus parámetros externos y un procedimiento reproducible de ejecución. Esta tarea cubre la integración del repositorio; el provisionamiento y la administración de la instancia SonarQube se tratan por separado.
-
-### Requisitos implicados
-
-- No se identifica un requisito funcional de la ERS directamente relacionado con SonarQube. Esta es una tarea de calidad técnica del repositorio.
-
-### Reglas de negocio implicadas
-
-- No hay reglas de negocio del producto implicadas en esta configuración.
-
-### Invariantes implicadas
-
-- Cada repositorio usa una identidad de proyecto SonarQube propia para que los resultados de frontend y backend permanezcan separados.
-- La URL, los tokens y demás credenciales se obtienen de configuración externa; no se guardan secretos en el repositorio.
-- La integración respeta la estructura, el lenguaje y el sistema de build de este repositorio sin alterar la lógica del producto.
-
-## Criterios de aceptación
-
-- El repositorio contiene la configuración mínima para ejecutar el scanner o plugin de SonarQube compatible con su stack y asociar el análisis con su proyecto SonarQube.
-- La configuración de fuentes, pruebas e inclusiones o exclusiones corresponde a la estructura real del repositorio; cualquier exclusión no obvia queda justificada.
-- Se documentan los parámetros requeridos y el comando o procedimiento para ejecutar el análisis. La URL y las credenciales se suministran externamente.
-- Con acceso a la instancia elegida, el análisis termina correctamente y sus resultados aparecen en el proyecto SonarQube correspondiente. Se registra la evidencia de esa ejecución en la entrega de la tarea.
-- El mismo texto de tarea puede aplicarse al otro repositorio, usando su propia clave de proyecto y su mecanismo de análisis compatible.
-
-## Decisiones abiertas
-
-- Elegir SonarQube Cloud o SonarQube Server y definir quién provisiona/administra la instancia.
-- Definir la URL, forma de autenticación y distribución de credenciales para cada ambiente.
-- Definir si el análisis se ejecutará en CI, en qué eventos y con qué política para ramas y pull requests.
-- Definir Quality Gate, Quality Profile y condiciones que bloquearían una entrega.
-- Definir cómo se genera/importa cobertura y si habrá umbrales.
-- Definir la estrategia de análisis, incluidos alcance, inclusiones y exclusiones particulares de frontend y backend.
-
-## Referencias
-
-- `docs/templates/ticket-template.md`: formato de la tarea.
-- `docs/stack.md`: stacks de frontend y backend para seleccionar la integración compatible en cada repositorio.
+1. In `docs/other/md/domain-model.md`, model `CompositionSlot.required` explicitly and `CompositionSlot.status` as ACTIVE iff it has at least one ACTIVE `SlotOption`. Define `requiredSlots` as the required subset of `Composition.slots`; at least one must be configured. If no required slot remains ACTIVE, set `CatalogOffer` INACTIVE automatically. An optional ACTIVE slot can be omitted; only participating ACTIVE slots create selection rounds. Update attributes, rules, diagrams, snapshots and copy semantics. Keep CatalogEntry administrative status independent and make its visibility conditional on an ACTIVE valid offer.
+2. In `docs/ers/functional-requirements.md`, revise catalog visibility, entry and offer activation, composition configuration/selection, and option status criteria under existing IDs. Make transitions verifiable: no ACTIVE option makes the group INACTIVE, zero ACTIVE required groups makes the offer INACTIVE, restoring one does not auto-reactivate the offer; an ACTIVE entry without eligible offers is hidden. Preserve explicit offer activation. Require administrators to distinguish required from optional groups and at least one required group; an ACTIVE optional group can be omitted.
+3. In `docs/ers/business-rules.md`, propagate the same rules through affected BR/INV IDs, including single-option defaults only when ACTIVE. Keep group quantity and independent CatalogEntry administrative status.
+4. In `docs/ers/context.md`, revise composition, state, glossary and diagrams so structural membership of slots remains separate from their selection. Replace statements that every slot must be selected and that optional inclusion is unsupported.
+5. In `docs/ers/architechture.md`, update conceptual view, entity table, class diagram, selection flow and summary of states for required/optional groups, derived group activity, offer inactivity cascade, and conditional entry publication.
+6. In `docs/ers/non-functional-requirements.md`, update only the E2E validation scope in NFR-MENU-PERF-01/02/03 to cover ACTIVE required slots and any ACTIVE optional slots selected. INACTIVE groups do not generate rounds. Keep the original load and latency targets.
+7. In `docs/ers/open.md`, remove OPEN-008 row and section. Preserve the five remaining questions and their IDs; do not add a closure explanation.
+8. In `docs/ers/traceability.md`, update the affected requirement-to-rule/invariant mappings and inverse mappings under their existing IDs. Remove any OPEN-008 reference.
+9. In `docs/ers/README.md`, set version 2.1.12; update scope and remaining OPEN list/count to five.
+10. In `docs/ers/configuration.md`, set version 2.1.12 with date 2026-10-04; summarize the new composition and publication semantics where configuration summarizes the model.
 
 ## Mandatory behavior
 
-1. Entregar solo el título y el cuerpo del ticket, con todas las secciones del template.
-2. No crear ni publicar issues.
-3. No modificar archivos documentales, de código, configuración, tests ni estado Git.
-
+1. Confirm group ACTIVE iff it has at least one ACTIVE option; an offer becomes INACTIVE when zero required groups are ACTIVE and does not auto-reactivate.
+2. Confirm there is a required/optional distinction and optional ACTIVE slots may be omitted; inactive slots cannot be selected.
+3. Confirm an administratively ACTIVE entry with zero ACTIVE valid offers is not published and its status is unchanged by the offer cascade.
+4. Confirm no OPEN-008 remains in the current ERS; OPEN-001/003/006/009/010 remain.
+5. Verify traceability, version 2.1.12, Markdown/Mermaid format and diff whitespace; do not change other files or add software tests.

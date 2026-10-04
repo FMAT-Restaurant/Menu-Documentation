@@ -20,8 +20,8 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-CAT-002 — Consulta del catálogo publicable
 
-- **Requisito:** El sistema deberá presentar las entradas `ACTIVE` y sus ofertas `ACTIVE` que cumplan las condiciones de publicación del catálogo. Una oferta solo se presenta cuando su entrada está `ACTIVE` y la oferta es válida. La presentación deberá permitir reconocer cuál es la identidad comercial del producto y cuáles son sus ofertas vendibles.
-- **Criterio de aceptación:** Una entrada incompleta, `INACTIVE` o `ARCHIVED` no se presenta como vigente. Una entrada `ACTIVE` debe disponer de al menos una oferta `ACTIVE` y válida; cada oferta presentada está `ACTIVE`, tiene una composición válida y muestra su precio declarado. Las ofertas de una misma entrada se distinguen entre sí. Cambiar el estado administrativo de una entrada no modifica automáticamente el estado de sus ofertas, ni viceversa.
+- **Requisito:** El sistema deberá presentar las entradas `ACTIVE` que tengan al menos una oferta `ACTIVE` válida, junto con sus ofertas `ACTIVE` publicables. Una oferta solo se presenta cuando su entrada está `ACTIVE` y la oferta es válida. La presentación deberá permitir reconocer cuál es la identidad comercial del producto y cuáles son sus ofertas vendibles.
+- **Criterio de aceptación:** Una entrada incompleta, `INACTIVE` o `ARCHIVED` no se presenta como vigente. Una entrada administrativamente `ACTIVE` sin ofertas `ACTIVE` válidas permanece `ACTIVE`, pero no se presenta en el catálogo; cuando vuelve a tener al menos una oferta `ACTIVE` válida, puede presentarse. Cada oferta presentada está `ACTIVE`, tiene una composición válida y muestra su precio declarado. Las ofertas de una misma entrada se distinguen entre sí. Cambiar el estado administrativo de una entrada no modifica automáticamente el estado de sus ofertas; la inactivación de una oferta tampoco cambia el estado administrativo de la entrada.
 
 ### REQ-MENU-ENTRY-001 — Creación de una entrada
 
@@ -35,13 +35,13 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-ENTRY-003 — Estado y archivado de una entrada
 
-- **Requisito:** El sistema deberá permitir al administrador activar o inactivar una entrada y archivarla de manera reversible desde los estados `ACTIVE` o `INACTIVE`. Desarchivar una entrada deberá dejarla en `INACTIVE` para que el administrador decida expresamente si vuelve a activarla. Estos cambios no modificarán automáticamente los estados administrativos de sus ofertas.
-- **Criterio de aceptación:** El sistema rechaza activar una entrada si no dispone de al menos una oferta `ACTIVE` y válida. Una entrada solo se publica en estado `ACTIVE` y cuando cumple esa condición. Una entrada archivada no se publica; al desarchivarla queda en `INACTIVE` y requiere una activación explícita posterior. Archivar, desarchivar, activar o inactivar la entrada no cambia el estado de sus ofertas.
+- **Requisito:** El sistema deberá permitir al administrador activar o inactivar una entrada y archivarla de manera reversible desde los estados `ACTIVE` o `INACTIVE`. Desarchivar una entrada deberá dejarla en `INACTIVE` para que el administrador decida expresamente si vuelve a activarla. Estos cambios no modificarán automáticamente los estados de sus ofertas.
+- **Criterio de aceptación:** El estado de la entrada es administrativo y no cambia automáticamente por la activación o inactivación de sus ofertas. Una entrada `ACTIVE` se publica solo mientras tenga al menos una oferta `ACTIVE` y válida; si deja de tenerla, permanece `ACTIVE` y se oculta del catálogo hasta que vuelva a tener una oferta elegible. Una entrada archivada no se publica; al desarchivarla queda en `INACTIVE` y requiere una activación explícita posterior. Archivar, desarchivar, activar o inactivar la entrada no cambia el estado de sus ofertas.
 
 ### REQ-MENU-ENTRY-004 — Eliminación de una entrada archivada
 
-- **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada únicamente cuando se encuentre archivada y ninguna de sus ofertas mantenga referencias vigentes externas desde otras definiciones del catálogo.
-- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Si alguna de las ofertas de una entrada archivada es utilizada por un `CatalogOfferSource`, un `AddOption` de tipo `CATALOG_OFFER` u otra referencia vigente que requiera su existencia, la eliminación se rechaza sin realizar modificaciones parciales y se informa qué dependencias la impiden. Cuando no existen dichas referencias, se eliminan la entrada y sus definiciones vigentes poseídas. Las revisiones históricas publicadas permanecen intactas y consultables.
+- **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada únicamente cuando se encuentre archivada.
+- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Al eliminar una entrada archivada, se eliminan la entrada y sus definiciones vigentes poseídas. Las revisiones históricas publicadas permanecen intactas y consultables.
 
 ## Ofertas y composición
 
@@ -52,124 +52,97 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 ### REQ-MENU-OFFER-002 — Identidad de entrada y presentación vendible
 
-- **Requisito:** El sistema deberá presentar con claridad la diferencia entre una entrada y cada una de sus ofertas. La entrada conserva el nombre comercial autoritativo; la etiqueta de oferta distingue una presentación y puede aparecer junto al nombre de la entrada.
-- **Criterio de aceptación:** La información mostrada permite distinguir dos ofertas de la misma entrada sin duplicar ni alterar el nombre comercial de la entrada. La etiqueta describe la presentación y no sustituye la composición ni determina cantidades.
+- **Requisito:** El sistema deberá presentar cada `CatalogEntry` como agrupador de sus ofertas y permitir identificar cada `CatalogOffer` concreta como una opción individualmente seleccionable y vendible. La entrada conserva el nombre comercial autoritativo; la etiqueta de oferta distingue una presentación y puede aparecer junto al nombre de la entrada.
+- **Criterio de aceptación:** Una entrada con varias ofertas se presenta como un mismo grupo comercial; ninguna oferta queda preseleccionada por defecto y cada oferta concreta se identifica y puede seleccionarse de forma independiente. La información mostrada permite distinguir dos ofertas de la misma entrada sin duplicar ni alterar el nombre comercial de la entrada. La etiqueta describe la presentación y no sustituye la composición ni determina cantidades.
 
 ### REQ-MENU-OFFER-003 — Precio base declarado
 
-- **Requisito:** El sistema deberá permitir al administrador fijar el precio base de cada oferta vendible. El precio será propio de esa oferta e independiente de qué posiciones o contenidos se incluyan o elijan.
-- **Criterio de aceptación:** Cambiar las posiciones u opciones de una oferta no suma automáticamente precios de componentes ni modifica su precio base. El precio consultado coincide con el que el administrador declaró para esa oferta.
+- **Requisito:** El sistema deberá permitir al administrador fijar el precio base de cada oferta vendible. El precio será propio de esa oferta e independiente de los grupos de su composición y de las opciones seleccionadas.
+- **Criterio de aceptación:** Cambiar los grupos u opciones de una oferta no suma automáticamente precios de componentes ni modifica su precio base. El precio consultado coincide con el que el administrador declaró para esa oferta.
 
 ### REQ-MENU-OFFER-004 — Activación de una oferta
 
 - **Requisito:** El sistema deberá permitir al administrador activar o inactivar una oferta. Para activarla, deberá exigir que tenga una composición válida.
-- **Criterio de aceptación:** Una oferta `INACTIVE` no se presenta como alternativa vigente. Una oferta sin composición válida no puede activarse; una oferta con composición válida puede activarse mediante una acción administrativa, incluso mientras su entrada está `INACTIVE`, pero no se publica hasta que la entrada esté `ACTIVE`. Una oferta solo se publica si tanto ella como su entrada están en estado `ACTIVE`, y la entrada `ACTIVE` conserva al menos una oferta `ACTIVE` y válida. El sistema rechaza inactivar la única oferta `ACTIVE` y válida de una entrada `ACTIVE`; el administrador debe inactivar la entrada de forma explícita antes. Cambiar el estado de la oferta no modifica automáticamente el de su entrada, ni viceversa.
+- **Criterio de aceptación:** Una oferta `INACTIVE` no se presenta como alternativa vigente. Una oferta sin composición válida o sin al menos un `requiredSlot` `ACTIVE` no puede activarse; una oferta con composición válida y al menos un `requiredSlot` `ACTIVE` puede activarse mediante una acción administrativa, incluso mientras su entrada está `INACTIVE`, pero no se publica hasta que la entrada esté `ACTIVE`. Una oferta solo se publica si tanto ella como su entrada están en estado `ACTIVE`; una entrada `ACTIVE` sin ofertas `ACTIVE` válidas permanece oculta y no cambia su estado administrativo. Si ningún slot requerido permanece `ACTIVE`, el sistema cambia automáticamente la oferta a `INACTIVE`. Si posteriormente vuelve a haber un slot requerido `ACTIVE`, la oferta permanece `INACTIVE` hasta una nueva activación administrativa. Cambiar el estado de la oferta no modifica el estado administrativo de la entrada.
 
-### REQ-MENU-OFFER-005 — Referencia a una oferta reutilizada
+### REQ-MENU-OFFER-005 — Copia de composición desde una oferta del catálogo
 
-- **Requisito:** Cuando una oferta se utilice como contenido dentro de otra, el sistema deberá identificar la revisión publicada concreta de la oferta referenciada.
-- **Criterio de aceptación:** La actualización de la oferta referenciada produce una revisión nueva y no cambia por sí sola las composiciones ya publicadas que utilizan una revisión anterior. Las revisiones publicadas previamente permanecen intactas y consultables.
+- **Requisito:** Al configurar una oferta, el sistema deberá permitir seleccionar otra oferta del catálogo para copiar sus slots y opciones a la composición destino.
+- **Criterio de aceptación:** La operación agrega a la composición destino copias locales editables de los slots y opciones configurados en la oferta seleccionada, conserva los slots que ya tuviera la composición destino y copia para cada slot si es requerido u opcional, junto con el estado de sus opciones. El estado del slot copiado se deriva de las opciones copiadas. No conserva una referencia a la oferta de origen ni copia su precio base. Los cambios posteriores en cualquiera de las ofertas no sincronizan sus composiciones.
 
 ### REQ-MENU-OFFER-006 — Eliminación de una oferta
 
-- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y no mantenga referencias vigentes externas.
-- **Criterio de aceptación:** La eliminación de una oferta activa se rechaza. También se rechaza si la oferta es utilizada por un `CatalogOfferSource`, por un `AddOption` de tipo `CATALOG_OFFER` o si corresponde al `defaultOfferId` de su entrada. La operación no modifica automáticamente los recursos que la referencian. Si no existen dependencias impeditivas, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
+- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y su eliminación no deje una entrada activa sin al menos una oferta activa y válida.
+- **Criterio de aceptación:** La eliminación se rechaza si la oferta está activa o es la última oferta activa y válida de una entrada activa. En los demás casos, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 
-- **Requisito:** El sistema deberá permitir definir para cada oferta una composición con una o más posiciones. Cada posición deberá poder identificarse por su función, como primera pizza, bebida o plato principal.
-- **Criterio de aceptación:** Toda oferta válida contiene al menos una posición, incluso cuando representa un producto individual. Las posiciones pertenecen a la composición de esa oferta.
+- **Requisito:** El sistema deberá permitir definir para cada oferta una composición con uno o más grupos (`CompositionSlot`) y configurar explícitamente cada grupo como requerido u opcional. Cada grupo deberá poder identificarse por su función, como bebida o plato principal.
+- **Criterio de aceptación:** Toda composición válida contiene al menos un grupo requerido, incluso cuando representa un producto individual. `requiredSlots` corresponde a los grupos requeridos de la composición. Todos los grupos pertenecen estructuralmente a la composición de esa oferta.
 
-### REQ-MENU-COMP-002 — Inclusión de posiciones
+### REQ-MENU-COMP-002 — Inclusión de grupos
 
-- **Requisito:** El sistema deberá permitir indicar si todas las posiciones de una oferta se incluyen automáticamente o si el cliente puede elegir entre posiciones elegibles. Cuando haya elección, el administrador deberá poder marcar posiciones obligatorias y establecer el mínimo y máximo de las demás posiciones que pueden incluirse.
-- **Criterio de aceptación:** Si no se permite elegir posiciones, todas quedan incluidas y no se aplican límites de elección. Si se permite elegir, las posiciones obligatorias siempre se incluyen y no cuentan para el mínimo ni el máximo; esos límites se aplican solo a las demás posiciones elegibles.
+- **Requisito:** El sistema deberá conservar todos los grupos definidos como miembros estructurales de la composición y distinguir cuáles participan en la selección.
+- **Criterio de aceptación:** Un grupo requerido `ACTIVE` participa en la selección. Un grupo opcional `ACTIVE` puede participar u omitirse. Un grupo `INACTIVE` no puede seleccionarse ni genera rondas, independientemente de si es requerido u opcional.
 
-### REQ-MENU-COMP-003 — Alternativas de contenido por posición
+### REQ-MENU-COMP-003 — Opciones por grupo
 
-- **Requisito:** El sistema deberá permitir al administrador definir una o más alternativas de contenido para cada posición. Para una posición incluida deberá quedar determinada una de sus alternativas; si hay varias, el cliente podrá elegir exactamente una para esa posición.
-- **Criterio de aceptación:** Elegir si una posición se incluye es una decisión distinta de elegir qué contenido ocupa esa posición. Una posición obligatoria que tenga varias alternativas sigue permitiendo elegir su contenido.
+- **Requisito:** El sistema deberá permitir al administrador definir una o más opciones (`SlotOption`) de contenido para cada grupo y activar o inactivar cada opción.
+- **Criterio de aceptación:** Cada grupo tiene al menos una opción. El estado del grupo es derivado: es `ACTIVE` si al menos una de sus opciones está `ACTIVE`, e `INACTIVE` si ninguna lo está. Una opción `INACTIVE` no puede seleccionarse. Si un grupo participante tiene una sola opción `ACTIVE`, se utiliza directamente; si tiene varias opciones `ACTIVE`, en cada ronda el cliente elige exactamente una de ellas.
 
-### REQ-MENU-COMP-004 — Cantidad incluida por posición
+### REQ-MENU-COMP-004 — Cantidad de rondas por grupo
 
-- **Requisito:** El sistema deberá permitir indicar cuántas unidades del contenido incluye una posición. Cuando unidades iguales deban personalizarse por separado, el administrador deberá poder representarlas como posiciones independientes.
-- **Criterio de aceptación:** La cantidad se muestra asociada a su posición. Dos unidades destinadas a recibir personalizaciones independientes se identifican en posiciones distintas.
+- **Requisito:** El sistema deberá permitir indicar en cada `CompositionSlot` cuántas rondas de selección comprende su grupo.
+- **Criterio de aceptación:** La cantidad pertenece al grupo y no a sus opciones. Si un grupo `ACTIVE` participa y su cantidad es 3, el cliente realiza tres rondas y en cada una elige exactamente una opción `ACTIVE` de ese grupo. Un grupo opcional `ACTIVE` omitido y cualquier grupo `INACTIVE` no generan rondas.
 
 ### REQ-MENU-COMP-005 — Tiempo sugerido de servicio
 
-- **Requisito:** El sistema deberá permitir asociar a una posición el tiempo de servicio sugerido, por ejemplo, entrada, plato fuerte, postre o bebida.
-- **Criterio de aceptación:** La sugerencia se muestra asociada a la posición y no cambia su inclusión, contenido, cantidad ni precio.
+- **Requisito:** El sistema deberá permitir configurar opcionalmente en un grupo el curso sugerido de servicio, con uno de estos valores: entrada, plato fuerte, postre o bebida.
+- **Criterio de aceptación:** Si se informa el curso, el sistema acepta exactamente entrada, plato fuerte, postre o bebida y rechaza cualquier otro valor. El curso aceptado se muestra asociado al grupo como sugerencia de tiempo de servicio y no cambia sus opciones, las rondas de selección del grupo ni el precio.
 
 ### REQ-MENU-COMP-006 — Ubicación espacial descriptiva
 
-- **Requisito:** El sistema deberá permitir nombrar ubicaciones o regiones de una composición y asociarlas a posiciones, para describir dónde se ubica un contenido, por ejemplo, izquierda, derecha u orilla.
-- **Criterio de aceptación:** La ubicación se conserva como una etiqueta descriptiva asociada a la posición. No determina si la posición es obligatoria ni calcula cobertura o consumo de ingredientes.
+- **Requisito:** El sistema deberá permitir nombrar ubicaciones o regiones de una composición y asociarlas a grupos, para describir dónde se ubica un contenido, por ejemplo, izquierda, derecha u orilla.
+- **Criterio de aceptación:** La ubicación se conserva como una etiqueta descriptiva asociada al grupo y no determina las opciones que pueden elegirse ni calcula cobertura o consumo de ingredientes.
 
 ## Contenido y recetas
 
-### REQ-MENU-CONT-001 — Alternativas de contenido
+### REQ-MENU-CONT-001 — Opciones de contenido
 
-- **Requisito:** El sistema deberá permitir definir cada alternativa de contenido mediante exactamente una de estas formas: preparación definida directamente para esa alternativa, artículo de Inventario, receta reutilizable o referencia a otra oferta del catálogo. El administrador deberá poder activar o inactivar cada alternativa y asignarle una etiqueta contextual.
-- **Criterio de aceptación:** Cada alternativa tiene un solo tipo de contenido. Una alternativa inactiva no se ofrece como nueva elección. Su etiqueta contextual no cambia la identidad del artículo, receta u oferta a la que hace referencia.
+- **Requisito:** El sistema deberá permitir definir cada opción de contenido mediante exactamente una de estas formas: artículo de Inventario o receta. Para una receta, el administrador podrá seleccionar una receta existente de la biblioteca o definir una nueva durante la configuración de la opción. El administrador deberá poder activar o inactivar cada opción y asignarle una etiqueta contextual.
+- **Criterio de aceptación:** Cada opción tiene un solo tipo de contenido: `INVENTORY_ITEM` o `RECIPE`. Toda opción de tipo receta referencia una receta de la biblioteca mediante su identificador y revisión, tanto si se seleccionó una receta existente como si se definió durante la configuración; una receta nueva queda guardada en la biblioteca. Una opción inactiva no se ofrece como nueva elección. Al inactivar o activar una opción, el sistema recalcula el estado del grupo: `ACTIVE` si queda al menos una opción `ACTIVE`, e `INACTIVE` si no queda ninguna. Si, como consecuencia, ningún `requiredSlot` permanece `ACTIVE`, el sistema inactiva automáticamente la oferta; si más tarde vuelve a haber un `requiredSlot` `ACTIVE`, no reactiva la oferta sin una acción administrativa. La oferta inactivada no altera el estado administrativo de la entrada, que se oculta si ya no tiene otra oferta `ACTIVE` y válida. La etiqueta contextual no cambia la identidad del artículo o receta a la que hace referencia.
 
 ### REQ-MENU-CONT-002 — Uso directo de un artículo de Inventario
 
-- **Requisito:** El sistema deberá permitir seleccionar como contenido un artículo de Inventario e indicar la cantidad y unidad correspondientes. El nombre mostrado podrá describirse para ese contexto sin crear otra identidad de artículo.
-- **Criterio de aceptación:** El contenido conserva la referencia al artículo de Inventario, la cantidad y la unidad; el nombre contextual no sustituye la identidad administrada por Inventario.
+- **Requisito:** El sistema deberá permitir configurar una opción cuyo contenido sea un artículo de Inventario, indicando la cantidad y unidad del artículo. El nombre mostrado podrá describirse para ese contexto sin crear otra identidad de artículo.
+- **Criterio de aceptación:** El contenido conserva la referencia al artículo de Inventario, la cantidad y la unidad, separadas de las rondas de selección definidas por `CompositionSlot.quantity`; el nombre contextual no sustituye la identidad administrada por Inventario.
 
-### REQ-MENU-CONT-003 — Preparación definida en una alternativa
+### REQ-MENU-CONT-003 — Selección de una receta para un slot
 
-- **Requisito:** El sistema deberá permitir al administrador definir directamente en una alternativa la preparación que compone su contenido, incluyendo los ingredientes o preparaciones reutilizables y sus cantidades.
-- **Criterio de aceptación:** La preparación queda asociada a esa alternativa y puede describirse sin convertir sus ingredientes de Inventario en identidades propiedad del catálogo.
+- **Requisito:** Al configurar un `CompositionSlot`, el sistema deberá permitir al administrador asignarle una receta de `RecipeLibrary` mediante una `SlotOption` de tipo `RECIPE`. Podrá seleccionar una receta existente por su identificador y revisión o crear una receta nueva durante el flujo de configuración; la definición nueva deberá guardarse en la biblioteca antes de quedar asignada.
+- **Criterio de aceptación:** La opción configurada conserva `recipeId` y `recipeRevision` de la receta elegida o recién creada. La definición asignada no se modifica desde la opción; para cambiarla, el administrador edita la receta en la biblioteca.
 
-### REQ-MENU-CONT-004 — Otra oferta como contenido
+### REQ-MENU-REC-001 — Creación de recetas
 
-- **Requisito:** El sistema deberá permitir usar una oferta existente como contenido de una posición en otra oferta. La oferta referenciada conservará su composición y sus posibilidades de personalización propias.
-- **Criterio de aceptación:** La oferta hija se reconoce como contenido reutilizado y su precio base no se suma automáticamente al precio base de la oferta que la contiene. La eliminación de la oferta o de su entrada propietaria se rechaza mientras exista esta referencia vigente, sin modificar la composición que la contiene.
+- **Requisito:** El sistema deberá permitir al administrador crear una receta en `RecipeLibrary` indicando su nombre, descripción, instrucciones en texto y una o más líneas de ingredientes seleccionados de Inventario. La creación podrá iniciarse desde la biblioteca o durante la configuración de una `SlotOption`.
+- **Criterio de aceptación:** La receta creada conserva el nombre, la descripción, las instrucciones y las referencias a los `InventoryItem` seleccionados. La receta queda disponible en `RecipeLibrary` y puede asignarse a opciones de distintas ofertas.
 
-### REQ-MENU-REC-001 — Biblioteca de recetas reutilizables
+### REQ-MENU-REC-002 — Cantidad por ingrediente
 
-- **Requisito:** El sistema deberá permitir al administrador crear y mantener una biblioteca de recetas reutilizables. Cada receta deberá poder tener una o más líneas con cantidades y unidades, referidas a artículos de Inventario o a otras recetas reutilizables.
-- **Criterio de aceptación:** Una receta de biblioteca puede utilizarse desde distintas ofertas y productos. Una línea identifica un único artículo de Inventario o una receta reutilizable, con su cantidad y unidad.
+- **Requisito:** Al crear o editar una receta, el sistema deberá permitir al administrador indicar la cantidad correspondiente a cada ingrediente de Inventario.
+- **Criterio de aceptación:** Cada `ComponentIngredient` conserva la cantidad indicada para el artículo referenciado. Esta cantidad describe la receta y no se confunde con las rondas de selección definidas por `CompositionSlot.quantity`.
 
-### REQ-MENU-REC-002 — Uso y ajuste local de una receta
+### REQ-MENU-REC-003 — Edición de recetas por revisión
 
-- **Requisito:** El sistema deberá permitir usar una receta publicada de la biblioteca tal como está o declarar ajustes administrativos propios de la alternativa que la utiliza.
-- **Criterio de aceptación:** Un ajuste local permite añadir, retirar, cambiar la cantidad o sustituir un artículo de Inventario cuando la operación corresponda; queda limitado a esa alternativa y no cambia la receta de biblioteca ni otros usos.
+- **Requisito:** El sistema deberá permitir al administrador modificar una receta creada, incluidos su nombre, descripción, instrucciones y sus ingredientes. La edición de una receta publicada deberá crear una nueva revisión identificable.
+- **Criterio de aceptación:** Las opciones que referencian una revisión anterior continúan usando esa definición sin cambios retroactivos. El administrador puede actualizar expresamente una opción para que use la nueva revisión.
 
-### REQ-MENU-REC-003 — Edición de recetas sin cambio retroactivo
+### REQ-MENU-REC-004 — Unidad de medida visible por ingrediente
 
-- **Requisito:** El sistema deberá conservar revisiones identificables de las recetas reutilizables. Editar una receta publicada deberá crear una nueva revisión, sin alterar la revisión que ya utilizan ofertas existentes hasta que su administrador actualice expresamente esa referencia.
-- **Criterio de aceptación:** Después de editar y publicar una receta, una oferta que apuntaba a la revisión anterior conserva el contenido previamente referenciado; una oferta puede actualizarse para utilizar la nueva revisión mediante una acción administrativa.
+- **Requisito:** Al seleccionar, consultar o editar un ingrediente de receta, el sistema deberá mostrar su unidad de medida autoritativa de Inventario.
+- **Criterio de aceptación:** Cada línea de ingrediente muestra la unidad correspondiente al `InventoryItem` referenciado y la cantidad asociada. La visualización no cambia ni duplica la identidad o la unidad administrada por Inventario; las reglas de precisión, rangos y conversión se remiten a [OPEN-006](open.md).
 
-## Personalizaciones
+### REQ-MENU-REC-005 — Eliminación de una receta sin uso vigente
 
-### REQ-MENU-PERS-001 — Personalizaciones de una alternativa
-
-- **Requisito:** El sistema deberá permitir declarar personalizaciones opcionales para cada alternativa de contenido, de modo que dos apariciones del mismo artículo, receta u oferta puedan tener opciones distintas. Deberá permitir nombrar los grupos y las alternativas para que se entiendan en su contexto.
-- **Criterio de aceptación:** Las personalizaciones quedan asociadas a una sola aparición. Modificar las de una alternativa no cambia las personalizaciones de otra que comparta el mismo contenido de origen.
-
-### REQ-MENU-PERS-002 — Cambios a ingredientes de una receta
-
-- **Requisito:** Cuando la alternativa tenga una receta efectiva, el administrador deberá poder ofrecer cambios de cantidad o eliminación para líneas directas de artículos de Inventario ya presentes en esa receta.
-- **Criterio de aceptación:** Cada cambio identifica inequívocamente una línea existente de la receta efectiva. No se usa esta opción para modificar líneas internas de una oferta hija ni de una subreceta referenciada.
-
-### REQ-MENU-PERS-003 — Opciones para agregar contenido
-
-- **Requisito:** El sistema deberá permitir definir grupos de contenido adicional para una alternativa ya incluida, con límites de cuántas opciones adicionales pueden elegirse. Cada opción utilizará exactamente uno de estos destinos: artículo de Inventario, receta reutilizable u oferta del catálogo. Podrá declarar su ajuste de precio y, cuando corresponda, su cantidad y unidad.
-- **Criterio de aceptación:** Los límites del grupo rigen solo la selección de contenido adicional y no alteran las reglas de inclusión de posiciones. Cada opción tiene un único destino. La eliminación de una oferta o de su entrada propietaria se rechaza mientras esta opción mantenga una referencia vigente a esa oferta; la opción y la personalización que la contiene no se modifican.
-
-### REQ-MENU-PERS-004 — Sustitución de un ingrediente
-
-- **Requisito:** Cuando la alternativa tenga una receta efectiva, el administrador deberá poder señalar una línea directa de artículo de Inventario que pueda sustituirse y definir uno o más artículos de Inventario como reemplazo, con la cantidad, unidad y ajuste de precio aplicables.
-- **Criterio de aceptación:** Cada grupo de reemplazo identifica la línea de ingrediente que sustituye. Los reemplazos son artículos de Inventario y no recetas ni ofertas completas.
-
-### REQ-MENU-PERS-005 — Instrucciones de preparación
-
-- **Requisito:** El sistema deberá permitir definir grupos de instrucciones seleccionables para una alternativa, asignarles nombres y registrar el texto de cada instrucción. Una instrucción podrá referirse a una parte identificable de la preparación.
-- **Criterio de aceptación:** Las instrucciones se muestran como indicaciones de elaboración o servicio. Por sí solas no añaden, retiran ni sustituyen cantidades físicas.
-
-### REQ-MENU-PERS-006 — Ajustes de precio de personalizaciones
-
-- **Requisito:** El sistema deberá permitir declarar un ajuste de precio para cada personalización que lo requiera. El catálogo conservará el importe declarado sin calcular el precio final de una orden.
-- **Criterio de aceptación:** El ajuste queda asociado a la personalización correspondiente y no modifica el precio base de la oferta.
+- **Requisito:** El sistema deberá permitir eliminar la definición vigente de una receta si y solo si ninguna opción de ninguna oferta vigente la referencia, cualquiera que sea el estado de la oferta o de la opción.
+- **Criterio de aceptación:** Si una `SlotOption` de cualquier `CatalogOffer` vigente referencia el `recipeId`, la eliminación se rechaza íntegramente y no cambia la oferta, la opción ni la receta. Si no existe ninguna referencia vigente, se elimina la definición de la biblioteca y se conservan sus revisiones históricas publicadas.
