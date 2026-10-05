@@ -6,6 +6,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "lint:ers": "node tools/validate-ers-duplicates.mjs",
     "lint:mermaid": "node tools/validate-mermaid.mjs",
     "api:serve": "redocly preview docs/apis/menu/openapi.yaml",
     "api:lint": "redocly lint docs/apis/menu/openapi.yaml",
@@ -14,7 +15,7 @@
     "api:docs": "redocly build-docs docs/apis/menu/openapi.yaml",
     "docs:prepare": "pnpm run api:bundle && node tools/prepare-documentation-site.mjs",
     "docs:dev": "pnpm run docs:prepare && docusaurus start",
-    "docs:build": "pnpm run docs:prepare && docusaurus build"
+    "docs:build": "pnpm run lint:ers && pnpm run docs:prepare && docusaurus build"
   },
   "devDependencies": {
     "@docusaurus/core": "3.10.2",

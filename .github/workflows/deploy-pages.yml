@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Docusaurus site
+      - name: Lint ERS and build Docusaurus site
         run: pnpm docs:build
 
       - name: Configure GitHub Pages
