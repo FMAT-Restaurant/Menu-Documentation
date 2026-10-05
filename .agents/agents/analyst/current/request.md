@@ -1,11 +1,23 @@
-# Solicitud original y aclaración
+# Solicitud original
 
-> Pues si no hay al menos una opción activa, entonces se inactiva ese grupo
+Modificar en [ers](docs/ers/) : \
+\* Quitar lo de que un grupo/slot pueda ser requerido u opcional. Ahora todos son requeridos. \
+\* Refinar y uniformizar el lenguaje oblicuo del dominio, slots es grupos dejad de llamarlos grupos y las "varientes" son las opciones de ese slot. En general dejar de usar tantos términos en el modelo de dominio para referirse a lo mismo porque lo hace confuso.
 
-> Y así para la oferta, si no hay un grupo activo (contemplando los requiredSlots) se inactiva la oferta
+Reglas:
 
-Ante la pregunta de si todos los slots cuentan como requeridos o si se agrega una distinción, la persona usuaria precisó el objetivo activo:
+- No debes documentar cada eliminación/modificación o su por que, porque se vuelve confuso el documento, solo se descarta, se reestrcutura y verifica que todo esté bien.
+- Mantener consistencia
+- propagar lo que afecta para todo el ers
 
-> entre requeridos y opcionales. e implementar lo anterior discutido
+Al finalizar solo dime en este chat que terminos cambiaste
 
-Contexto previo pertinente: la configuración del catálogo termina en seleccionar el slot, sin Personalizations; la cantidad pertenece al grupo, no a sus opciones.
+## Corrección posterior del usuario
+
+ME equivoqué un grupo es una composición
+
+Composition: conjunto que contiene slots
+
+## Decisión posterior del usuario
+
+Si una oferta quedó `INACTIVE` automáticamente porque no quedaban slots `ACTIVE`, al volver a tener un `CompositionSlot` `ACTIVE` la oferta debe reactivarse automáticamente por UX. La inactivación explícita por administración debe conservarse; un cambio posterior de opciones no la revierte por sí mismo.

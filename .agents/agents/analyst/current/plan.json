@@ -1,94 +1,96 @@
 {
-  "change_id": "menu-close-open-008-required-optional-slots-2026-10-04",
-  "objective": "Distinguir CompositionSlot requeridos y opcionales; derivar su actividad de las opciones; inactivar CatalogOffer cuando no quede ningún slot requerido activo; cerrar OPEN-008 y propagar la decisión al ERS y modelo vigente.",
+  "change_id": "menu-composition-slot-option-all-required-offer-reactivation-2026-10-05",
+  "objective": "En docs/ers y su modelo conceptual autoritativo, eliminar requerido/opcional de CompositionSlot, unificar composición/slot/opción y ajustar la oferta para que se reactive automáticamente al recuperar un slot ACTIVE solo si su INACTIVE fue causado por cero slots ACTIVE, conservando una inactivación administrativa explícita.",
   "decisions": [
-    "Cada CompositionSlot configura explícitamente required=true/false; requiredSlots denota el subconjunto requerido de Composition.slots. Una Composition publicable tiene al menos un slot requerido.",
-    "CompositionSlot.status es derivado: ACTIVE si existe al menos una SlotOption ACTIVE; INACTIVE si no existe ninguna. Las opciones inactivas no pueden seleccionarse.",
-    "Un slot opcional ACTIVE puede omitirse al resolver la oferta; un slot requerido ACTIVE participa en la selección. Solo los slots ACTIVE que participan generan rondas según CompositionSlot.quantity.",
-    "Si no queda ningún requiredSlot ACTIVE, CatalogOffer pasa automáticamente a INACTIVE. Recuperar opciones puede reactivar el slot derivado, pero la oferta vuelve a ACTIVE únicamente con activación administrativa y composición válida.",
-    "CatalogEntry conserva su estado administrativo cuando una oferta se inactiva; deja de publicarse si no tiene una oferta ACTIVE válida. Así se conserva la independencia de estados ya vigente y se ajusta la antigua implicación fuerte ACTIVE=>oferta ACTIVE.",
-    "Eliminar OPEN-008 sin explicación histórica; conservar IDs OPEN restantes y elevar versión documental 2.1.11 a 2.1.12 con la fecha actual."
+    "Composition conserva slots[] y al menos un CompositionSlot; eliminar required:boolean y requiredSlots[] en definiciones vigentes, snapshots, copias, texto y diagramas, sin indicador sustituto.",
+    "El estado del slot sigue derivado de sus opciones. Todos los slots ACTIVE generan quantity rondas, con exactamente una opción ACTIVE por ronda. Los INACTIVE no generan rondas.",
+    "CatalogOffer exige composición válida y >=1 slot ACTIVE para activarse. Al quedar cero slots ACTIVE pasa automáticamente a INACTIVE; al reaparecer un slot ACTIVE vuelve automáticamente a ACTIVE si estaba inactiva por esa causa y seguía administrativamente habilitada. Una oferta inactivada explícitamente por administración permanece INACTIVE hasta activación administrativa. CatalogEntry conserva su estado administrativo y visibilidad derivada.",
+    "Distinguir la intención administrativa de habilitar/inactivar la oferta del estado efectivo causado por los slots; la pérdida temporal de slots ACTIVE no cancela una habilitación vigente. Expresar esta distinción como regla de transición del dominio sin imponer nombre de campo, formato de almacenamiento o contrato API.",
+    "Copias y CompositionSnapshot conservan slots, opciones, estados, cantidades y fuentes, sin marcador de obligatoriedad.",
+    "Usar «composición» para Composition, el conjunto de slots; «slot» para CompositionSlot; «opción» para SlotOption. Descartar «grupo» como sinónimo de slot o composición y «variante» como sinónimo de opción. Reescribir «grupo comercial/de ofertas» mediante entrada, oferta o presentación, según el referente. Mantener opcional solo para atributos ajenos como course o presentationTag.",
+    "Actualizar versión documental 2.1.14 a 2.1.15 y fecha de configuration.md a 2026-10-05; alinear versión de README."
   ],
   "permitted_writes": [
     "docs/other/md/domain-model.md",
-    "docs/ers/functional-requirements.md",
-    "docs/ers/business-rules.md",
+    "docs/ers/configuration.md",
+    "docs/ers/README.md",
     "docs/ers/context.md",
     "docs/ers/architechture.md",
+    "docs/ers/functional-requirements.md",
+    "docs/ers/business-rules.md",
     "docs/ers/non-functional-requirements.md",
     "docs/ers/open.md",
-    "docs/ers/traceability.md",
-    "docs/ers/README.md",
-    "docs/ers/configuration.md"
+    "docs/ers/traceability.md"
   ],
   "affected_files": [
     {
       "path": "docs/other/md/domain-model.md",
       "operation": "MODIFY",
-      "instructions": "En descripciones, atributos y Mermaid de Composition/CompositionSlot, introducir required:boolean explícito y status ACTIVE|INACTIVE derivado de existencia de SlotOption ACTIVE. requiredSlots es el subconjunto requerido de slots[]; composición activable exige al menos uno y oferta se inactiva si ninguno permanece ACTIVE. Distinguir inclusión estructural de participación en selección: slots requeridos ACTIVE se resuelven; opcionales ACTIVE pueden omitirse; INACTIVE no generan selección. Copias e instantáneas conservan required y actividad de las opciones. Ajustar invariantes de CatalogOffer/CatalogEntry: la entrada puede seguir administrativamente ACTIVE pero se oculta si pierde su última oferta ACTIVE válida; no propagar estado automáticamente a la entrada. Revisar ejemplos, reglas transversales y notas del diagrama sin cambiar cantidad del grupo ni fuentes de contenido."
-    },
-    {
-      "path": "docs/ers/functional-requirements.md",
-      "operation": "MODIFY",
-      "instructions": "Actualizar REQ-MENU-CAT-002, REQ-MENU-ENTRY-003 y REQ-MENU-OFFER-004 para publicación condicional, inactivación automática de oferta por cero requiredSlots ACTIVE, reactivación administrativa y entrada ACTIVE temporalmente no publicable sin oferta elegible. Actualizar REQ-MENU-COMP-001/002 para configuración explícita de required vs optional con >=1 requerido, inclusión estructural y selección de slots activos; REQ-MENU-COMP-003/004 para opciones activas, status derivado de grupo y rondas solo de grupos que participan. Actualizar REQ-MENU-CONT-001 con criterio verificable de transición al inactivar/activar opciones y cascada. Al copiar una composición en REQ-MENU-OFFER-005, conservar required y estado de opciones. Mantener IDs y criterios atómicos, sin definir API de OPEN-010."
-    },
-    {
-      "path": "docs/ers/business-rules.md",
-      "operation": "MODIFY",
-      "instructions": "Modificar BR-MENU-004/006/008/009/010/011/015/016 e INV-MENU-002/003/004 donde corresponda: required explícito y al menos uno; slot ACTIVE iff >=1 opción ACTIVE; cero opciones ACTIVE => slot INACTIVE; si no queda requiredSlot ACTIVE => oferta INACTIVE automática; oferta no vuelve a ACTIVE automáticamente; opción única solo se aplica si ACTIVE. Estado administrativo de entrada independiente, publicable solo si existe oferta ACTIVE válida; corregir implicación antigua de entrada ACTIVE. Opcionales ACTIVE pueden omitirse y los inactivos no se resuelven. Preservar cantidad del grupo, precio e IDs."
-    },
-    {
-      "path": "docs/ers/context.md",
-      "operation": "MODIFY",
-      "instructions": "Actualizar alcance, composición/selección, estados, glosario y diagramas pertinentes para requerido/opcional, actividad derivada del grupo, cascada a oferta y publicación condicional de entrada. Reemplazar afirmación de que todos los grupos se seleccionan o no existe inclusión opcional; conservar pertenencia estructural de todos a la composición y límites con Órdenes."
-    },
-    {
-      "path": "docs/ers/architechture.md",
-      "operation": "MODIFY",
-      "instructions": "Actualizar vista conceptual, tabla de 17 entidades, classDiagram, sección de selección, resumen de estados y flowchart para required:boolean, status derivado del CompositionSlot, opcionales omitibles, grupos INACTIVE sin rondas, oferta INACTIVE automática si cero requiredSlots ACTIVE y entrada no publicable sin oferta elegible. Mantener copia de slots con required/opciones, ownership y límites. Evitar afirmar que toda oferta selecciona todos sus grupos."
-    },
-    {
-      "path": "docs/ers/non-functional-requirements.md",
-      "operation": "MODIFY",
-      "instructions": "Ajustar solo frases de NFR-MENU-PERF-01/02/03 que dicen validar todos los CompositionSlot: la evaluación abarca todos los requeridos ACTIVE y los opcionales ACTIVE efectivamente incluidos; grupos INACTIVE no generan rondas. Conservar métricas, cargas y latencias."
-    },
-    {
-      "path": "docs/ers/open.md",
-      "operation": "MODIFY",
-      "instructions": "Eliminar fila y sección OPEN-008, sin nota de cierre ni renumeración. Mantener OPEN-001/003/006/009/010 y sus decisiones pendientes."
-    },
-    {
-      "path": "docs/ers/traceability.md",
-      "operation": "MODIFY",
-      "instructions": "Actualizar temas y relaciones de REQ-MENU-CAT-002, ENTRY-003, OFFER-004/005, COMP-001/002/003/004 y CONT-001 a las BR/INV que gobiernan actividad del grupo, required/optional y cascada. Ajustar matrices inversas correspondientes y quitar cualquier OPEN-008; conservar IDs y enlaces bidireccionales."
-    },
-    {
-      "path": "docs/ers/README.md",
-      "operation": "MODIFY",
-      "instructions": "Actualizar versión a 2.1.12; alcance y límites para slots requeridos/opcionales y cascada de inactividad; lista de OPEN pendientes a 001/003/006/009/010 y dos recuentos de seis a cinco. Conservar demás mapa y conteos normativos si los IDs no cambian."
+      "instructions": "Fuente conceptual autoritativa: corregir resumen, entidades CatalogOffer/Composition/CompositionSnapshot/CompositionSlot/SlotOption, reglas transversales, classDiagram y notas. Quitar required/requiredSlots, requerido/opcional y omisión de slot ACTIVE; todos los slots ACTIVE participan con quantity rondas, INACTIVE no. Cero slots ACTIVE lleva la oferta a INACTIVE; cuando reaparece un slot ACTIVE, vuelve automáticamente a ACTIVE solo si su inactividad provenía de esa pérdida y no de una inactivación administrativa. Expresar la intención administrativa distinguible del estado efectivo sin fijar implementación; la acción administrativa INACTIVE prevalece hasta nueva activación administrativa. Copias y snapshots mantienen opciones/estados sin required. Composition = composición/conjunto de slots; CompositionSlot = slot; SlotOption = opción; ComponentSource tiene tipos, no variantes de opción. Una CatalogEntry contiene ofertas, no es «grupo comercial/de ofertas». Conservar precios, recetas, curso opcional y estado administrativo independiente de entrada."
     },
     {
       "path": "docs/ers/configuration.md",
       "operation": "MODIFY",
-      "instructions": "Actualizar versión en tabla y párrafo a 2.1.12, conservar fecha 2026-10-04; resumir distinción, actividad derivada, cascada a oferta y publicación condicional de entrada en secciones de propósito/ciclo de vida. Conservar autoridad y alcance operativo."
+      "instructions": "Elevar 2.1.14 a 2.1.15 y fecha a 2026-10-05 en tabla y párrafo. Resumen sin required/requiredSlots ni omisión de slots ACTIVE: todos los ACTIVE participan, INACTIVE no. Cero slots ACTIVE inactiva la oferta; la recuperación de uno reactiva automáticamente solo la oferta inactivada por esa causa, preservando una inactivación administrativa explícita. Copia mantiene slots/opciones/estados/fuentes sin required. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; reemplazar grupo/variante y grupo comercial según referente. Preservar autoridad, ciclo de vida, límites y OPEN."
+    },
+    {
+      "path": "docs/ers/README.md",
+      "operation": "MODIFY",
+      "instructions": "Versión 2.1.15. Reescribir Alcance y límite de Menú: composición como conjunto de slots, slot/opción, todos los slots ACTIVE participantes, INACTIVE sin rondas. Cero slots ACTIVE inactiva la oferta y recuperar uno la reactiva automáticamente solo si esa fue la causa de INACTIVE; la inactivación administrativa prevalece. Copia sin required. CatalogEntry contiene ofertas; evitar «grupo comercial/de ofertas». Conservar mapa documental y recuentos de IDs."
+    },
+    {
+      "path": "docs/ers/context.md",
+      "operation": "MODIFY",
+      "instructions": "Narrativa, límites, glosario y Mermaid sin required/requiredSlots ni omisión de ACTIVE. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; reemplazar grupo/variante y grupo comercial según referente. Todos los slots ACTIVE participan con quantity rondas; INACTIVE no. Cero ACTIVE inactiva oferta y recuperar un slot ACTIVE la reactiva solo si seguía habilitada administrativamente; una inactivación administrativa no se revierte por cambios de opciones. Copia conserva estados sin required. Conservar límite con Órdenes, cantidad física y publicación derivada."
+    },
+    {
+      "path": "docs/ers/architechture.md",
+      "operation": "MODIFY",
+      "instructions": "Actualizar apartados, tabla de conceptos, vista conceptual, classDiagram, flowchart y resumen: Composition >=1 slot; estado de slot derivado; todos los slots ACTIVE participan, INACTIVE no. Cero ACTIVE inactiva CatalogOffer; recuperación de un ACTIVE reactiva automáticamente solo si INACTIVE se originó por ausencia de slots activos; inactivación administrativa explícita impide esa reactivación hasta acción administrativa. Hacer discernible intención administrativa frente al estado efectivo sin prescribir persistencia/API. Quitar required/requiredSlots y ramas requerido/opcional en regla, copia y snapshot. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; reemplazar grupo/variante en texto, nodos/aristas y «grupo comercial/de ofertas» según referente. Conservar precios, fuentes, recetas, entrada y evitar atributos duplicados en clases editadas."
+    },
+    {
+      "path": "docs/ers/functional-requirements.md",
+      "operation": "MODIFY",
+      "instructions": "REQ-MENU-OFFER-004/005, COMP-001/002/003/004/005, CONT-001: activación con >=1 slot ACTIVE y composición válida; todos los slots ACTIVE participan, INACTIVE no. Cero ACTIVE inactiva oferta; al recuperar un slot ACTIVE, la oferta se reactiva automáticamente si INACTIVE provenía de esa causa y seguía habilitada administrativamente; la inactivación administrativa explícita prevalece hasta nueva activación administrativa. Copia sin required; quantity del slot, no de opción. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; títulos y redacción grupo/variante/grupo comercial según referente, preservando IDs, recetas y curso opcional. COMP-002 no puede permitir omitir ACTIVE."
+    },
+    {
+      "path": "docs/ers/business-rules.md",
+      "operation": "MODIFY",
+      "instructions": "BR-MENU-006/008/010/011/012/015/016 e INV-MENU-002/003 sin required/requiredSlots ni omisión de slot ACTIVE. Todos ACTIVE participan, INACTIVE no generan rondas. Cero ACTIVE inactiva oferta; recuperar un ACTIVE la reactiva automáticamente solo cuando INACTIVE se debió a cero slots ACTIVE y subsiste la intención administrativa de habilitarla. Inactivación administrativa explícita prevalece; la transición no cambia estado administrativo de entrada. Copia sin required. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; reemplazar grupo/variante/grupo comercial según referente; preservar IDs."
+    },
+    {
+      "path": "docs/ers/non-functional-requirements.md",
+      "operation": "MODIFY",
+      "instructions": "NFR-MENU-PERF-01/02/03: evaluación E2E cubre todos los CompositionSlot ACTIVE; INACTIVE no generan rondas. Cada ACTIVE genera quantity rondas y una opción ACTIVE por ronda. La selección de catálogo evaluada debe seguir la elegibilidad vigente tras inactivación y reactivación automática de la oferta por recuperación de slot, sin convertir en ACTIVE una oferta administrativamente inactivada. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; reemplazar grupo/variante según referente. Mantener métricas, cargas, latencias y responsabilidad de Órdenes."
+    },
+    {
+      "path": "docs/ers/open.md",
+      "operation": "MODIFY",
+      "instructions": "OPEN-006 fila y apartado: quitar distinción requerido/opcional y omisión de ACTIVE. Todos los ACTIVE participan; INACTIVE no generan rondas. quantity expresa rondas del slot. Composition = composición/conjunto de slots, CompositionSlot = slot, SlotOption = opción; reemplazar grupo/variante según referente. Conservar abiertos rangos, precisión, fracciones y conversiones; no cerrar ni renumerar OPEN."
+    },
+    {
+      "path": "docs/ers/traceability.md",
+      "operation": "MODIFY",
+      "instructions": "Alinear temas/títulos de COMP-002/003/004 y BR-010 con requisitos y reglas usando composición/slot/opción. Revisar relaciones de OFFER-004/005, COMP-001..005, CONT-001 con BR-006/008/010/011/012/015/016 e INV-002/003 para cubrir tanto inactivación por cero slots ACTIVE como reactivación automática condicionada y prevalencia de inactivación administrativa; preservar IDs, bidireccionalidad, NFR y OPEN. Reemplazar grupo/variante según referente."
     },
     {
       "path": "docs/ers",
       "operation": "VERIFY",
-      "instructions": "Buscar OPEN-008 (cero referencias), frases que exijan todos los slots en la selección o entrada ACTIVE con oferta válida como invariante administrativo, y consistencia entre requisitos, reglas, modelo, diagramas, NFR y trazabilidad. Verificar cinco OPEN restantes y versión 2.1.12 en README/configuration."
+      "instructions": "Buscar en todos los .md requiredSlots, required:boolean, required=true, slot requerido/opcional, omisión de slot ACTIVE y grupo/variante como sinónimos de Composition/CompositionSlot/SlotOption: cero hallazgos no justificados. Confirmar Composition = composición/conjunto de slots, CompositionSlot = slot y SlotOption = opción, sin «grupo comercial/de ofertas» para CatalogEntry. Verificar activación con >=1 slot ACTIVE, inactivación por cero, reactivación automática solo cuando INACTIVE provino de cero slots ACTIVE, permanencia de INACTIVE administrativo, estado de CatalogEntry, copia, snapshot, quantity, Mermaid, trazabilidad, versión 2.1.15 y fecha."
     },
     {
       "path": "docs/other/md/domain-model.md",
       "operation": "VERIFY",
-      "instructions": "Comprobar que atributo/relación/reglas/diagrama usan required y status derivado coherentemente, y que ejemplos de una sola opción requieren opción ACTIVE."
+      "instructions": "Confirmar modelo/diagrama autoritativos con composición/slot/opción, slots[] sin required/requiredSlots; todo slot ACTIVE participa, INACTIVE no. Cero ACTIVE inactiva oferta; reaparición de ACTIVE reactiva solo la oferta inactivada por esa causa, sin revertir inactivación administrativa explícita. Confirmar que el dominio distingue intención administrativa de estado efectivo sin prescribir persistencia/API, y que copia/snapshot no guardan required."
     }
   ],
   "invariants": [
-    "Cada slot pertenece a la composición aun si es opcional o INACTIVE; solo los participantes ACTIVE generan rondas.",
-    "El número de rondas sigue siendo CompositionSlot.quantity; SlotOption no recibe cantidad de selección.",
-    "Estado de grupo derivado de sus opciones; CatalogOffer se inactiva automáticamente al quedar cero requiredSlots ACTIVE, pero no se reactiva automáticamente.",
-    "CatalogEntry no cambia de estado por la cascada; la publicación exige entrada ACTIVE y al menos una oferta ACTIVE válida.",
-    "No se alteran otras decisiones OPEN, contratos API, documentos históricos o salidas derivadas."
+    "Cada slot pertenece a Composition; todo ACTIVE participa, INACTIVE no genera rondas.",
+    "CompositionSlot.quantity determina rondas; SlotOption no tiene cantidad de selección.",
+    "Cero slots ACTIVE inactiva la oferta. Recuperar un slot ACTIVE reactiva automáticamente solo la oferta previamente inactivada por ausencia de slots activos que seguía habilitada administrativamente; una inactivación administrativa explícita permanece hasta activación administrativa. CatalogEntry conserva su estado administrativo y visibilidad derivada.",
+    "Copias y snapshots preservan datos pertinentes sin required/requiredSlots ni referencia a oferta plantilla.",
+    "No cambiar API, otros OPEN, históricos, traducciones ni salidas generadas.",
+    "Terminología del dominio: composición es el conjunto de slots; slot contiene opciones; la entrada contiene ofertas sin llamarse grupo comercial."
   ],
   "blockers": []
 }
