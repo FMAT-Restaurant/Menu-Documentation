@@ -1,0 +1,175 @@
+categories:
+  get:
+    tags: [Categorías]
+    operationId: listMenuCategories
+    summary: Listar categorías
+    description: >-
+      Devuelve una página de categorías con el número de entradas asociadas. Use
+      page y pageSize para recorrer la lista; If-None-Match permite reutilizar
+      una respuesta que no haya cambiado.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página de categorías del menú.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CategoryListResponse
+            examples:
+              primeraPagina:
+                summary: Categorías de la primera página
+                value:
+                  data:
+                    - id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                      name: Bebidas
+                      description: Bebidas frías y preparadas.
+                      entryCount: 4
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 1
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  post:
+    tags: [Categorías]
+    operationId: createMenuCategory
+    summary: Crear una categoría
+    description: Crea una categoría para organizar entradas del catálogo.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CategoryCreateRequest
+          examples:
+            nuevaCategoria:
+              summary: Crear una categoría de postres
+              value:
+                name: Postres
+                description: Opciones dulces.
+    responses:
+      '201':
+        description: Categoría creada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CategoryResponse
+            examples:
+              categoriaCreada:
+                summary: Categoría creada
+                value:
+                  data:
+                    id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                    name: Postres
+                    description: Opciones dulces.
+                    entryCount: 0
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+categoryById:
+  parameters:
+    - name: categoryId
+      in: path
+      required: true
+      description: UUID de la categoría que se consultará o modificará.
+      schema:
+        type: string
+        format: uuid
+        example: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+  patch:
+    tags: [Categorías]
+    operationId: patchMenuCategory
+    summary: Actualizar una categoría
+    description: Actualiza los campos de la categoría indicados en el cuerpo.
+      Envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CategoryPatchRequest
+          examples:
+            cambiarDescripcion:
+              summary: Actualizar nombre y descripción
+              value:
+                name: Postres
+                description: Postres y otras opciones dulces.
+    responses:
+      '200':
+        description: Categoría actualizada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CategoryResponse
+            examples:
+              categoriaActualizada:
+                summary: Categoría después de la actualización
+                value:
+                  data:
+                    id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                    name: Postres
+                    description: Postres y otras opciones dulces.
+                    entryCount: 0
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  delete:
+    tags: [Categorías]
+    operationId: deleteMenuCategory
+    summary: Eliminar una categoría
+    description: Elimina la categoría y quita su UUID de las entradas asociadas.
+      Envíe el ETag leído en If-Match para confirmar que la categoría no cambió.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    responses:
+      '204':
+        description: Categoría eliminada y referencias retiradas.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

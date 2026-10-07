@@ -13,16 +13,17 @@
       import { createApiReference } from 'https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.0/esm.js'
 
       const tagSlugs = {
-        'Catálogo': 'catalogo',
         'Categorías': 'categorias',
         'Entradas': 'entradas',
         'Ofertas': 'ofertas',
-        'Composiciones': 'composiciones',
         'Recetas': 'recetas',
+        'Inventario': 'inventario',
+        'Imágenes': 'imagenes',
       }
 
       createApiReference('#api-reference', {
-        url: './openapi.yaml',
+        url: './dist/openapi.yaml',
+        hideTestRequestButton: true,
         showOperationId: true,
         generateOperationSlug: (operation) => operation.operationId,
         generateTagSlug: (tag) => tagSlugs[tag.name],

@@ -1,0 +1,252 @@
+recipes:
+  get:
+    tags: [Recetas]
+    operationId: listMenuRecipes
+    summary: Listar recetas
+    description: Busca recetas por nombre y descripción y devuelve una página
+      con sus insumos y cantidades.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/SearchQuery
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página de recetas.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/RecipeListResponse
+            examples:
+              recetasEncontradas:
+                summary: Una receta y sus insumos
+                value:
+                  data:
+                    - id: c4813f65-00b4-4921-874e-03c555796401
+                      name: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña.
+                      supplies:
+                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          quantity: 200
+                          inventoryItem:
+                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            name: Carne Molida Res 80/20
+                            unit: g
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 1
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  post:
+    tags: [Recetas]
+    operationId: createMenuRecipe
+    summary: Crear una receta
+    description: Crea una receta con sus insumos y cantidades. Cada
+      inventoryItemId debe referirse a un artículo de inventario existente.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/RecipeCreateRequest
+          examples:
+            recetaHamburguesa:
+              summary: Crear una receta con un insumo
+              value:
+                name: Hamburguesa Hawaiana
+                description: Carne, jamón, queso y piña.
+                instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                supplies:
+                  - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                    quantity: 200
+    responses:
+      '201':
+        description: Receta creada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/RecipeResponse
+            examples:
+              recetaCreada:
+                summary: Receta creada con sus insumos
+                value:
+                  data:
+                    id: c4813f65-00b4-4921-874e-03c555796401
+                    name: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña.
+                    instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                    supplies:
+                      - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        quantity: 200
+                        inventoryItem:
+                          id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          name: Carne Molida Res 80/20
+                          unit: g
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+recipeById:
+  parameters:
+    - name: recipeId
+      in: path
+      required: true
+      description: UUID de la receta que se consultará o modificará.
+      schema:
+        type: string
+        format: uuid
+        example: c4813f65-00b4-4921-874e-03c555796401
+  get:
+    tags: [Recetas]
+    operationId: getMenuRecipe
+    summary: Consultar una receta
+    description: Devuelve la receta, sus instrucciones y cada insumo con su
+      cantidad y los datos del artículo de inventario asociado.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Detalle de la receta y sus insumos.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/RecipeResponse
+            examples:
+              detalleReceta:
+                summary: Detalle de una receta
+                value:
+                  data:
+                    id: c4813f65-00b4-4921-874e-03c555796401
+                    name: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña.
+                    instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                    supplies:
+                      - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        quantity: 200
+                        inventoryItem:
+                          id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          name: Carne Molida Res 80/20
+                          unit: g
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  patch:
+    tags: [Recetas]
+    operationId: patchMenuRecipe
+    summary: Actualizar una receta
+    description: Actualiza los campos de la receta incluidos en el cuerpo. Cada
+      inventoryItemId proporcionado debe referirse a un artículo existente;
+      envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/RecipePatchRequest
+          examples:
+            actualizarReceta:
+              summary: Actualizar instrucciones e insumos
+              value:
+                name: Hamburguesa Hawaiana
+                description: Carne, jamón, queso y piña.
+                instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
+                supplies:
+                  - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                    quantity: 200
+    responses:
+      '200':
+        description: Receta actualizada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/RecipeResponse
+            examples:
+              recetaActualizada:
+                summary: Receta después de la actualización
+                value:
+                  data:
+                    id: c4813f65-00b4-4921-874e-03c555796401
+                    name: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña.
+                    instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
+                    supplies:
+                      - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        quantity: 200
+                        inventoryItem:
+                          id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          name: Carne Molida Res 80/20
+                          unit: g
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  delete:
+    tags: [Recetas]
+    operationId: deleteMenuRecipe
+    summary: Eliminar una receta
+    description: Elimina la receta cuando ninguna oferta la referencia. Si está
+      en uso, responde 409 Conflict e incluye los UUID afectados en
+      details.offerIds[]. Envíe el ETag leído en If-Match para confirmar que la
+      receta no cambió.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    responses:
+      '204':
+        description: Receta eliminada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        $ref: ../openapi.yaml#/components/responses/ResourceInUse
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

@@ -1,11 +1,2534 @@
 openapi: 3.1.0
 info:
-  title: Referencia de API de Menu/Catálogo
-  version: 0.0.0-pending
-  description: |
-    La página de referencia interactiva se mantiene publicada mediante Scalar.
-    Las operaciones, rutas, datos de solicitud y respuesta, y sus representaciones
-    quedan pendientes de revisión de los mockups (OPEN-010). Este documento no
-    publica un contrato aceptado.
-paths: {}
-components: {}
+  title: API de administración de Menu
+  version: 1.0.0
+  description: Contrato HTTP para las operaciones de consulta y administración usadas por el frontend. Se organiza por recurso y no define el host de despliegue; las rutas son relativas a una URL base que termina en /api/v1.
+  license:
+    name: MIT
+    url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
+  contact:
+    name: FMAT Restaurant
+servers:
+  - url: /api/v1
+    description: Prefijo de ruta relativo. El despliegue debe proporcionar el host para formar la URL base completa, que termina en /api/v1.
+security:
+  - bearerAuth: []
+tags:
+  - name: Categorías
+    description: Administración y consulta de categorías del menú.
+  - name: Entradas
+    description: Administración y consulta de entradas del catálogo.
+  - name: Ofertas
+    description: Administración de ofertas y sus composiciones.
+  - name: Recetas
+    description: Administración y consulta de recetas.
+  - name: Inventario
+    description: Consulta de artículos usados como fuentes de composición.
+  - name: Imágenes
+    description: Carga de imágenes utilizadas por entradas y ofertas.
+paths:
+  /menu/categories:
+    get:
+      tags:
+        - Categorías
+      operationId: listMenuCategories
+      summary: Listar categorías
+      description: Devuelve una página de categorías con el número de entradas asociadas. Use page y pageSize para recorrer la lista; If-None-Match permite reutilizar una respuesta que no haya cambiado.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Página de categorías del menú.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+              examples:
+                primeraPagina:
+                  summary: Categorías de la primera página
+                  value:
+                    data:
+                      - id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                        name: Bebidas
+                        description: Bebidas frías y preparadas.
+                        entryCount: 4
+                    meta:
+                      page: 1
+                      pageSize: 12
+                      total: 1
+                      totalPages: 1
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags:
+        - Categorías
+      operationId: createMenuCategory
+      summary: Crear una categoría
+      description: Crea una categoría para organizar entradas del catálogo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+            examples:
+              nuevaCategoria:
+                summary: Crear una categoría de postres
+                value:
+                  name: Postres
+                  description: Opciones dulces.
+      responses:
+        '201':
+          description: Categoría creada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+              examples:
+                categoriaCreada:
+                  summary: Categoría creada
+                  value:
+                    data:
+                      id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                      name: Postres
+                      description: Opciones dulces.
+                      entryCount: 0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/categories/{categoryId}:
+    parameters:
+      - name: categoryId
+        in: path
+        required: true
+        description: UUID de la categoría que se consultará o modificará.
+        schema:
+          type: string
+          format: uuid
+          example: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+    patch:
+      tags:
+        - Categorías
+      operationId: patchMenuCategory
+      summary: Actualizar una categoría
+      description: Actualiza los campos de la categoría indicados en el cuerpo. Envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryPatchRequest'
+            examples:
+              cambiarDescripcion:
+                summary: Actualizar nombre y descripción
+                value:
+                  name: Postres
+                  description: Postres y otras opciones dulces.
+      responses:
+        '200':
+          description: Categoría actualizada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+              examples:
+                categoriaActualizada:
+                  summary: Categoría después de la actualización
+                  value:
+                    data:
+                      id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                      name: Postres
+                      description: Postres y otras opciones dulces.
+                      entryCount: 0
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags:
+        - Categorías
+      operationId: deleteMenuCategory
+      summary: Eliminar una categoría
+      description: Elimina la categoría y quita su UUID de las entradas asociadas. Envíe el ETag leído en If-Match para confirmar que la categoría no cambió.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          description: Categoría eliminada y referencias retiradas.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/entries:
+    get:
+      tags:
+        - Entradas
+      operationId: listMenuEntries
+      summary: Listar entradas del catálogo
+      description: Busca entradas por texto, categoría y estado. La búsqueda considera el nombre, la descripción y los nombres de categoría; los resultados se filtran y paginan en el servidor.
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/CategoryFilter'
+        - $ref: '#/components/parameters/EntryStatusQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Página de entradas que coincide con los filtros.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogEntryListResponse'
+              examples:
+                entradasActivas:
+                  summary: Entradas activas de la primera página
+                  value:
+                    data:
+                      - id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                        brandName: Hamburguesa Hawaiana
+                        description: Carne, jamón, queso y piña en pan artesanal.
+                        status: ACTIVE
+                        image:
+                          id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                          url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                          thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                        categories:
+                          - id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                            name: Hamburguesas
+                        offerCount: 2
+                    meta:
+                      page: 1
+                      pageSize: 12
+                      total: 1
+                      totalPages: 1
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags:
+        - Entradas
+      operationId: createMenuEntry
+      summary: Crear una entrada
+      description: Crea una entrada del catálogo con sus categorías y, de forma opcional, una imagen que ya se haya cargado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogEntryCreateRequest'
+            examples:
+              hamburguesaHawaiana:
+                summary: Crear una entrada activa
+                value:
+                  brandName: Hamburguesa Hawaiana
+                  description: Carne, jamón, queso y piña en pan artesanal.
+                  status: ACTIVE
+                  categoryIds:
+                    - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                  imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
+      responses:
+        '201':
+          description: Entrada creada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogEntryResponse'
+              examples:
+                entradaCreada:
+                  summary: Entrada creada
+                  value:
+                    data:
+                      id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      brandName: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña en pan artesanal.
+                      status: ACTIVE
+                      image:
+                        id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                        url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                      categoryIds:
+                        - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/entries/{entryId}:
+    parameters:
+      - name: entryId
+        in: path
+        required: true
+        description: UUID de la entrada del catálogo.
+        schema:
+          type: string
+          format: uuid
+          example: 7d19a8ce-402c-4bab-b383-9969b69fe101
+    get:
+      tags:
+        - Entradas
+      operationId: getMenuEntry
+      summary: Consultar una entrada
+      description: Devuelve el detalle de una entrada, incluidos los UUID de sus categorías y los datos de la imagen asociada, si existe.
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Detalle de la entrada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogEntryResponse'
+              examples:
+                detalleEntrada:
+                  summary: Detalle de una entrada
+                  value:
+                    data:
+                      id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      brandName: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña en pan artesanal.
+                      status: ACTIVE
+                      image:
+                        id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                        url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                      categoryIds:
+                        - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags:
+        - Entradas
+      operationId: patchMenuEntry
+      summary: Actualizar una entrada
+      description: Actualiza los campos de la entrada incluidos en el cuerpo. Envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogEntryPatchRequest'
+            examples:
+              actualizarEntrada:
+                summary: Cambiar el estado de una entrada
+                value:
+                  brandName: Hamburguesa Hawaiana
+                  description: Carne, jamón, queso y piña en pan artesanal.
+                  status: ACTIVE
+                  categoryIds:
+                    - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                  imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
+      responses:
+        '200':
+          description: Entrada actualizada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogEntryResponse'
+              examples:
+                entradaActualizada:
+                  summary: Entrada después de la actualización
+                  value:
+                    data:
+                      id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      brandName: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña en pan artesanal.
+                      status: ACTIVE
+                      image:
+                        id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                        url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                      categoryIds:
+                        - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags:
+        - Entradas
+      operationId: deleteMenuEntry
+      summary: Eliminar una entrada
+      description: Elimina la entrada y también las ofertas asociadas. Envíe el ETag leído en If-Match para confirmar que la entrada no cambió.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          description: Entrada y ofertas asociadas eliminadas.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/offers:
+    get:
+      tags:
+        - Ofertas
+      operationId: listMenuOffers
+      summary: Listar ofertas
+      description: Devuelve una página de ofertas. Puede limitar los resultados a una entrada y excluir una oferta concreta; la lista se pagina en el servidor.
+      parameters:
+        - $ref: '#/components/parameters/EntryIdQuery'
+        - $ref: '#/components/parameters/ExcludeOfferId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Página de ofertas.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogOfferListResponse'
+              examples:
+                ofertasDeEntrada:
+                  summary: Ofertas de una entrada del catálogo
+                  value:
+                    data:
+                      - id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                        entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                        entryName: Hamburguesa Hawaiana
+                        presentationTag: Individual
+                        basePrice: 180
+                        status: ACTIVE
+                        image:
+                          id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                          url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                          thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                        slotCount: 1
+                    meta:
+                      page: 1
+                      pageSize: 12
+                      total: 1
+                      totalPages: 1
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/entries/{entryId}/offers:
+    parameters:
+      - name: entryId
+        in: path
+        required: true
+        description: UUID de la entrada a la que pertenecerá la nueva oferta.
+        schema:
+          type: string
+          format: uuid
+          example: 7d19a8ce-402c-4bab-b383-9969b69fe101
+    post:
+      tags:
+        - Ofertas
+      operationId: createEntryOffer
+      summary: Crear una oferta para una entrada
+      description: Crea una oferta asociada a la entrada indicada en la ruta. La composición define los espacios de selección y sus opciones.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogOfferCreateRequest'
+            examples:
+              ofertaIndividual:
+                summary: Crear una oferta individual sin composición inicial
+                value:
+                  presentationTag: Individual
+                  basePrice: 180
+                  status: INACTIVE
+                  imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                  composition:
+                    slots: []
+      responses:
+        '201':
+          description: Oferta creada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogOfferResponse'
+              examples:
+                ofertaCreada:
+                  summary: Oferta creada
+                  value:
+                    data:
+                      id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                      entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      presentationTag: Individual
+                      basePrice: 180
+                      status: INACTIVE
+                      image:
+                        id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                        url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                      composition:
+                        slots: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: No existe la entrada asociada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                entradaNoEncontrada:
+                  summary: La entrada indicada no existe
+                  value:
+                    error:
+                      message: No se encontró la entrada indicada.
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/offers/{offerId}:
+    parameters:
+      - name: offerId
+        in: path
+        required: true
+        description: UUID de la oferta que se consultará o modificará.
+        schema:
+          type: string
+          format: uuid
+          example: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+    get:
+      tags:
+        - Ofertas
+      operationId: getMenuOffer
+      summary: Consultar una oferta y su composición
+      description: Devuelve los datos de la oferta y su composición. Cada opción incluye el tipo y UUID de su origen; source contiene la referencia de solo lectura del recurso de origen.
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Detalle de la oferta, incluida su composición.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogOfferResponse'
+              examples:
+                ofertaConReceta:
+                  summary: Oferta con un espacio de receta
+                  value:
+                    data:
+                      id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                      entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      presentationTag: Individual
+                      basePrice: 180
+                      status: ACTIVE
+                      image:
+                        id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                        url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                      composition:
+                        slots:
+                          - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                            name: Plato principal
+                            required: true
+                            quantity: 1
+                            course: Plato fuerte
+                            options:
+                              - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                                sourceType: RECIPE
+                                recipeId: c4813f65-00b4-4921-874e-03c555796401
+                                inventoryItemId: null
+                                displayName: Hamburguesa Hawaiana
+                                source:
+                                  id: c4813f65-00b4-4921-874e-03c555796401
+                                  name: Hamburguesa Hawaiana
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags:
+        - Ofertas
+      operationId: patchMenuOffer
+      summary: Actualizar una oferta
+      description: Actualiza los campos incluidos en el cuerpo y requiere el ETag vigente en If-Match. Si incluye composition, el contrato fuente no define si sus slots se fusionan o se sustituyen.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogOfferPatchRequest'
+            examples:
+              actualizarComposicion:
+                summary: Actualizar datos de precio y composición
+                value:
+                  presentationTag: Individual
+                  basePrice: 185
+                  status: ACTIVE
+                  imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                  composition:
+                    slots:
+                      - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                        name: Plato principal
+                        required: true
+                        quantity: 1
+                        course: Plato fuerte
+                        options:
+                          - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                            sourceType: RECIPE
+                            recipeId: c4813f65-00b4-4921-874e-03c555796401
+                            displayName: Hamburguesa Hawaiana
+      responses:
+        '200':
+          description: Oferta actualizada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogOfferResponse'
+              examples:
+                ofertaActualizada:
+                  summary: Oferta actualizada
+                  value:
+                    data:
+                      id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                      entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      presentationTag: Individual
+                      basePrice: 185
+                      status: ACTIVE
+                      image:
+                        id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                        url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                      composition:
+                        slots:
+                          - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                            name: Plato principal
+                            required: true
+                            quantity: 1
+                            course: Plato fuerte
+                            options:
+                              - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                                sourceType: RECIPE
+                                recipeId: c4813f65-00b4-4921-874e-03c555796401
+                                inventoryItemId: null
+                                displayName: Hamburguesa Hawaiana
+                                source:
+                                  id: c4813f65-00b4-4921-874e-03c555796401
+                                  name: Hamburguesa Hawaiana
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags:
+        - Ofertas
+      operationId: deleteMenuOffer
+      summary: Eliminar una oferta
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          description: Oferta eliminada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/recipes:
+    get:
+      tags:
+        - Recetas
+      operationId: listMenuRecipes
+      summary: Listar recetas
+      description: Busca recetas por nombre y descripción y devuelve una página con sus insumos y cantidades.
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Página de recetas.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeListResponse'
+              examples:
+                recetasEncontradas:
+                  summary: Una receta y sus insumos
+                  value:
+                    data:
+                      - id: c4813f65-00b4-4921-874e-03c555796401
+                        name: Hamburguesa Hawaiana
+                        description: Carne, jamón, queso y piña.
+                        supplies:
+                          - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            quantity: 200
+                            inventoryItem:
+                              id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                              name: Carne Molida Res 80/20
+                              unit: g
+                    meta:
+                      page: 1
+                      pageSize: 12
+                      total: 1
+                      totalPages: 1
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags:
+        - Recetas
+      operationId: createMenuRecipe
+      summary: Crear una receta
+      description: Crea una receta con sus insumos y cantidades. Cada inventoryItemId debe referirse a un artículo de inventario existente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCreateRequest'
+            examples:
+              recetaHamburguesa:
+                summary: Crear una receta con un insumo
+                value:
+                  name: Hamburguesa Hawaiana
+                  description: Carne, jamón, queso y piña.
+                  instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                  supplies:
+                    - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      quantity: 200
+      responses:
+        '201':
+          description: Receta creada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeResponse'
+              examples:
+                recetaCreada:
+                  summary: Receta creada con sus insumos
+                  value:
+                    data:
+                      id: c4813f65-00b4-4921-874e-03c555796401
+                      name: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña.
+                      instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                      supplies:
+                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          quantity: 200
+                          inventoryItem:
+                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            name: Carne Molida Res 80/20
+                            unit: g
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /menu/recipes/{recipeId}:
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        description: UUID de la receta que se consultará o modificará.
+        schema:
+          type: string
+          format: uuid
+          example: c4813f65-00b4-4921-874e-03c555796401
+    get:
+      tags:
+        - Recetas
+      operationId: getMenuRecipe
+      summary: Consultar una receta
+      description: Devuelve la receta, sus instrucciones y cada insumo con su cantidad y los datos del artículo de inventario asociado.
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Detalle de la receta y sus insumos.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeResponse'
+              examples:
+                detalleReceta:
+                  summary: Detalle de una receta
+                  value:
+                    data:
+                      id: c4813f65-00b4-4921-874e-03c555796401
+                      name: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña.
+                      instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                      supplies:
+                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          quantity: 200
+                          inventoryItem:
+                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            name: Carne Molida Res 80/20
+                            unit: g
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    patch:
+      tags:
+        - Recetas
+      operationId: patchMenuRecipe
+      summary: Actualizar una receta
+      description: Actualiza los campos de la receta incluidos en el cuerpo. Cada inventoryItemId proporcionado debe referirse a un artículo existente; envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipePatchRequest'
+            examples:
+              actualizarReceta:
+                summary: Actualizar instrucciones e insumos
+                value:
+                  name: Hamburguesa Hawaiana
+                  description: Carne, jamón, queso y piña.
+                  instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
+                  supplies:
+                    - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      quantity: 200
+      responses:
+        '200':
+          description: Receta actualizada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeResponse'
+              examples:
+                recetaActualizada:
+                  summary: Receta después de la actualización
+                  value:
+                    data:
+                      id: c4813f65-00b4-4921-874e-03c555796401
+                      name: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña.
+                      instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
+                      supplies:
+                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          quantity: 200
+                          inventoryItem:
+                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            name: Carne Molida Res 80/20
+                            unit: g
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags:
+        - Recetas
+      operationId: deleteMenuRecipe
+      summary: Eliminar una receta
+      description: Elimina la receta cuando ninguna oferta la referencia. Si está en uso, responde 409 Conflict e incluye los UUID afectados en details.offerIds[]. Envíe el ETag leído en If-Match para confirmar que la receta no cambió.
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      responses:
+        '204':
+          description: Receta eliminada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ResourceInUse'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /inventory/items:
+    get:
+      tags:
+        - Inventario
+      operationId: searchInventoryItems
+      summary: Buscar artículos de inventario
+      description: Busca artículos de inventario por texto y devuelve una página para seleccionar insumos en recetas u opciones de composición. Los artículos son referencias de solo lectura en este contrato.
+      parameters:
+        - $ref: '#/components/parameters/SearchQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Página de artículos coincidentes.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemListResponse'
+              examples:
+                articulosEncontrados:
+                  summary: Artículo de inventario encontrado
+                  value:
+                    data:
+                      - id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        name: Carne Molida Res 80/20
+                        unit: g
+                    meta:
+                      page: 1
+                      pageSize: 12
+                      total: 1
+                      totalPages: 1
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /media/images:
+    post:
+      tags:
+        - Imágenes
+      operationId: uploadMenuImage
+      summary: Subir una imagen
+      description: Sube el archivo del campo file mediante multipart/form-data y devuelve la imagen creada junto con sus URL.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+            examples:
+              archivoDeMenu:
+                summary: Archivo de imagen seleccionado para cargar
+                value:
+                  file: hamburguesa-hawaiana.jpg
+      responses:
+        '201':
+          description: Imagen recibida y disponible por URL.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUploadResponse'
+              examples:
+                imagenCargada:
+                  summary: Imagen disponible por URL
+                  value:
+                    data:
+                      id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                      url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token de acceso indicado en api.md.
+  schemas:
+    PageMeta:
+      type: object
+      description: Metadatos que indican qué página se devolvió y el tamaño y total de la colección paginada.
+      required:
+        - page
+        - pageSize
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Número de la página devuelta, empezando en 1.
+          example: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          description: Cantidad solicitada de elementos por página; admite cualquier entero positivo.
+          example: 12
+        total:
+          type: integer
+          minimum: 0
+          description: Cantidad total de elementos que coinciden con la consulta.
+          example: 0
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Cantidad total de páginas para el tamaño solicitado.
+          example: 0
+      example:
+        page: 2
+        pageSize: 20
+        total: 51
+        totalPages: 3
+    Image:
+      type: object
+      description: Imagen de catálogo y sus URL de visualización.
+      required:
+        - id
+        - url
+        - thumbnailUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la imagen.
+          example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        url:
+          type: string
+          format: uri
+          description: URL de la imagen original.
+          example: https://cdn.example.com/menu/burger.jpg
+        thumbnailUrl:
+          type: string
+          format: uri
+          description: URL de la miniatura de la imagen.
+          example: https://cdn.example.com/menu/burger-thumbnail.jpg
+      example:
+        id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        url: https://cdn.example.com/menu/burger.jpg
+        thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+    InventoryItem:
+      type: object
+      description: Insumo de inventario referenciado por una receta u opción de una composición.
+      required:
+        - id
+        - name
+        - unit
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID del insumo.
+          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        name:
+          type: string
+          description: Nombre legible del insumo.
+          example: Carne Molida Res 80/20
+        unit:
+          type: string
+          description: Unidad usada para expresar la cantidad del insumo.
+          example: g
+      example:
+        id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        name: Carne Molida Res 80/20
+        unit: g
+    Error:
+      type: object
+      description: Datos del error devuelto por la API.
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Explicación del error para quien consume la API.
+        details:
+          type: object
+          description: Datos adicionales opcionales y específicos de la respuesta de error.
+          additionalProperties: true
+    ErrorEnvelope:
+      type: object
+      description: Envoltura estándar de una respuesta de error.
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+    ValidationErrorEnvelope:
+      type: object
+      description: Envoltura estándar que contiene un error de validación.
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/ValidationError'
+      example:
+        error:
+          message: El cuerpo de la solicitud contiene campos no válidos.
+          details:
+            violations:
+              - path: /name
+                message: El nombre es obligatorio.
+    Category:
+      type: object
+      description: Categoría comercial que permite clasificar las entradas del catálogo.
+      required:
+        - id
+        - name
+        - description
+        - entryCount
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la categoría.
+          example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        name:
+          type: string
+          description: Nombre que se muestra para la categoría.
+          example: Bebidas
+        description:
+          type: string
+          description: Explicación breve del contenido de la categoría.
+          example: Bebidas frías y preparadas.
+        entryCount:
+          type: integer
+          minimum: 0
+          description: Cantidad de entradas asociadas a la categoría.
+          example: 4
+      example:
+        id: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        name: Bebidas
+        description: Bebidas frías y preparadas.
+        entryCount: 4
+    CategoryReference:
+      type: object
+      description: Referencia resumida a una categoría asociada con una entrada.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la categoría.
+          example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        name:
+          type: string
+          description: Nombre de la categoría.
+          example: Bebidas
+    CategoryCreateRequest:
+      type: object
+      description: Datos para crear una categoría.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Nombre que tendrá la nueva categoría.
+          example: Bebidas
+        description:
+          type: string
+          description: Explicación breve del contenido de la categoría.
+          example: Bebidas frías y preparadas.
+    CategoryPatchRequest:
+      type: object
+      description: Campos de categoría que se desean actualizar.
+      properties:
+        name:
+          type: string
+          description: Nuevo nombre de la categoría, si se desea cambiar.
+          example: Bebidas preparadas
+        description:
+          type: string
+          description: Nueva explicación de la categoría, si se desea cambiar.
+          example: Bebidas frías y preparadas al momento.
+    CategoryListResponse:
+      type: object
+      description: Colección paginada de categorías.
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    CategoryResponse:
+      type: object
+      description: Respuesta que contiene una categoría.
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Category'
+    EntryStatus:
+      type: string
+      description: Estado administrativo de una entrada del catálogo.
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - ARCHIVED
+      example: ACTIVE
+    CatalogEntrySummary:
+      type: object
+      description: Campos de catálogo que identifican una entrada y resumen su clasificación y cantidad de ofertas.
+      required:
+        - id
+        - brandName
+        - description
+        - status
+        - image
+        - categories
+        - offerCount
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la entrada.
+          example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        brandName:
+          type: string
+          description: Nombre comercial que se muestra para la entrada.
+          example: Hamburguesa Hawaiana
+        description:
+          type: string
+          description: Descripción de la entrada del catálogo.
+          example: Hamburguesa con piña asada y queso.
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        image:
+          $ref: '#/components/schemas/Image'
+        categories:
+          description: Categorías asociadas a la entrada.
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryReference'
+        offerCount:
+          type: integer
+          minimum: 0
+          description: Cantidad de ofertas asociadas a la entrada.
+          example: 2
+      example:
+        id: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        brandName: Hamburguesa Hawaiana
+        description: Hamburguesa con piña asada y queso.
+        status: ACTIVE
+        image:
+          id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+          url: https://cdn.example.com/menu/burger.jpg
+          thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+        categories:
+          - id: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+            name: Hamburguesas
+        offerCount: 2
+    CatalogEntryDetail:
+      type: object
+      description: Datos completos de una entrada, incluidos sus identificadores de categoría.
+      required:
+        - id
+        - brandName
+        - description
+        - status
+        - image
+        - categoryIds
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la entrada.
+          example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        brandName:
+          type: string
+          description: Nombre comercial que se muestra para la entrada.
+          example: Hamburguesa Hawaiana
+        description:
+          type: string
+          description: Descripción de la entrada del catálogo.
+          example: Hamburguesa con piña asada y queso.
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        image:
+          $ref: '#/components/schemas/Image'
+        categoryIds:
+          description: Identificadores UUID de las categorías asociadas a la entrada.
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+      example:
+        id: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        brandName: Hamburguesa Hawaiana
+        description: Hamburguesa con piña asada y queso.
+        status: ACTIVE
+        image:
+          id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+          url: https://cdn.example.com/menu/burger.jpg
+          thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+        categoryIds:
+          - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    CatalogEntryCreateRequest:
+      type: object
+      description: Datos requeridos para crear una entrada y asociarla con sus categorías.
+      required:
+        - brandName
+        - description
+        - status
+        - categoryIds
+      properties:
+        brandName:
+          type: string
+          description: Nombre comercial de la nueva entrada.
+          example: Hamburguesa Hawaiana
+        description:
+          type: string
+          description: Descripción de la nueva entrada.
+          example: Hamburguesa con piña asada y queso.
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        categoryIds:
+          description: Identificadores UUID de las categorías que se asociarán a la entrada.
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        imageId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la imagen que se asociará con la entrada.
+          example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      example:
+        brandName: Hamburguesa Hawaiana
+        description: Hamburguesa con piña asada y queso.
+        status: ACTIVE
+        categoryIds:
+          - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    CatalogEntryPatchRequest:
+      type: object
+      description: Campos de una entrada que se desean actualizar.
+      properties:
+        brandName:
+          type: string
+          description: Nuevo nombre comercial, si se desea cambiar.
+          example: Hamburguesa Hawaiana Especial
+        description:
+          type: string
+          description: Nueva descripción, si se desea cambiar.
+          example: Hamburguesa con piña asada, queso y salsa de la casa.
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        categoryIds:
+          description: Identificadores UUID de las categorías asociadas a la entrada.
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+            - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        imageId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la nueva imagen asociada, si se desea cambiar.
+          example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    CatalogEntryListResponse:
+      type: object
+      description: Página de entradas que coincide con los filtros de la consulta.
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogEntrySummary'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    CatalogEntryResponse:
+      type: object
+      description: Respuesta que contiene una entrada del catálogo.
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CatalogEntryDetail'
+    OfferStatus:
+      type: string
+      description: Estado de disponibilidad de una oferta del catálogo.
+      enum:
+        - ACTIVE
+        - INACTIVE
+      example: ACTIVE
+    CatalogOfferSummary:
+      type: object
+      description: Campos que resumen una oferta del catálogo, su entrada asociada y su composición.
+      required:
+        - id
+        - entryId
+        - entryName
+        - presentationTag
+        - basePrice
+        - status
+        - image
+        - slotCount
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la oferta.
+          example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+        entryId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la entrada a la que pertenece la oferta.
+          example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        entryName:
+          type: string
+          description: Nombre comercial de la entrada asociada.
+          example: Hamburguesa Hawaiana
+        presentationTag:
+          type: string
+          description: Etiqueta que distingue esta presentación de la entrada.
+          example: Combo
+        basePrice:
+          type: number
+          description: Precio base de la oferta.
+          example: 180
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        image:
+          $ref: '#/components/schemas/Image'
+        slotCount:
+          type: integer
+          minimum: 0
+          description: Cantidad de slots que contiene la composición.
+          example: 2
+      example:
+        id: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+        entryId: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        entryName: Hamburguesa Hawaiana
+        presentationTag: Combo
+        basePrice: 180
+        status: ACTIVE
+        image:
+          id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+          url: https://cdn.example.com/menu/burger.jpg
+          thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+        slotCount: 2
+    CatalogOfferDetail:
+      type: object
+      description: Datos completos de una oferta, incluidos los slots y las opciones de su composición.
+      required:
+        - id
+        - entryId
+        - presentationTag
+        - basePrice
+        - status
+        - image
+        - composition
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la oferta.
+          example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+        entryId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la entrada a la que pertenece la oferta.
+          example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        presentationTag:
+          type: string
+          description: Etiqueta que distingue esta presentación de la entrada.
+          example: Combo
+        basePrice:
+          type: number
+          description: Precio base de la oferta.
+          example: 180
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        image:
+          $ref: '#/components/schemas/Image'
+        composition:
+          $ref: '#/components/schemas/Composition'
+      example:
+        id: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+        entryId: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+        presentationTag: Combo
+        basePrice: 180
+        status: ACTIVE
+        image:
+          id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+          url: https://cdn.example.com/menu/burger.jpg
+          thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+        composition:
+          slots:
+            - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+              name: Hamburguesa
+              required: true
+              quantity: 1
+              course: Plato fuerte
+              options:
+                - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+                  sourceType: RECIPE
+                  recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+                  inventoryItemId: null
+                  displayName: Hamburguesa hawaiana
+                  source:
+                    id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+                    name: Receta de hamburguesa
+    CatalogOfferCreateRequest:
+      type: object
+      description: Datos para crear una oferta y definir su composición inicial.
+      required:
+        - basePrice
+        - status
+        - composition
+      properties:
+        presentationTag:
+          type: string
+          description: Etiqueta que distingue esta presentación de la entrada.
+          example: Combo
+        basePrice:
+          type: number
+          description: Precio base de la oferta.
+          example: 180
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        imageId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la imagen asociada a la oferta.
+          example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        composition:
+          $ref: '#/components/schemas/CompositionInput'
+      example:
+        presentationTag: Combo
+        basePrice: 180
+        status: ACTIVE
+        imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        composition:
+          slots:
+            - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+              name: Hamburguesa
+              required: true
+              quantity: 1
+              course: Plato fuerte
+              options:
+                - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+                  sourceType: RECIPE
+                  recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+                  inventoryItemId: null
+                  displayName: Hamburguesa hawaiana
+    CatalogOfferPatchRequest:
+      type: object
+      description: Campos de una oferta que se desean actualizar.
+      properties:
+        presentationTag:
+          type: string
+          description: Nueva etiqueta de presentación, si se desea cambiar.
+          example: Combo familiar
+        basePrice:
+          type: number
+          description: Nuevo precio base, si se desea cambiar.
+          example: 195
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        imageId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la nueva imagen asociada, si se desea cambiar.
+          example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        composition:
+          $ref: '#/components/schemas/CompositionInput'
+    CatalogOfferListResponse:
+      type: object
+      description: Página de ofertas que coincide con los filtros de la consulta.
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogOfferSummary'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    CatalogOfferResponse:
+      type: object
+      description: Respuesta que contiene una oferta del catálogo.
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/CatalogOfferDetail'
+    Composition:
+      type: object
+      description: Composición de una oferta, expresada como una colección de slots.
+      required:
+        - slots
+      properties:
+        slots:
+          type: array
+          description: Slots que forman la composición de la oferta.
+          items:
+            $ref: '#/components/schemas/CompositionSlot'
+      example:
+        slots:
+          - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+            name: Hamburguesa
+            required: true
+            quantity: 1
+            course: Plato fuerte
+            options:
+              - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+                sourceType: RECIPE
+                recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+                inventoryItemId: null
+                displayName: Hamburguesa hawaiana
+                source:
+                  id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+                  name: Receta de hamburguesa
+    CompositionInput:
+      type: object
+      description: Datos de una composición enviados al crear o actualizar una oferta.
+      required:
+        - slots
+      properties:
+        slots:
+          type: array
+          description: Slots que forman la composición enviada.
+          items:
+            $ref: '#/components/schemas/CompositionSlotInput'
+    CompositionSlot:
+      type: object
+      description: Slot de la composición con una cantidad, un curso y las opciones que pueden ocuparlo.
+      required:
+        - slotId
+        - name
+        - required
+        - quantity
+        - course
+        - options
+      properties:
+        slotId:
+          type: string
+          format: uuid
+          description: Identificador UUID del slot.
+          example: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+        name:
+          type: string
+          description: Nombre que identifica el slot dentro de la composición.
+          example: Hamburguesa
+        required:
+          const: true
+          description: La API siempre devuelve true para este campo.
+        quantity:
+          type: number
+          description: Rango y precisión no definidos en la fuente.
+          example: 1
+        course:
+          type: string
+          enum:
+            - ''
+            - Entrada
+            - Plato fuerte
+            - Postre
+            - Bebida
+          description: Curso al que pertenece el slot, si se especifica.
+          example: Plato fuerte
+        options:
+          type: array
+          description: Opciones disponibles para ocupar el slot.
+          items:
+            $ref: '#/components/schemas/SlotOption'
+      example:
+        slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+        name: Hamburguesa
+        required: true
+        quantity: 1
+        course: Plato fuerte
+        options:
+          - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+            sourceType: RECIPE
+            recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+            inventoryItemId: null
+            displayName: Hamburguesa hawaiana
+            source:
+              id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+              name: Receta de hamburguesa
+    CompositionSlotInput:
+      type: object
+      description: Datos para crear o actualizar un slot de una composición.
+      required:
+        - slotId
+        - name
+        - required
+        - quantity
+        - course
+        - options
+      properties:
+        slotId:
+          type: string
+          format: uuid
+          description: Identificador UUID del slot.
+          example: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+        name:
+          type: string
+          description: Nombre que identifica el slot dentro de la composición.
+          example: Hamburguesa
+        required:
+          const: true
+          description: La API requiere el valor true para este campo.
+        quantity:
+          type: number
+          description: Rango y precisión no definidos en la fuente.
+          example: 1
+        course:
+          type: string
+          enum:
+            - ''
+            - Entrada
+            - Plato fuerte
+            - Postre
+            - Bebida
+          description: Curso al que pertenece el slot, si se especifica.
+          example: Plato fuerte
+        options:
+          type: array
+          description: Opciones disponibles para ocupar el slot.
+          items:
+            $ref: '#/components/schemas/SlotOptionInput'
+      example:
+        slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+        name: Hamburguesa
+        required: true
+        quantity: 1
+        course: Plato fuerte
+        options:
+          - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+            sourceType: RECIPE
+            recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+            inventoryItemId: null
+            displayName: Hamburguesa hawaiana
+    SlotOption:
+      description: Opción de un slot; cada opción identifica una receta o un insumo de inventario.
+      oneOf:
+        - $ref: '#/components/schemas/RecipeSlotOption'
+        - $ref: '#/components/schemas/InventoryItemSlotOption'
+    SlotOptionInput:
+      description: Datos de una opción de slot con uno de los dos tipos de origen admitidos.
+      oneOf:
+        - $ref: '#/components/schemas/RecipeSlotOptionInput'
+        - $ref: '#/components/schemas/InventoryItemSlotOptionInput'
+    RecipeSummary:
+      type: object
+      description: Datos de identificación de una receta y sus insumos.
+      required:
+        - id
+        - name
+        - description
+        - supplies
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la receta.
+          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        name:
+          type: string
+          description: Nombre de la receta.
+          example: Hamburguesa Hawaiana
+        description:
+          type: string
+          description: Descripción de la receta.
+          example: Preparación de hamburguesa con piña asada y queso.
+        supplies:
+          type: array
+          description: Insumos y cantidades que componen la receta.
+          items:
+            $ref: '#/components/schemas/RecipeSupply'
+      example:
+        id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        name: Hamburguesa Hawaiana
+        description: Preparación de hamburguesa con piña asada y queso.
+        supplies:
+          - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+            quantity: 200
+            inventoryItem:
+              id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+              name: Carne Molida Res 80/20
+              unit: g
+    RecipeDetail:
+      type: object
+      description: Datos completos de una receta, incluidos sus pasos de preparación e insumos.
+      required:
+        - id
+        - name
+        - description
+        - instructions
+        - supplies
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la receta.
+          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        name:
+          type: string
+          description: Nombre de la receta.
+          example: Hamburguesa Hawaiana
+        description:
+          type: string
+          description: Descripción de la receta.
+          example: Preparación de hamburguesa con piña asada y queso.
+        instructions:
+          type: string
+          description: Instrucciones para preparar la receta.
+          example: Cocina la carne, asa la piña y sirve con queso en el pan.
+        supplies:
+          type: array
+          description: Insumos y cantidades que componen la receta.
+          items:
+            $ref: '#/components/schemas/RecipeSupply'
+      example:
+        id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        name: Hamburguesa Hawaiana
+        description: Preparación de hamburguesa con piña asada y queso.
+        instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
+        supplies:
+          - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+            quantity: 200
+            inventoryItem:
+              id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+              name: Carne Molida Res 80/20
+              unit: g
+    RecipeCreateRequest:
+      type: object
+      description: Datos requeridos para crear una receta.
+      required:
+        - name
+        - description
+        - instructions
+        - supplies
+      properties:
+        name:
+          type: string
+          description: Nombre de la nueva receta.
+          example: Hamburguesa Hawaiana
+        description:
+          type: string
+          description: Descripción de la nueva receta.
+          example: Preparación de hamburguesa con piña asada y queso.
+        instructions:
+          type: string
+          description: Instrucciones para preparar la receta.
+          example: Cocina la carne, asa la piña y sirve con queso en el pan.
+        supplies:
+          type: array
+          description: Insumos y cantidades utilizados por la receta.
+          items:
+            $ref: '#/components/schemas/RecipeSupplyInput'
+      example:
+        name: Hamburguesa Hawaiana
+        description: Preparación de hamburguesa con piña asada y queso.
+        instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
+        supplies:
+          - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+            quantity: 200
+    RecipePatchRequest:
+      type: object
+      description: Campos de una receta que se desean actualizar.
+      properties:
+        name:
+          type: string
+          description: Nuevo nombre de la receta, si se desea cambiar.
+          example: Hamburguesa Hawaiana Especial
+        description:
+          type: string
+          description: Nueva descripción de la receta, si se desea cambiar.
+          example: Preparación de hamburguesa con piña, queso y salsa de la casa.
+        instructions:
+          type: string
+          description: Nuevas instrucciones de preparación, si se desean cambiar.
+          example: Cocina la carne, asa la piña y sirve con queso y salsa en el pan.
+        supplies:
+          type: array
+          description: Insumos y cantidades enviados para actualizar la receta.
+          items:
+            $ref: '#/components/schemas/RecipeSupplyInput'
+    RecipeSupply:
+      type: object
+      description: Insumo y cantidad que forman parte de una receta.
+      required:
+        - inventoryItemId
+        - quantity
+        - inventoryItem
+      properties:
+        inventoryItemId:
+          type: string
+          format: uuid
+          description: Identificador UUID del insumo utilizado.
+          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity:
+          type: number
+          description: Cantidad del insumo expresada en la unidad de inventario.
+          example: 200
+        inventoryItem:
+          $ref: '#/components/schemas/InventoryItem'
+      example:
+        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 200
+        inventoryItem:
+          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          name: Carne Molida Res 80/20
+          unit: g
+    RecipeSupplyInput:
+      type: object
+      description: Insumo y cantidad que se envían al crear o actualizar una receta.
+      required:
+        - inventoryItemId
+        - quantity
+      properties:
+        inventoryItemId:
+          type: string
+          format: uuid
+          description: Identificador UUID del insumo utilizado.
+          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity:
+          type: number
+          description: Cantidad del insumo expresada en la unidad de inventario.
+          example: 200
+      example:
+        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 200
+    RecipeListResponse:
+      type: object
+      description: Página de recetas que coincide con la consulta.
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeSummary'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    RecipeResponse:
+      type: object
+      description: Respuesta que contiene una receta.
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/RecipeDetail'
+    ImageUploadResponse:
+      type: object
+      description: Respuesta de una carga de imagen exitosa.
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Image'
+    InventoryItemListResponse:
+      type: object
+      description: Página de insumos de inventario que coincide con la consulta.
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryItem'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    ValidationViolation:
+      type: object
+      description: Incumplimiento de validación asociado a un campo del cuerpo de la solicitud.
+      required:
+        - path
+        - message
+      properties:
+        path:
+          type: string
+          description: Ruta que identifica el campo del cuerpo de la solicitud que no supera la validación.
+          example: /name
+        message:
+          type: string
+          description: Explicación de la regla de validación incumplida por el campo.
+          example: El nombre es obligatorio.
+      example:
+        path: /name
+        message: El nombre es obligatorio.
+    ValidationError:
+      description: Error estándar con al menos una infracción de validación en sus detalles.
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          required:
+            - details
+          properties:
+            details:
+              type: object
+              required:
+                - violations
+              properties:
+                violations:
+                  type: array
+                  minItems: 1
+                  description: Infracciones de validación encontradas en el cuerpo de la solicitud.
+                  items:
+                    $ref: '#/components/schemas/ValidationViolation'
+              additionalProperties: true
+      example:
+        message: El cuerpo de la solicitud contiene campos no válidos.
+        details:
+          violations:
+            - path: /name
+              message: El nombre es obligatorio.
+    RecipeSlotOptionInput:
+      type: object
+      description: Datos para crear o actualizar una opción de slot basada en una receta.
+      required:
+        - optionId
+        - sourceType
+        - recipeId
+        - displayName
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la opción.
+          example: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType:
+          const: RECIPE
+          description: Indica que la opción se basa en una receta.
+        recipeId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la receta de origen.
+          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        inventoryItemId:
+          type: 'null'
+          description: Campo no aplicable cuando el origen de la opción es una receta.
+        displayName:
+          type: string
+          description: Nombre que se mostrará para esta opción.
+          example: Hamburguesa hawaiana
+      example:
+        optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType: RECIPE
+        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        inventoryItemId: null
+        displayName: Hamburguesa hawaiana
+    InventoryItemSlotOptionInput:
+      type: object
+      description: Datos para crear o actualizar una opción de slot basada en un insumo de inventario.
+      required:
+        - optionId
+        - sourceType
+        - inventoryItemId
+        - displayName
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la opción.
+          example: b2c3d4e5-f678-489a-bcde-f0123456789a
+        sourceType:
+          const: INVENTORY_ITEM
+          description: Indica que la opción se basa directamente en un insumo de inventario.
+        recipeId:
+          type: 'null'
+          description: Campo no aplicable cuando el origen de la opción es un insumo de inventario.
+        inventoryItemId:
+          type: string
+          format: uuid
+          description: Identificador UUID del insumo de inventario de origen.
+          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        displayName:
+          type: string
+          description: Nombre que se mostrará para esta opción.
+          example: Queso cheddar
+      example:
+        optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
+        sourceType: INVENTORY_ITEM
+        recipeId: null
+        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        displayName: Queso cheddar
+    SourceReference:
+      type: object
+      readOnly: true
+      description: Referencia de solo lectura al origen de una opción de composición.
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador UUID de la receta o del insumo de inventario referenciado.
+          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        name:
+          type: string
+          description: Nombre del origen que se muestra en la respuesta.
+          example: Receta de hamburguesa
+    RecipeSlotOption:
+      type: object
+      description: Opción de slot cuyo origen es una receta.
+      required:
+        - optionId
+        - sourceType
+        - recipeId
+        - displayName
+        - source
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la opción.
+          example: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType:
+          const: RECIPE
+          description: Indica que la opción se basa en una receta.
+        recipeId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la receta de origen.
+          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        inventoryItemId:
+          type: 'null'
+          description: El origen alternativo no aplica a una opción de receta.
+        displayName:
+          type: string
+          description: Nombre que se muestra para esta opción en el catálogo.
+          example: Hamburguesa hawaiana
+        source:
+          $ref: '#/components/schemas/SourceReference'
+      example:
+        optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType: RECIPE
+        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        inventoryItemId: null
+        displayName: Hamburguesa hawaiana
+        source:
+          id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+          name: Receta de hamburguesa
+    InventoryItemSlotOption:
+      type: object
+      description: Opción de slot cuyo origen es un insumo de inventario.
+      required:
+        - optionId
+        - sourceType
+        - inventoryItemId
+        - displayName
+        - source
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la opción.
+          example: b2c3d4e5-f678-489a-bcde-f0123456789a
+        sourceType:
+          const: INVENTORY_ITEM
+          description: Indica que la opción se basa directamente en un insumo de inventario.
+        recipeId:
+          type: 'null'
+          description: El origen alternativo no aplica a una opción de inventario.
+        inventoryItemId:
+          type: string
+          format: uuid
+          description: Identificador UUID del insumo de inventario de origen.
+          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        displayName:
+          type: string
+          description: Nombre que se muestra para esta opción en el catálogo.
+          example: Queso cheddar
+        source:
+          $ref: '#/components/schemas/SourceReference'
+      example:
+        optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
+        sourceType: INVENTORY_ITEM
+        recipeId: null
+        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        displayName: Queso cheddar
+        source:
+          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          name: Queso cheddar
+  parameters:
+    Page:
+      name: page
+      in: query
+      required: false
+      description: Página solicitada de la colección, numerada desde 1.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 2
+    PageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Número positivo de elementos solicitado por página. Acepta cualquier entero desde 1; si se omite, se usa 12.
+      schema:
+        type: integer
+        minimum: 1
+        default: 12
+        example: 20
+    SearchQuery:
+      name: q
+      in: query
+      required: false
+      description: Texto opcional para buscar coincidencias según los campos descritos por la operación.
+      schema:
+        type: string
+        example: hamburguesa
+    CategoryFilter:
+      name: categoryId
+      in: query
+      required: false
+      description: UUID de categoría o el token reservado para entradas sin categoría.
+      example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+      schema:
+        anyOf:
+          - type: string
+            format: uuid
+            pattern: ^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$
+          - type: string
+            const: __uncategorized__
+    EntryIdQuery:
+      name: entryId
+      in: query
+      required: false
+      description: Identificador UUID de la entrada cuyas ofertas se consultan.
+      schema:
+        type: string
+        format: uuid
+        example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    ExcludeOfferId:
+      name: excludeOfferId
+      in: query
+      required: false
+      description: Identificador UUID de la oferta que se excluye de los resultados.
+      schema:
+        type: string
+        format: uuid
+        example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+    EntryStatusQuery:
+      name: status
+      in: query
+      required: false
+      description: Estado por el que se filtran las entradas.
+      schema:
+        $ref: '#/components/schemas/EntryStatus'
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: ETag de la versión del recurso leída por el cliente; se envía para una actualización condicional.
+      schema:
+        type: string
+        example: W/"rev-3"
+    IfNoneMatch:
+      name: If-None-Match
+      in: header
+      required: false
+      description: ETag previamente recibido que se compara durante una consulta condicional.
+      schema:
+        type: string
+        example: W/"rev-3"
+  headers:
+    ETag:
+      description: Validador de la representación devuelta o modificada.
+      schema:
+        type: string
+  responses:
+    NotModified:
+      description: La representación no cambió desde el ETag indicado.
+      headers:
+        ETag:
+          $ref: '#/components/headers/ETag'
+    Unauthorized:
+      description: Falta el token de acceso o no es válido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            unauthorized:
+              summary: Token de acceso ausente o inválido
+              value:
+                error:
+                  message: Se requiere un token de acceso válido.
+    Forbidden:
+      description: El token no tiene permiso para la operación.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            forbidden:
+              summary: El token no permite la operación
+              value:
+                error:
+                  message: No tienes permiso para realizar esta operación.
+    NotFound:
+      description: No existe el recurso indicado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            notFound:
+              summary: Recurso inexistente
+              value:
+                error:
+                  message: No se encontró el recurso solicitado.
+    ResourceInUse:
+      description: La receta está referenciada por una o más ofertas.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - error
+            properties:
+              error:
+                type: object
+                required:
+                  - message
+                  - details
+                properties:
+                  message:
+                    type: string
+                    description: Explicación del error para quien consume la API.
+                  details:
+                    type: object
+                    description: Datos específicos del error.
+                    required:
+                      - offerIds
+                    properties:
+                      offerIds:
+                        type: array
+                        description: Identificadores UUID de las ofertas que todavía usan la receta.
+                        items:
+                          type: string
+                          format: uuid
+                        example:
+                          - 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+                          - 50a4c3d2-8f7e-46b5-94c3-2b1a0f9e8d7c
+                    additionalProperties: true
+          examples:
+            resourceInUse:
+              summary: La receta sigue asociada a ofertas
+              value:
+                error:
+                  message: No se puede eliminar la receta mientras una oferta la utilice.
+                  details:
+                    offerIds:
+                      - 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+                      - 50a4c3d2-8f7e-46b5-94c3-2b1a0f9e8d7c
+    PreconditionFailed:
+      description: El recurso cambió desde que se obtuvo el ETag indicado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            preconditionFailed:
+              summary: El ETag ya no corresponde a la versión actual
+              value:
+                error:
+                  message: El recurso cambió desde que fue leído.
+    UnprocessableEntity:
+      description: La validación de los datos de la solicitud falló; esta respuesta representa errores de validación que impiden procesarla.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorEnvelope'
+          examples:
+            unprocessableEntity:
+              summary: Datos de solicitud no válidos para la operación
+              value:
+                error:
+                  message: Revisa los datos enviados en la solicitud.
+                  details:
+                    violations:
+                      - path: /name
+                        message: El nombre es obligatorio.
+    TooManyRequests:
+      description: Se excedió el límite de solicitudes.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          examples:
+            tooManyRequests:
+              summary: Se alcanzó el límite de solicitudes
+              value:
+                error:
+                  message: Espera antes de volver a enviar solicitudes.

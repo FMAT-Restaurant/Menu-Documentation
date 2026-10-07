@@ -1,0 +1,176 @@
+PageMeta:
+  type: object
+  description: Metadatos que indican qué página se devolvió y el tamaño y total de la colección paginada.
+  required: [page, pageSize, total, totalPages]
+  properties:
+    page:
+      type: integer
+      minimum: 1
+      description: Número de la página devuelta, empezando en 1.
+      example: 1
+    pageSize:
+      type: integer
+      minimum: 1
+      description: Cantidad solicitada de elementos por página; admite cualquier entero positivo.
+      example: 12
+    total:
+      type: integer
+      minimum: 0
+      description: Cantidad total de elementos que coinciden con la consulta.
+      example: 0
+    totalPages:
+      type: integer
+      minimum: 0
+      description: Cantidad total de páginas para el tamaño solicitado.
+      example: 0
+  example:
+    page: 2
+    pageSize: 20
+    total: 51
+    totalPages: 3
+
+Image:
+  type: object
+  description: Imagen de catálogo y sus URL de visualización.
+  required: [id, url, thumbnailUrl]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la imagen.
+      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    url:
+      type: string
+      format: uri
+      description: URL de la imagen original.
+      example: https://cdn.example.com/menu/burger.jpg
+    thumbnailUrl:
+      type: string
+      format: uri
+      description: URL de la miniatura de la imagen.
+      example: https://cdn.example.com/menu/burger-thumbnail.jpg
+  example:
+    id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    url: https://cdn.example.com/menu/burger.jpg
+    thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+
+InventoryItem:
+  type: object
+  description: Insumo de inventario referenciado por una receta u opción de una composición.
+  required: [id, name, unit]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID del insumo.
+      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    name:
+      type: string
+      description: Nombre legible del insumo.
+      example: Carne Molida Res 80/20
+    unit:
+      type: string
+      description: Unidad usada para expresar la cantidad del insumo.
+      example: g
+  example:
+    id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    name: Carne Molida Res 80/20
+    unit: g
+
+Error:
+  type: object
+  description: Datos del error devuelto por la API.
+  required: [message]
+  properties:
+    message:
+      type: string
+      description: Explicación del error para quien consume la API.
+    details:
+      type: object
+      description: Datos adicionales opcionales y específicos de la respuesta de error.
+      additionalProperties: true
+
+ValidationViolation:
+  type: object
+  description: Incumplimiento de validación asociado a un campo del cuerpo de la solicitud.
+  required: [path, message]
+  properties:
+    path:
+      type: string
+      description: Ruta que identifica el campo del cuerpo de la solicitud que no supera la validación.
+      example: /name
+    message:
+      type: string
+      description: Explicación de la regla de validación incumplida por el campo.
+      example: El nombre es obligatorio.
+  example:
+    path: /name
+    message: El nombre es obligatorio.
+
+ValidationError:
+  description: Error estándar con al menos una infracción de validación en sus detalles.
+  allOf:
+    - $ref: '#/Error'
+    - type: object
+      required: [details]
+      properties:
+        details:
+          type: object
+          required: [violations]
+          properties:
+            violations:
+              type: array
+              minItems: 1
+              description: Infracciones de validación encontradas en el cuerpo de la solicitud.
+              items:
+                $ref: '#/ValidationViolation'
+          additionalProperties: true
+  example:
+    message: El cuerpo de la solicitud contiene campos no válidos.
+    details:
+      violations:
+        - path: /name
+          message: El nombre es obligatorio.
+
+ValidationErrorEnvelope:
+  type: object
+  description: Envoltura estándar que contiene un error de validación.
+  required: [error]
+  properties:
+    error:
+      $ref: '#/ValidationError'
+  example:
+    error:
+      message: El cuerpo de la solicitud contiene campos no válidos.
+      details:
+        violations:
+          - path: /name
+            message: El nombre es obligatorio.
+
+ErrorEnvelope:
+  type: object
+  description: Envoltura estándar de una respuesta de error.
+  required: [error]
+  properties:
+    error:
+      $ref: '#/Error'
+
+ImageUploadResponse:
+  type: object
+  description: Respuesta de una carga de imagen exitosa.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/Image'
+
+InventoryItemListResponse:
+  type: object
+  description: Página de insumos de inventario que coincide con la consulta.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/InventoryItem'
+    meta:
+      $ref: '#/PageMeta'

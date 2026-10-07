@@ -1,0 +1,90 @@
+Page:
+  name: page
+  in: query
+  required: false
+  description: Página solicitada de la colección, numerada desde 1.
+  schema:
+    type: integer
+    minimum: 1
+    default: 1
+    example: 2
+
+PageSize:
+  name: pageSize
+  in: query
+  required: false
+  description: Número positivo de elementos solicitado por página. Acepta cualquier entero desde 1; si se omite, se usa 12.
+  schema:
+    type: integer
+    minimum: 1
+    default: 12
+    example: 20
+
+SearchQuery:
+  name: q
+  in: query
+  required: false
+  description: Texto opcional para buscar coincidencias según los campos descritos por la operación.
+  schema:
+    type: string
+    example: hamburguesa
+
+CategoryFilter:
+  name: categoryId
+  in: query
+  required: false
+  description: UUID de categoría o el token reservado para entradas sin categoría.
+  example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+  schema:
+    anyOf:
+      - type: string
+        format: uuid
+        pattern: '^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'
+      - type: string
+        const: __uncategorized__
+
+EntryIdQuery:
+  name: entryId
+  in: query
+  required: false
+  description: Identificador UUID de la entrada cuyas ofertas se consultan.
+  schema:
+    type: string
+    format: uuid
+    example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+
+ExcludeOfferId:
+  name: excludeOfferId
+  in: query
+  required: false
+  description: Identificador UUID de la oferta que se excluye de los resultados.
+  schema:
+    type: string
+    format: uuid
+    example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+
+EntryStatusQuery:
+  name: status
+  in: query
+  required: false
+  description: Estado por el que se filtran las entradas.
+  schema:
+    $ref: './schemas/CatalogEntry.yaml#/EntryStatus'
+
+IfMatch:
+  name: If-Match
+  in: header
+  required: true
+  description: ETag de la versión del recurso leída por el cliente; se envía para una actualización condicional.
+  schema:
+    type: string
+    example: W/"rev-3"
+
+IfNoneMatch:
+  name: If-None-Match
+  in: header
+  required: false
+  description: ETag previamente recibido que se compara durante una consulta condicional.
+  schema:
+    type: string
+    example: W/"rev-3"

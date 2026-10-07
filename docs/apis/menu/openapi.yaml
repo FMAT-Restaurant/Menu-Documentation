@@ -1,10 +1,186 @@
 openapi: 3.1.0
 info:
-  title: Referencia de API de Menu/Catálogo
-  version: 0.0.0-pending
-  description: |
-    La página de referencia interactiva se mantiene publicada mediante Scalar.
-    Las operaciones, rutas, datos de solicitud y respuesta, y sus representaciones
-    quedan pendientes de revisión de los mockups (OPEN-010). Este documento no
-    publica un contrato aceptado.
-paths: {}
+  title: API de administración de Menu
+  version: 1.0.0
+  description: >-
+    Contrato HTTP para las operaciones de consulta y administración usadas por
+    el frontend. Se organiza por recurso y no define el host de despliegue; las
+    rutas son relativas a una URL base que termina en /api/v1.
+  license:
+    name: MIT
+    url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
+  contact:
+    name: FMAT Restaurant
+servers:
+  - url: /api/v1
+    description: >-
+      Prefijo de ruta relativo. El despliegue debe proporcionar el host para
+      formar la URL base completa, que termina en /api/v1.
+security:
+  - bearerAuth: []
+tags:
+  - name: Categorías
+    description: Administración y consulta de categorías del menú.
+  - name: Entradas
+    description: Administración y consulta de entradas del catálogo.
+  - name: Ofertas
+    description: Administración de ofertas y sus composiciones.
+  - name: Recetas
+    description: Administración y consulta de recetas.
+  - name: Inventario
+    description: Consulta de artículos usados como fuentes de composición.
+  - name: Imágenes
+    description: Carga de imágenes utilizadas por entradas y ofertas.
+paths:
+  /menu/categories:
+    $ref: ./paths/categories.yaml#/categories
+  /menu/categories/{categoryId}:
+    $ref: ./paths/categories.yaml#/categoryById
+  /menu/entries:
+    $ref: ./paths/entries.yaml#/entries
+  /menu/entries/{entryId}:
+    $ref: ./paths/entries.yaml#/entryById
+  /menu/offers:
+    $ref: ./paths/offers.yaml#/offers
+  /menu/entries/{entryId}/offers:
+    $ref: ./paths/offers.yaml#/entryOffers
+  /menu/offers/{offerId}:
+    $ref: ./paths/offers.yaml#/offerById
+  /menu/recipes:
+    $ref: ./paths/recipes.yaml#/recipes
+  /menu/recipes/{recipeId}:
+    $ref: ./paths/recipes.yaml#/recipeById
+  /inventory/items:
+    $ref: ./paths/inventory.yaml#/inventoryItems
+  /media/images:
+    $ref: ./paths/images.yaml#/images
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token de acceso indicado en api.md.
+  schemas:
+    PageMeta:
+      $ref: ./components/schemas/Common.yaml#/PageMeta
+    Image:
+      $ref: ./components/schemas/Common.yaml#/Image
+    InventoryItem:
+      $ref: ./components/schemas/Common.yaml#/InventoryItem
+    Error:
+      $ref: ./components/schemas/Common.yaml#/Error
+    ErrorEnvelope:
+      $ref: ./components/schemas/Common.yaml#/ErrorEnvelope
+    ValidationErrorEnvelope:
+      $ref: ./components/schemas/Common.yaml#/ValidationErrorEnvelope
+    Category:
+      $ref: ./components/schemas/Category.yaml#/Category
+    CategoryReference:
+      $ref: ./components/schemas/Category.yaml#/CategoryReference
+    CategoryCreateRequest:
+      $ref: ./components/schemas/Category.yaml#/CategoryCreateRequest
+    CategoryPatchRequest:
+      $ref: ./components/schemas/Category.yaml#/CategoryPatchRequest
+    CategoryListResponse:
+      $ref: ./components/schemas/Category.yaml#/CategoryListResponse
+    CategoryResponse:
+      $ref: ./components/schemas/Category.yaml#/CategoryResponse
+    EntryStatus:
+      $ref: ./components/schemas/CatalogEntry.yaml#/EntryStatus
+    CatalogEntrySummary:
+      $ref: ./components/schemas/CatalogEntry.yaml#/CatalogEntrySummary
+    CatalogEntryDetail:
+      $ref: ./components/schemas/CatalogEntry.yaml#/CatalogEntryDetail
+    CatalogEntryCreateRequest:
+      $ref: ./components/schemas/CatalogEntry.yaml#/CatalogEntryCreateRequest
+    CatalogEntryPatchRequest:
+      $ref: ./components/schemas/CatalogEntry.yaml#/CatalogEntryPatchRequest
+    CatalogEntryListResponse:
+      $ref: ./components/schemas/CatalogEntry.yaml#/CatalogEntryListResponse
+    CatalogEntryResponse:
+      $ref: ./components/schemas/CatalogEntry.yaml#/CatalogEntryResponse
+    OfferStatus:
+      $ref: ./components/schemas/CatalogOffer.yaml#/OfferStatus
+    CatalogOfferSummary:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferSummary
+    CatalogOfferDetail:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferDetail
+    CatalogOfferCreateRequest:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferCreateRequest
+    CatalogOfferPatchRequest:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferPatchRequest
+    CatalogOfferListResponse:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferListResponse
+    CatalogOfferResponse:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferResponse
+    Composition:
+      $ref: ./components/schemas/CatalogOffer.yaml#/Composition
+    CompositionInput:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CompositionInput
+    CompositionSlot:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CompositionSlot
+    CompositionSlotInput:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CompositionSlotInput
+    SlotOption:
+      $ref: ./components/schemas/CatalogOffer.yaml#/SlotOption
+    SlotOptionInput:
+      $ref: ./components/schemas/CatalogOffer.yaml#/SlotOptionInput
+    RecipeSummary:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeSummary
+    RecipeDetail:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeDetail
+    RecipeCreateRequest:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeCreateRequest
+    RecipePatchRequest:
+      $ref: ./components/schemas/Recipe.yaml#/RecipePatchRequest
+    RecipeSupply:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeSupply
+    RecipeSupplyInput:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeSupplyInput
+    RecipeListResponse:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeListResponse
+    RecipeResponse:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeResponse
+    ImageUploadResponse:
+      $ref: ./components/schemas/Common.yaml#/ImageUploadResponse
+    InventoryItemListResponse:
+      $ref: ./components/schemas/Common.yaml#/InventoryItemListResponse
+  parameters:
+    Page:
+      $ref: ./components/parameters.yaml#/Page
+    PageSize:
+      $ref: ./components/parameters.yaml#/PageSize
+    SearchQuery:
+      $ref: ./components/parameters.yaml#/SearchQuery
+    CategoryFilter:
+      $ref: ./components/parameters.yaml#/CategoryFilter
+    EntryIdQuery:
+      $ref: ./components/parameters.yaml#/EntryIdQuery
+    ExcludeOfferId:
+      $ref: ./components/parameters.yaml#/ExcludeOfferId
+    EntryStatusQuery:
+      $ref: ./components/parameters.yaml#/EntryStatusQuery
+    IfMatch:
+      $ref: ./components/parameters.yaml#/IfMatch
+    IfNoneMatch:
+      $ref: ./components/parameters.yaml#/IfNoneMatch
+  headers:
+    ETag:
+      $ref: ./components/headers.yaml#/ETag
+  responses:
+    NotModified:
+      $ref: ./components/responses.yaml#/NotModified
+    Unauthorized:
+      $ref: ./components/responses.yaml#/Unauthorized
+    Forbidden:
+      $ref: ./components/responses.yaml#/Forbidden
+    NotFound:
+      $ref: ./components/responses.yaml#/NotFound
+    ResourceInUse:
+      $ref: ./components/responses.yaml#/ResourceInUse
+    PreconditionFailed:
+      $ref: ./components/responses.yaml#/PreconditionFailed
+    UnprocessableEntity:
+      $ref: ./components/responses.yaml#/UnprocessableEntity
+    TooManyRequests:
+      $ref: ./components/responses.yaml#/TooManyRequests

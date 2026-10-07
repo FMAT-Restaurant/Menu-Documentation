@@ -1,0 +1,4 @@
+ETag:
+  description: Validador de la representación devuelta o modificada.
+  schema:
+    type: string

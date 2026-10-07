@@ -1,0 +1,128 @@
+NotModified:
+  description: La representación no cambió desde el ETag indicado.
+  headers:
+    ETag:
+      $ref: './headers.yaml#/ETag'
+
+Unauthorized:
+  description: Falta el token de acceso o no es válido.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        unauthorized:
+          summary: Token de acceso ausente o inválido
+          value:
+            error:
+              message: Se requiere un token de acceso válido.
+
+Forbidden:
+  description: El token no tiene permiso para la operación.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        forbidden:
+          summary: El token no permite la operación
+          value:
+            error:
+              message: No tienes permiso para realizar esta operación.
+
+NotFound:
+  description: No existe el recurso indicado.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        notFound:
+          summary: Recurso inexistente
+          value:
+            error:
+              message: No se encontró el recurso solicitado.
+
+ResourceInUse:
+  description: La receta está referenciada por una o más ofertas.
+  content:
+    application/json:
+      schema:
+        type: object
+        required: [error]
+        properties:
+          error:
+            type: object
+            required: [message, details]
+            properties:
+              message:
+                type: string
+                description: Explicación del error para quien consume la API.
+              details:
+                type: object
+                description: Datos específicos del error.
+                required: [offerIds]
+                properties:
+                  offerIds:
+                    type: array
+                    description: Identificadores UUID de las ofertas que todavía usan la receta.
+                    items:
+                      type: string
+                      format: uuid
+                    example:
+                      - 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+                      - 50a4c3d2-8f7e-46b5-94c3-2b1a0f9e8d7c
+                additionalProperties: true
+      examples:
+        resourceInUse:
+          summary: La receta sigue asociada a ofertas
+          value:
+            error:
+              message: No se puede eliminar la receta mientras una oferta la utilice.
+              details:
+                offerIds:
+                  - 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+                  - 50a4c3d2-8f7e-46b5-94c3-2b1a0f9e8d7c
+
+PreconditionFailed:
+  description: El recurso cambió desde que se obtuvo el ETag indicado.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        preconditionFailed:
+          summary: El ETag ya no corresponde a la versión actual
+          value:
+            error:
+              message: El recurso cambió desde que fue leído.
+
+UnprocessableEntity:
+  description: La validación de los datos de la solicitud falló; esta respuesta representa errores de validación que impiden procesarla.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ValidationErrorEnvelope'
+      examples:
+        unprocessableEntity:
+          summary: Datos de solicitud no válidos para la operación
+          value:
+            error:
+              message: Revisa los datos enviados en la solicitud.
+              details:
+                violations:
+                  - path: /name
+                    message: El nombre es obligatorio.
+
+TooManyRequests:
+  description: Se excedió el límite de solicitudes.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        tooManyRequests:
+          summary: Se alcanzó el límite de solicitudes
+          value:
+            error:
+              message: Espera antes de volver a enviar solicitudes.

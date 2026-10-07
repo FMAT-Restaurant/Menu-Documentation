@@ -1,0 +1,188 @@
+RecipeSupply:
+  type: object
+  description: Insumo y cantidad que forman parte de una receta.
+  required: [inventoryItemId, quantity, inventoryItem]
+  properties:
+    inventoryItemId:
+      type: string
+      format: uuid
+      description: Identificador UUID del insumo utilizado.
+      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    quantity:
+      type: number
+      description: Cantidad del insumo expresada en la unidad de inventario.
+      example: 200
+    inventoryItem:
+      $ref: 'Common.yaml#/InventoryItem'
+  example:
+    inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    quantity: 200
+    inventoryItem:
+      id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      name: Carne Molida Res 80/20
+      unit: g
+
+RecipeSupplyInput:
+  type: object
+  description: Insumo y cantidad que se envían al crear o actualizar una receta.
+  required: [inventoryItemId, quantity]
+  properties:
+    inventoryItemId:
+      type: string
+      format: uuid
+      description: Identificador UUID del insumo utilizado.
+      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    quantity:
+      type: number
+      description: Cantidad del insumo expresada en la unidad de inventario.
+      example: 200
+  example:
+    inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    quantity: 200
+
+RecipeSummary:
+  type: object
+  description: Datos de identificación de una receta y sus insumos.
+  required: [id, name, description, supplies]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la receta.
+      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    name:
+      type: string
+      description: Nombre de la receta.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la receta.
+      example: Preparación de hamburguesa con piña asada y queso.
+    supplies:
+      type: array
+      description: Insumos y cantidades que componen la receta.
+      items:
+        $ref: '#/RecipeSupply'
+  example:
+    id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    name: Hamburguesa Hawaiana
+    description: Preparación de hamburguesa con piña asada y queso.
+    supplies:
+      - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 200
+        inventoryItem:
+          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          name: Carne Molida Res 80/20
+          unit: g
+
+RecipeDetail:
+  type: object
+  description: Datos completos de una receta, incluidos sus pasos de preparación e insumos.
+  required: [id, name, description, instructions, supplies]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la receta.
+      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    name:
+      type: string
+      description: Nombre de la receta.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la receta.
+      example: Preparación de hamburguesa con piña asada y queso.
+    instructions:
+      type: string
+      description: Instrucciones para preparar la receta.
+      example: Cocina la carne, asa la piña y sirve con queso en el pan.
+    supplies:
+      type: array
+      description: Insumos y cantidades que componen la receta.
+      items:
+        $ref: '#/RecipeSupply'
+  example:
+    id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    name: Hamburguesa Hawaiana
+    description: Preparación de hamburguesa con piña asada y queso.
+    instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
+    supplies:
+      - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 200
+        inventoryItem:
+          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          name: Carne Molida Res 80/20
+          unit: g
+
+RecipeCreateRequest:
+  type: object
+  description: Datos requeridos para crear una receta.
+  required: [name, description, instructions, supplies]
+  properties:
+    name:
+      type: string
+      description: Nombre de la nueva receta.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la nueva receta.
+      example: Preparación de hamburguesa con piña asada y queso.
+    instructions:
+      type: string
+      description: Instrucciones para preparar la receta.
+      example: Cocina la carne, asa la piña y sirve con queso en el pan.
+    supplies:
+      type: array
+      description: Insumos y cantidades utilizados por la receta.
+      items:
+        $ref: '#/RecipeSupplyInput'
+  example:
+    name: Hamburguesa Hawaiana
+    description: Preparación de hamburguesa con piña asada y queso.
+    instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
+    supplies:
+      - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 200
+
+RecipePatchRequest:
+  type: object
+  description: Campos de una receta que se desean actualizar.
+  properties:
+    name:
+      type: string
+      description: Nuevo nombre de la receta, si se desea cambiar.
+      example: Hamburguesa Hawaiana Especial
+    description:
+      type: string
+      description: Nueva descripción de la receta, si se desea cambiar.
+      example: Preparación de hamburguesa con piña, queso y salsa de la casa.
+    instructions:
+      type: string
+      description: Nuevas instrucciones de preparación, si se desean cambiar.
+      example: Cocina la carne, asa la piña y sirve con queso y salsa en el pan.
+    supplies:
+      type: array
+      description: Insumos y cantidades enviados para actualizar la receta.
+      items:
+        $ref: '#/RecipeSupplyInput'
+
+RecipeListResponse:
+  type: object
+  description: Página de recetas que coincide con la consulta.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/RecipeSummary'
+    meta:
+      $ref: 'Common.yaml#/PageMeta'
+
+RecipeResponse:
+  type: object
+  description: Respuesta que contiene una receta.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/RecipeDetail'

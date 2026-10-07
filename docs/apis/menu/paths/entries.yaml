@@ -1,0 +1,250 @@
+entries:
+  get:
+    tags: [Entradas]
+    operationId: listMenuEntries
+    summary: Listar entradas del catálogo
+    description: >-
+      Busca entradas por texto, categoría y estado. La búsqueda considera el
+      nombre, la descripción y los nombres de categoría; los resultados se
+      filtran y paginan en el servidor.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/SearchQuery
+      - $ref: ../openapi.yaml#/components/parameters/CategoryFilter
+      - $ref: ../openapi.yaml#/components/parameters/EntryStatusQuery
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página de entradas que coincide con los filtros.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogEntryListResponse
+            examples:
+              entradasActivas:
+                summary: Entradas activas de la primera página
+                value:
+                  data:
+                    - id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      brandName: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña en pan artesanal.
+                      status: ACTIVE
+                      image:
+                        id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                        url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                      categories:
+                        - id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                          name: Hamburguesas
+                      offerCount: 2
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 1
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  post:
+    tags: [Entradas]
+    operationId: createMenuEntry
+    summary: Crear una entrada
+    description: Crea una entrada del catálogo con sus categorías y, de forma
+      opcional, una imagen que ya se haya cargado.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CatalogEntryCreateRequest
+          examples:
+            hamburguesaHawaiana:
+              summary: Crear una entrada activa
+              value:
+                brandName: Hamburguesa Hawaiana
+                description: Carne, jamón, queso y piña en pan artesanal.
+                status: ACTIVE
+                categoryIds:
+                  - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
+    responses:
+      '201':
+        description: Entrada creada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogEntryResponse
+            examples:
+              entradaCreada:
+                summary: Entrada creada
+                value:
+                  data:
+                    id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    brandName: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña en pan artesanal.
+                    status: ACTIVE
+                    image:
+                      id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                      url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                    categoryIds:
+                      - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+entryById:
+  parameters:
+    - name: entryId
+      in: path
+      required: true
+      description: UUID de la entrada del catálogo.
+      schema:
+        type: string
+        format: uuid
+        example: 7d19a8ce-402c-4bab-b383-9969b69fe101
+  get:
+    tags: [Entradas]
+    operationId: getMenuEntry
+    summary: Consultar una entrada
+    description: Devuelve el detalle de una entrada, incluidos los UUID de sus
+      categorías y los datos de la imagen asociada, si existe.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Detalle de la entrada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogEntryResponse
+            examples:
+              detalleEntrada:
+                summary: Detalle de una entrada
+                value:
+                  data:
+                    id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    brandName: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña en pan artesanal.
+                    status: ACTIVE
+                    image:
+                      id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                      url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                    categoryIds:
+                      - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  patch:
+    tags: [Entradas]
+    operationId: patchMenuEntry
+    summary: Actualizar una entrada
+    description: Actualiza los campos de la entrada incluidos en el cuerpo.
+      Envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CatalogEntryPatchRequest
+          examples:
+            actualizarEntrada:
+              summary: Cambiar el estado de una entrada
+              value:
+                brandName: Hamburguesa Hawaiana
+                description: Carne, jamón, queso y piña en pan artesanal.
+                status: ACTIVE
+                categoryIds:
+                  - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
+    responses:
+      '200':
+        description: Entrada actualizada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogEntryResponse
+            examples:
+              entradaActualizada:
+                summary: Entrada después de la actualización
+                value:
+                  data:
+                    id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    brandName: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña en pan artesanal.
+                    status: ACTIVE
+                    image:
+                      id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                      url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                    categoryIds:
+                      - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  delete:
+    tags: [Entradas]
+    operationId: deleteMenuEntry
+    summary: Eliminar una entrada
+    description: Elimina la entrada y también las ofertas asociadas. Envíe el
+      ETag leído en If-Match para confirmar que la entrada no cambió.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    responses:
+      '204':
+        description: Entrada y ofertas asociadas eliminadas.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

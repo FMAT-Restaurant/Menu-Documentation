@@ -1,0 +1,177 @@
+EntryStatus:
+  type: string
+  description: Estado administrativo de una entrada del catálogo.
+  enum: [ACTIVE, INACTIVE, ARCHIVED]
+  example: ACTIVE
+
+CatalogEntrySummary:
+  type: object
+  description: Campos de catálogo que identifican una entrada y resumen su clasificación y cantidad de ofertas.
+  required: [id, brandName, description, status, image, categories, offerCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la entrada.
+      example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    brandName:
+      type: string
+      description: Nombre comercial que se muestra para la entrada.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la entrada del catálogo.
+      example: Hamburguesa con piña asada y queso.
+    status:
+      $ref: '#/EntryStatus'
+    image:
+      $ref: 'Common.yaml#/Image'
+    categories:
+      description: Categorías asociadas a la entrada.
+      type: array
+      items:
+        $ref: 'Category.yaml#/CategoryReference'
+    offerCount:
+      type: integer
+      minimum: 0
+      description: Cantidad de ofertas asociadas a la entrada.
+      example: 2
+  example:
+    id: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    brandName: Hamburguesa Hawaiana
+    description: Hamburguesa con piña asada y queso.
+    status: ACTIVE
+    image:
+      id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      url: https://cdn.example.com/menu/burger.jpg
+      thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+    categories:
+      - id: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+        name: Hamburguesas
+    offerCount: 2
+
+CatalogEntryDetail:
+  type: object
+  description: Datos completos de una entrada, incluidos sus identificadores de categoría.
+  required: [id, brandName, description, status, image, categoryIds]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la entrada.
+      example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    brandName:
+      type: string
+      description: Nombre comercial que se muestra para la entrada.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la entrada del catálogo.
+      example: Hamburguesa con piña asada y queso.
+    status:
+      $ref: '#/EntryStatus'
+    image:
+      $ref: 'Common.yaml#/Image'
+    categoryIds:
+      description: Identificadores UUID de las categorías asociadas a la entrada.
+      type: array
+      items:
+        type: string
+        format: uuid
+      example:
+        - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+  example:
+    id: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    brandName: Hamburguesa Hawaiana
+    description: Hamburguesa con piña asada y queso.
+    status: ACTIVE
+    image:
+      id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      url: https://cdn.example.com/menu/burger.jpg
+      thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+    categoryIds:
+      - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+
+CatalogEntryCreateRequest:
+  type: object
+  description: Datos requeridos para crear una entrada y asociarla con sus categorías.
+  required: [brandName, description, status, categoryIds]
+  properties:
+    brandName:
+      type: string
+      description: Nombre comercial de la nueva entrada.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la nueva entrada.
+      example: Hamburguesa con piña asada y queso.
+    status:
+      $ref: '#/EntryStatus'
+    categoryIds:
+      description: Identificadores UUID de las categorías que se asociarán a la entrada.
+      type: array
+      items:
+        type: string
+        format: uuid
+      example:
+        - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    imageId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la imagen que se asociará con la entrada.
+      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+  example:
+    brandName: Hamburguesa Hawaiana
+    description: Hamburguesa con piña asada y queso.
+    status: ACTIVE
+    categoryIds:
+      - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+
+CatalogEntryPatchRequest:
+  type: object
+  description: Campos de una entrada que se desean actualizar.
+  properties:
+    brandName:
+      type: string
+      description: Nuevo nombre comercial, si se desea cambiar.
+      example: Hamburguesa Hawaiana Especial
+    description:
+      type: string
+      description: Nueva descripción, si se desea cambiar.
+      example: Hamburguesa con piña asada, queso y salsa de la casa.
+    status:
+      $ref: '#/EntryStatus'
+    categoryIds:
+      description: Identificadores UUID de las categorías asociadas a la entrada.
+      type: array
+      items:
+        type: string
+        format: uuid
+      example:
+        - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    imageId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la nueva imagen asociada, si se desea cambiar.
+      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+
+CatalogEntryListResponse:
+  type: object
+  description: Página de entradas que coincide con los filtros de la consulta.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/CatalogEntrySummary'
+    meta:
+      $ref: 'Common.yaml#/PageMeta'
+
+CatalogEntryResponse:
+  type: object
+  description: Respuesta que contiene una entrada del catálogo.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/CatalogEntryDetail'

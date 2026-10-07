@@ -58,6 +58,7 @@ module.exports = {
         showNavLink: false,
         configuration: {
           url: `${baseUrl}api/openapi.yaml`,
+          hideTestRequestButton: true,
         },
       },
     ],

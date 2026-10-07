@@ -1,0 +1,45 @@
+inventoryItems:
+  get:
+    tags: [Inventario]
+    operationId: searchInventoryItems
+    summary: Buscar artículos de inventario
+    description: >-
+      Busca artículos de inventario por texto y devuelve una página para
+      seleccionar insumos en recetas u opciones de composición. Los artículos
+      son referencias de solo lectura en este contrato.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/SearchQuery
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página de artículos coincidentes.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/InventoryItemListResponse
+            examples:
+              articulosEncontrados:
+                summary: Artículo de inventario encontrado
+                value:
+                  data:
+                    - id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      name: Carne Molida Res 80/20
+                      unit: g
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 1
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

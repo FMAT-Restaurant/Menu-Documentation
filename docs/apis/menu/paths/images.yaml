@@ -1,0 +1,49 @@
+images:
+  post:
+    tags: [Imágenes]
+    operationId: uploadMenuImage
+    summary: Subir una imagen
+    description: Sube el archivo del campo file mediante multipart/form-data y
+      devuelve la imagen creada junto con sus URL.
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file]
+            properties:
+              file:
+                type: string
+                format: binary
+          examples:
+            archivoDeMenu:
+              summary: Archivo de imagen seleccionado para cargar
+              value:
+                file: hamburguesa-hawaiana.jpg
+    responses:
+      '201':
+        description: Imagen recibida y disponible por URL.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ImageUploadResponse
+            examples:
+              imagenCargada:
+                summary: Imagen disponible por URL
+                value:
+                  data:
+                    id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                    url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                    thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

@@ -1,0 +1,90 @@
+Category:
+  type: object
+  description: Categoría comercial que permite clasificar las entradas del catálogo.
+  required: [id, name, description, entryCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la categoría.
+      example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    name:
+      type: string
+      description: Nombre que se muestra para la categoría.
+      example: Bebidas
+    description:
+      type: string
+      description: Explicación breve del contenido de la categoría.
+      example: Bebidas frías y preparadas.
+    entryCount:
+      type: integer
+      minimum: 0
+      description: Cantidad de entradas asociadas a la categoría.
+      example: 4
+  example:
+    id: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    name: Bebidas
+    description: Bebidas frías y preparadas.
+    entryCount: 4
+
+CategoryReference:
+  type: object
+  description: Referencia resumida a una categoría asociada con una entrada.
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la categoría.
+      example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
+    name:
+      type: string
+      description: Nombre de la categoría.
+      example: Bebidas
+
+CategoryCreateRequest:
+  type: object
+  description: Datos para crear una categoría.
+  required: [name]
+  properties:
+    name:
+      type: string
+      description: Nombre que tendrá la nueva categoría.
+      example: Bebidas
+    description:
+      type: string
+      description: Explicación breve del contenido de la categoría.
+      example: Bebidas frías y preparadas.
+
+CategoryPatchRequest:
+  type: object
+  description: Campos de categoría que se desean actualizar.
+  properties:
+    name:
+      type: string
+      description: Nuevo nombre de la categoría, si se desea cambiar.
+      example: Bebidas preparadas
+    description:
+      type: string
+      description: Nueva explicación de la categoría, si se desea cambiar.
+      example: Bebidas frías y preparadas al momento.
+
+CategoryListResponse:
+  type: object
+  description: Colección paginada de categorías.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/Category'
+    meta:
+      $ref: 'Common.yaml#/PageMeta'
+
+CategoryResponse:
+  type: object
+  description: Respuesta que contiene una categoría.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/Category'

@@ -1,0 +1,312 @@
+offers:
+  get:
+    tags: [Ofertas]
+    operationId: listMenuOffers
+    summary: Listar ofertas
+    description: >-
+      Devuelve una página de ofertas. Puede limitar los resultados a una
+      entrada y excluir una oferta concreta; la lista se pagina en el servidor.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/EntryIdQuery
+      - $ref: ../openapi.yaml#/components/parameters/ExcludeOfferId
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página de ofertas.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogOfferListResponse
+            examples:
+              ofertasDeEntrada:
+                summary: Ofertas de una entrada del catálogo
+                value:
+                  data:
+                    - id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                      entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      entryName: Hamburguesa Hawaiana
+                      presentationTag: Individual
+                      basePrice: 180.0
+                      status: ACTIVE
+                      image:
+                        id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                        url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                      slotCount: 1
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 1
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+entryOffers:
+  parameters:
+    - name: entryId
+      in: path
+      required: true
+      description: UUID de la entrada a la que pertenecerá la nueva oferta.
+      schema:
+        type: string
+        format: uuid
+        example: 7d19a8ce-402c-4bab-b383-9969b69fe101
+  post:
+    tags: [Ofertas]
+    operationId: createEntryOffer
+    summary: Crear una oferta para una entrada
+    description: Crea una oferta asociada a la entrada indicada en la ruta. La
+      composición define los espacios de selección y sus opciones.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CatalogOfferCreateRequest
+          examples:
+            ofertaIndividual:
+              summary: Crear una oferta individual sin composición inicial
+              value:
+                presentationTag: Individual
+                basePrice: 180.0
+                status: INACTIVE
+                imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                composition:
+                  slots: []
+    responses:
+      '201':
+        description: Oferta creada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
+            examples:
+              ofertaCreada:
+                summary: Oferta creada
+                value:
+                  data:
+                    id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    presentationTag: Individual
+                    basePrice: 180.0
+                    status: INACTIVE
+                    image:
+                      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                      url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                    composition:
+                      slots: []
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        description: No existe la entrada asociada.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              entradaNoEncontrada:
+                summary: La entrada indicada no existe
+                value:
+                  error:
+                    message: No se encontró la entrada indicada.
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+offerById:
+  parameters:
+    - name: offerId
+      in: path
+      required: true
+      description: UUID de la oferta que se consultará o modificará.
+      schema:
+        type: string
+        format: uuid
+        example: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+  get:
+    tags: [Ofertas]
+    operationId: getMenuOffer
+    summary: Consultar una oferta y su composición
+    description: Devuelve los datos de la oferta y su composición. Cada opción
+      incluye el tipo y UUID de su origen; source contiene la referencia de solo
+      lectura del recurso de origen.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Detalle de la oferta, incluida su composición.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
+            examples:
+              ofertaConReceta:
+                summary: Oferta con un espacio de receta
+                value:
+                  data:
+                    id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    presentationTag: Individual
+                    basePrice: 180.0
+                    status: ACTIVE
+                    image:
+                      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                      url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                    composition:
+                      slots:
+                        - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                          name: Plato principal
+                          required: true
+                          quantity: 1
+                          course: Plato fuerte
+                          options:
+                            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                              sourceType: RECIPE
+                              recipeId: c4813f65-00b4-4921-874e-03c555796401
+                              inventoryItemId: null
+                              displayName: Hamburguesa Hawaiana
+                              source:
+                                id: c4813f65-00b4-4921-874e-03c555796401
+                                name: Hamburguesa Hawaiana
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  patch:
+    tags: [Ofertas]
+    operationId: patchMenuOffer
+    summary: Actualizar una oferta
+    description: >-
+      Actualiza los campos incluidos en el cuerpo y requiere el ETag vigente en
+      If-Match. Si incluye composition, el contrato fuente no define si sus slots
+      se fusionan o se sustituyen.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../openapi.yaml#/components/schemas/CatalogOfferPatchRequest
+          examples:
+            actualizarComposicion:
+              summary: Actualizar datos de precio y composición
+              value:
+                presentationTag: Individual
+                basePrice: 185.0
+                status: ACTIVE
+                imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                composition:
+                  slots:
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                      name: Plato principal
+                      required: true
+                      quantity: 1
+                      course: Plato fuerte
+                      options:
+                        - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                          sourceType: RECIPE
+                          recipeId: c4813f65-00b4-4921-874e-03c555796401
+                          displayName: Hamburguesa Hawaiana
+    responses:
+      '200':
+        description: Oferta actualizada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
+            examples:
+              ofertaActualizada:
+                summary: Oferta actualizada
+                value:
+                  data:
+                    id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    presentationTag: Individual
+                    basePrice: 185.0
+                    status: ACTIVE
+                    image:
+                      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                      url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                    composition:
+                      slots:
+                        - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                          name: Plato principal
+                          required: true
+                          quantity: 1
+                          course: Plato fuerte
+                          options:
+                            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                              sourceType: RECIPE
+                              recipeId: c4813f65-00b4-4921-874e-03c555796401
+                              inventoryItemId: null
+                              displayName: Hamburguesa Hawaiana
+                              source:
+                                id: c4813f65-00b4-4921-874e-03c555796401
+                                name: Hamburguesa Hawaiana
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  delete:
+    tags: [Ofertas]
+    operationId: deleteMenuOffer
+    summary: Eliminar una oferta
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    responses:
+      '204':
+        description: Oferta eliminada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

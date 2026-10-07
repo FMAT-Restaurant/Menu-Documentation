@@ -1,0 +1,488 @@
+OfferStatus:
+  type: string
+  description: Estado de disponibilidad de una oferta del catálogo.
+  enum: [ACTIVE, INACTIVE]
+  example: ACTIVE
+
+SourceReference:
+  type: object
+  readOnly: true
+  description: Referencia de solo lectura al origen de una opción de composición.
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la receta o del insumo de inventario referenciado.
+      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    name:
+      type: string
+      description: Nombre del origen que se muestra en la respuesta.
+      example: Receta de hamburguesa
+
+RecipeSlotOption:
+  type: object
+  description: Opción de slot cuyo origen es una receta.
+  required: [optionId, sourceType, recipeId, displayName, source]
+  properties:
+    optionId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la opción.
+      example: a1b2c3d4-e5f6-4789-8abc-def012345678
+    sourceType:
+      const: RECIPE
+      description: Indica que la opción se basa en una receta.
+    recipeId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la receta de origen.
+      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    inventoryItemId:
+      type: 'null'
+      description: El origen alternativo no aplica a una opción de receta.
+    displayName:
+      type: string
+      description: Nombre que se muestra para esta opción en el catálogo.
+      example: Hamburguesa hawaiana
+    source:
+      $ref: '#/SourceReference'
+  example:
+    optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+    sourceType: RECIPE
+    recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    inventoryItemId: null
+    displayName: Hamburguesa hawaiana
+    source:
+      id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+      name: Receta de hamburguesa
+
+InventoryItemSlotOption:
+  type: object
+  description: Opción de slot cuyo origen es un insumo de inventario.
+  required: [optionId, sourceType, inventoryItemId, displayName, source]
+  properties:
+    optionId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la opción.
+      example: b2c3d4e5-f678-489a-bcde-f0123456789a
+    sourceType:
+      const: INVENTORY_ITEM
+      description: Indica que la opción se basa directamente en un insumo de inventario.
+    recipeId:
+      type: 'null'
+      description: El origen alternativo no aplica a una opción de inventario.
+    inventoryItemId:
+      type: string
+      format: uuid
+      description: Identificador UUID del insumo de inventario de origen.
+      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    displayName:
+      type: string
+      description: Nombre que se muestra para esta opción en el catálogo.
+      example: Queso cheddar
+    source:
+      $ref: '#/SourceReference'
+  example:
+    optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
+    sourceType: INVENTORY_ITEM
+    recipeId: null
+    inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    displayName: Queso cheddar
+    source:
+      id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      name: Queso cheddar
+
+SlotOption:
+  description: Opción de un slot; cada opción identifica una receta o un insumo de inventario.
+  oneOf:
+    - $ref: '#/RecipeSlotOption'
+    - $ref: '#/InventoryItemSlotOption'
+
+RecipeSlotOptionInput:
+  type: object
+  description: Datos para crear o actualizar una opción de slot basada en una receta.
+  required: [optionId, sourceType, recipeId, displayName]
+  properties:
+    optionId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la opción.
+      example: a1b2c3d4-e5f6-4789-8abc-def012345678
+    sourceType:
+      const: RECIPE
+      description: Indica que la opción se basa en una receta.
+    recipeId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la receta de origen.
+      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    inventoryItemId:
+      type: 'null'
+      description: Campo no aplicable cuando el origen de la opción es una receta.
+    displayName:
+      type: string
+      description: Nombre que se mostrará para esta opción.
+      example: Hamburguesa hawaiana
+  example:
+    optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+    sourceType: RECIPE
+    recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    inventoryItemId: null
+    displayName: Hamburguesa hawaiana
+
+InventoryItemSlotOptionInput:
+  type: object
+  description: Datos para crear o actualizar una opción de slot basada en un insumo de inventario.
+  required: [optionId, sourceType, inventoryItemId, displayName]
+  properties:
+    optionId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la opción.
+      example: b2c3d4e5-f678-489a-bcde-f0123456789a
+    sourceType:
+      const: INVENTORY_ITEM
+      description: Indica que la opción se basa directamente en un insumo de inventario.
+    recipeId:
+      type: 'null'
+      description: Campo no aplicable cuando el origen de la opción es un insumo de inventario.
+    inventoryItemId:
+      type: string
+      format: uuid
+      description: Identificador UUID del insumo de inventario de origen.
+      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    displayName:
+      type: string
+      description: Nombre que se mostrará para esta opción.
+      example: Queso cheddar
+  example:
+    optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
+    sourceType: INVENTORY_ITEM
+    recipeId: null
+    inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    displayName: Queso cheddar
+
+SlotOptionInput:
+  description: Datos de una opción de slot con uno de los dos tipos de origen admitidos.
+  oneOf:
+    - $ref: '#/RecipeSlotOptionInput'
+    - $ref: '#/InventoryItemSlotOptionInput'
+
+CompositionSlot:
+  type: object
+  description: Slot de la composición con una cantidad, un curso y las opciones que pueden ocuparlo.
+  required: [slotId, name, required, quantity, course, options]
+  properties:
+    slotId:
+      type: string
+      format: uuid
+      description: Identificador UUID del slot.
+      example: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+    name:
+      type: string
+      description: Nombre que identifica el slot dentro de la composición.
+      example: Hamburguesa
+    required:
+      const: true
+      description: La API siempre devuelve true para este campo.
+    quantity:
+      type: number
+      description: Rango y precisión no definidos en la fuente.
+      example: 1
+    course:
+      type: string
+      enum: ['', Entrada, Plato fuerte, Postre, Bebida]
+      description: Curso al que pertenece el slot, si se especifica.
+      example: Plato fuerte
+    options:
+      type: array
+      description: Opciones disponibles para ocupar el slot.
+      items:
+        $ref: '#/SlotOption'
+  example:
+    slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+    name: Hamburguesa
+    required: true
+    quantity: 1
+    course: Plato fuerte
+    options:
+      - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType: RECIPE
+        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        inventoryItemId: null
+        displayName: Hamburguesa hawaiana
+        source:
+          id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+          name: Receta de hamburguesa
+
+CompositionSlotInput:
+  type: object
+  description: Datos para crear o actualizar un slot de una composición.
+  required: [slotId, name, required, quantity, course, options]
+  properties:
+    slotId:
+      type: string
+      format: uuid
+      description: Identificador UUID del slot.
+      example: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+    name:
+      type: string
+      description: Nombre que identifica el slot dentro de la composición.
+      example: Hamburguesa
+    required:
+      const: true
+      description: La API requiere el valor true para este campo.
+    quantity:
+      type: number
+      description: Rango y precisión no definidos en la fuente.
+      example: 1
+    course:
+      type: string
+      enum: ['', Entrada, Plato fuerte, Postre, Bebida]
+      description: Curso al que pertenece el slot, si se especifica.
+      example: Plato fuerte
+    options:
+      type: array
+      description: Opciones disponibles para ocupar el slot.
+      items:
+        $ref: '#/SlotOptionInput'
+  example:
+    slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+    name: Hamburguesa
+    required: true
+    quantity: 1
+    course: Plato fuerte
+    options:
+      - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType: RECIPE
+        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        inventoryItemId: null
+        displayName: Hamburguesa hawaiana
+
+Composition:
+  type: object
+  description: Composición de una oferta, expresada como una colección de slots.
+  required: [slots]
+  properties:
+    slots:
+      type: array
+      description: Slots que forman la composición de la oferta.
+      items:
+        $ref: '#/CompositionSlot'
+  example:
+    slots:
+      - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+        name: Hamburguesa
+        required: true
+        quantity: 1
+        course: Plato fuerte
+        options:
+          - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+            sourceType: RECIPE
+            recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+            inventoryItemId: null
+            displayName: Hamburguesa hawaiana
+            source:
+              id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+              name: Receta de hamburguesa
+
+CompositionInput:
+  type: object
+  description: Datos de una composición enviados al crear o actualizar una oferta.
+  required: [slots]
+  properties:
+    slots:
+      type: array
+      description: Slots que forman la composición enviada.
+      items:
+        $ref: '#/CompositionSlotInput'
+
+CatalogOfferSummary:
+  type: object
+  description: Campos que resumen una oferta del catálogo, su entrada asociada y su composición.
+  required: [id, entryId, entryName, presentationTag, basePrice, status, image, slotCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la oferta.
+      example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+    entryId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la entrada a la que pertenece la oferta.
+      example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    entryName:
+      type: string
+      description: Nombre comercial de la entrada asociada.
+      example: Hamburguesa Hawaiana
+    presentationTag:
+      type: string
+      description: Etiqueta que distingue esta presentación de la entrada.
+      example: Combo
+    basePrice:
+      type: number
+      description: Precio base de la oferta.
+      example: 180.0
+    status:
+      $ref: '#/OfferStatus'
+    image:
+      $ref: 'Common.yaml#/Image'
+    slotCount:
+      type: integer
+      minimum: 0
+      description: Cantidad de slots que contiene la composición.
+      example: 2
+  example:
+    id: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+    entryId: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    entryName: Hamburguesa Hawaiana
+    presentationTag: Combo
+    basePrice: 180.0
+    status: ACTIVE
+    image:
+      id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      url: https://cdn.example.com/menu/burger.jpg
+      thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+    slotCount: 2
+
+CatalogOfferDetail:
+  type: object
+  description: Datos completos de una oferta, incluidos los slots y las opciones de su composición.
+  required: [id, entryId, presentationTag, basePrice, status, image, composition]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la oferta.
+      example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+    entryId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la entrada a la que pertenece la oferta.
+      example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    presentationTag:
+      type: string
+      description: Etiqueta que distingue esta presentación de la entrada.
+      example: Combo
+    basePrice:
+      type: number
+      description: Precio base de la oferta.
+      example: 180.0
+    status:
+      $ref: '#/OfferStatus'
+    image:
+      $ref: 'Common.yaml#/Image'
+    composition:
+      $ref: '#/Composition'
+  example:
+    id: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+    entryId: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    presentationTag: Combo
+    basePrice: 180.0
+    status: ACTIVE
+    image:
+      id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      url: https://cdn.example.com/menu/burger.jpg
+      thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
+    composition:
+      slots:
+        - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+          name: Hamburguesa
+          required: true
+          quantity: 1
+          course: Plato fuerte
+          options:
+            - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+              sourceType: RECIPE
+              recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+              inventoryItemId: null
+              displayName: Hamburguesa hawaiana
+              source:
+                id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+                name: Receta de hamburguesa
+
+CatalogOfferCreateRequest:
+  type: object
+  description: Datos para crear una oferta y definir su composición inicial.
+  required: [basePrice, status, composition]
+  properties:
+    presentationTag:
+      type: string
+      description: Etiqueta que distingue esta presentación de la entrada.
+      example: Combo
+    basePrice:
+      type: number
+      description: Precio base de la oferta.
+      example: 180.0
+    status:
+      $ref: '#/OfferStatus'
+    imageId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la imagen asociada a la oferta.
+      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    composition:
+      $ref: '#/CompositionInput'
+  example:
+    presentationTag: Combo
+    basePrice: 180.0
+    status: ACTIVE
+    imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    composition:
+      slots:
+        - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+          name: Hamburguesa
+          required: true
+          quantity: 1
+          course: Plato fuerte
+          options:
+            - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+              sourceType: RECIPE
+              recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+              inventoryItemId: null
+              displayName: Hamburguesa hawaiana
+
+CatalogOfferPatchRequest:
+  type: object
+  description: Campos de una oferta que se desean actualizar.
+  properties:
+    presentationTag:
+      type: string
+      description: Nueva etiqueta de presentación, si se desea cambiar.
+      example: Combo familiar
+    basePrice:
+      type: number
+      description: Nuevo precio base, si se desea cambiar.
+      example: 195.0
+    status:
+      $ref: '#/OfferStatus'
+    imageId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la nueva imagen asociada, si se desea cambiar.
+      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    composition:
+      $ref: '#/CompositionInput'
+
+CatalogOfferListResponse:
+  type: object
+  description: Página de ofertas que coincide con los filtros de la consulta.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/CatalogOfferSummary'
+    meta:
+      $ref: 'Common.yaml#/PageMeta'
+
+CatalogOfferResponse:
+  type: object
+  description: Respuesta que contiene una oferta del catálogo.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/CatalogOfferDetail'
