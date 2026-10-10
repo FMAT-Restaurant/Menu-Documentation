@@ -75,10 +75,10 @@ IfMatch:
   name: If-Match
   in: header
   required: true
-  description: ETag de la versión del recurso leída por el cliente; se envía para una actualización condicional.
+  description: ETag fuerte de la versión vigente del recurso leída por el cliente; se envía para una actualización condicional con comparación fuerte.
   schema:
     type: string
-    example: W/"rev-3"
+    example: '"rev-3"'
 
 IfNoneMatch:
   name: If-None-Match

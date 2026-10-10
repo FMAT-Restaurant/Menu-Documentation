@@ -66,8 +66,15 @@ entryOffers:
     tags: [Ofertas]
     operationId: createEntryOffer
     summary: Crear una oferta para una entrada
-    description: Crea una oferta asociada a la entrada indicada en la ruta. La
-      composición define los espacios de selección y sus opciones.
+    description: >-
+      Crea una oferta asociada a la entrada indicada en la ruta. La composición
+      define los espacios de selección y sus opciones. La imagen es obligatoria:
+      cárguela antes mediante POST /api/v1/media/images y envíe data.id de la
+      respuesta como imageId en el cuerpo JSON. Esta operación no recibe archivos
+      ni URLs. imageId debe identificar una imagen existente, válida y accesible
+      al solicitante; una referencia inválida devuelve 422 sin crear la oferta.
+      La carga previa es una operación independiente y no se deshace si falla la
+      creación de la oferta.
     requestBody:
       required: true
       content:
@@ -180,7 +187,7 @@ offerById:
                           name: Plato principal
                           required: true
                           quantity: 1
-                          course: Plato fuerte
+                          course: plato fuerte
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
@@ -205,9 +212,46 @@ offerById:
     operationId: patchMenuOffer
     summary: Actualizar una oferta
     description: >-
-      Actualiza los campos incluidos en el cuerpo y requiere el ETag vigente en
-      If-Match. Si incluye composition, el contrato fuente no define si sus slots
-      se fusionan o se sustituyen.
+      Actualiza los campos incluidos en el cuerpo; los omitidos conservan sus
+      valores recursivamente. Un cuerpo vacío conserva todos los campos y
+      composition vacío conserva los slots. Requiere
+      el ETag fuerte vigente en If-Match: su ausencia devuelve 428 y un valor
+      obsoleto devuelve 412, sin mutaciones. Si envía composition.slots o las
+      options de un slot, la lista representa el conjunto completo deseado:
+      elimina los miembros no incluidos. Los elementos existentes identificados
+      por slotId u optionId conservan sus campos omitidos; omitir options en un
+      slot existente conserva sus opciones. Los nuevos elementos omiten su ID,
+      generado por el servidor. Un slot nuevo requiere name, quantity y options;
+      una opción nueva requiere displayName, status y el origen completo:
+      sourceType RECIPE con recipeId y recipeRevision, o INVENTORY_ITEM con
+      inventoryItemId, quantity positiva y unit. Para una opción existente, si
+      sourceType coincide con el tipo de origen almacenado, puede omitirse el
+      resto del origen y sus campos omitidos se conservan; por ejemplo, reenviar
+      RECIPE no requiere recipeId ni recipeRevision si no se cambia la receta.
+      Si sourceType difiere del tipo almacenado, el servidor lo determina al
+      comparar ambos valores y requiere la tupla completa del nuevo origen;
+      entonces descarta los campos del origen anterior. Una tupla incompleta o
+      inválida devuelve 422. La comparación con el estado almacenado, la
+      validación del resultado completo y la persistencia son atómicas: el error
+      no modifica ningún campo. Un slotId debe pertenecer a esta oferta y un
+      optionId al slot indicado. IDs
+      desconocidos, ajenos o duplicados se rechazan con 422; no se mueven
+      elementos ni se crean con ID suministrado. Las listas vacías se rechazan
+      con 422 incluso para ofertas INACTIVE. El estado del slot es derivado y
+      source es de solo lectura: no se admite en la solicitud. Se recalculan los
+      estados de slots a partir de sus opciones; sin
+      slots ACTIVE la oferta se inactiva automáticamente y solo se recupera al
+      volver a tener uno si seguía habilitada administrativamente. Una
+      inactivación administrativa explícita se conserva. No cambia el estado
+      administrativo de la entrada ni las revisiones históricas.
+      imageId es opcional y reemplaza la asociación
+      de imagen con una imagen previamente cargada mediante
+      POST /api/v1/media/images, usando data.id de su respuesta. Omitir imageId
+      conserva la imagen vigente; null se rechaza. Esta operación recibe JSON,
+      no archivos ni URLs. La imagen referenciada debe existir, ser válida y ser
+      accesible al solicitante. Una referencia inválida devuelve 422 sin modificar
+      la oferta ni aplicar cambios parciales. La carga previa es una operación
+      independiente y no se deshace si falla la actualización de la oferta.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -218,24 +262,62 @@ offerById:
             $ref: ../openapi.yaml#/components/schemas/CatalogOfferPatchRequest
           examples:
             actualizarComposicion:
-              summary: Actualizar datos de precio y composición
+              summary: Conservar dos slots y actualizar parcialmente las opciones del segundo
               value:
-                presentationTag: Individual
-                basePrice: 185.0
-                status: ACTIVE
-                imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
-                      name: Plato principal
-                      required: true
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445302
+                      options:
+                        - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                          status: INACTIVE
+                        - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+            agregarSlot:
+              summary: Conservar un slot existente y agregar un slot nuevo
+              value:
+                composition:
+                  slots:
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                    - name: Acompañamiento
                       quantity: 1
-                      course: Plato fuerte
+                      options:
+                        - displayName: Papas
+                          status: ACTIVE
+                          sourceType: INVENTORY_ITEM
+                          inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                          quantity: 200
+                          unit: g
+            cambiarOrigen:
+              summary: Reemplazar el origen de una opción existente por una revisión de receta
+              value:
+                composition:
+                  slots:
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                       options:
                         - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                           sourceType: RECIPE
                           recipeId: c4813f65-00b4-4921-874e-03c555796401
-                          displayName: Hamburguesa Hawaiana
+                          recipeRevision: 2
+            actualizarNombreReceta:
+              summary: Cambiar el nombre de una opción existente que ya usa RECIPE, sin cambiar receta ni revisión
+              value:
+                composition:
+                  slots:
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                      options:
+                        - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                          sourceType: RECIPE
+                          displayName: Hamburguesa Hawaiana especial
+            actualizarCantidadInventario:
+              summary: Cambiar solo la cantidad de una opción existente que ya usa INVENTORY_ITEM
+              value:
+                composition:
+                  slots:
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445302
+                      options:
+                        - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+                          sourceType: INVENTORY_ITEM
+                          quantity: 250
     responses:
       '200':
         description: Oferta actualizada.
@@ -245,7 +327,7 @@ offerById:
         content:
           application/json:
             schema:
-              $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
+              $ref: ../openapi.yaml#/components/schemas/CatalogOfferPatchResponse
             examples:
               ofertaActualizada:
                 summary: Oferta actualizada
@@ -265,17 +347,30 @@ offerById:
                         - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                           name: Plato principal
                           required: true
+                          status: ACTIVE
                           quantity: 1
-                          course: Plato fuerte
+                          course: plato fuerte
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
+                              recipeRevision: 1
+                              status: ACTIVE
                               inventoryItemId: null
                               displayName: Hamburguesa Hawaiana
                               source:
                                 id: c4813f65-00b4-4921-874e-03c555796401
                                 name: Hamburguesa Hawaiana
+                            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+                              sourceType: INVENTORY_ITEM
+                              inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                              status: ACTIVE
+                              displayName: Papas
+                              quantity: 200
+                              unit: g
+                              source:
+                                id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                                name: Papas
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
@@ -286,6 +381,18 @@ offerById:
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '428':
+        description: Se requiere el encabezado If-Match para actualizar la oferta.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              faltaIfMatch:
+                summary: Encabezado de concurrencia ausente
+                value:
+                  error:
+                    message: El encabezado If-Match es requerido.
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
   delete:

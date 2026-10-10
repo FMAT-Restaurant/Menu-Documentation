@@ -7,14 +7,14 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 2.1.15 |
+| Versión | 2.1.17 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
 | Alcance | Menu administra la identidad comercial del catálogo; cada `CatalogEntry` contiene ofertas y cada `CatalogOffer` concreta es vendible y seleccionable individualmente, con su composición. Una `Composition` contiene slots; todos los `CompositionSlot` son estructurales y `CompositionSlot.quantity` determina cuántas veces se eligen opciones de cada slot. El estado del slot se deriva de sus opciones: `ACTIVE` si al menos una está `ACTIVE`, e `INACTIVE` si ninguna lo está. Todos los slots `ACTIVE` participan y los `INACTIVE` no generan rondas. Si ningún slot permanece `ACTIVE`, la oferta pasa automáticamente a `INACTIVE`; cuando vuelve a haber un slot `ACTIVE`, la oferta se reactiva automáticamente si esa inactivación se debió a la ausencia de slots activos y no hubo una inactivación administrativa explícita. El estado administrativo de la entrada no cambia por esa cascada y una entrada `ACTIVE` sin oferta `ACTIVE` válida permanece oculta. Al configurar una composición desde otra oferta del catálogo, sus slots y opciones se copian como definiciones locales editables, conservando el estado de las opciones, sin vínculo, precio ni sincronización con la oferta de origen. RecipeLibrary administra recetas con datos textuales e ingredientes de Inventario, cantidad por ingrediente y unidad visible; las opciones de slot las referencian por ID y revisión. Órdenes registra la opción elegida en cada ronda y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
-> **OPEN-005:** se conservan las restricciones de contenido y validación atómica de imágenes, especificadas en los requisitos funcionales y trazadas en [`traceability.md`](traceability.md). El transporte y la representación externa no se fijan ahora; las operaciones, datos y representaciones de la API quedan pendientes en OPEN-010 después de revisar los mockups. Permanecen pendientes OPEN-001, OPEN-003, OPEN-006, OPEN-009 y OPEN-010.
+> **OPEN-005:** se conservan las restricciones de contenido de imágenes y el rechazo íntegro por operación, especificados en los requisitos funcionales y trazados en [`traceability.md`](traceability.md). El flujo está decidido: carga previa mediante `POST /api/v1/media/images`, con identificador generado por el servidor y devuelto como `data.id`, seguida de asociación mediante `imageId` en solicitudes JSON de entradas y ofertas. El [contrato de API existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) define operaciones administrativas; su alineación restante y las operaciones y representaciones faltantes siguen pendientes en OPEN-010 después de revisar los mockups. El transporte de imágenes ya está resuelto. Permanecen pendientes OPEN-001, OPEN-003, OPEN-006, OPEN-009 y OPEN-010.
 
 ## Ruta de lectura recomendada
 

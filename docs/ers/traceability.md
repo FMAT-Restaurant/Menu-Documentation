@@ -42,7 +42,9 @@ Esta matriz relaciona los requisitos funcionales con las reglas e invariantes qu
 
 ## Decisión resuelta
 
-OPEN-005 queda resuelta para las restricciones de contenido de imagen y el rechazo íntegro de imágenes inválidas; esos criterios se especifican en los requisitos funcionales y se relacionan con `REQ-MENU-ENTRY-001/002` y `REQ-MENU-OFFER-001`. El transporte, las operaciones y las representaciones externas de API quedan pendientes bajo OPEN-010 en [cuestiones abiertas](open.md), a la espera de revisar los mockups.
+OPEN-005 queda resuelta para las restricciones de contenido de imagen y el rechazo íntegro de imágenes inválidas; esos criterios se especifican en los requisitos funcionales y se relacionan con `REQ-MENU-ENTRY-001/002` y `REQ-MENU-OFFER-001`. El flujo acordado requiere cargar previamente el archivo mediante `POST /api/v1/media/images`; tras validarlo, el servidor genera su identificador y devuelve `data.id`. Las solicitudes JSON de creación de entradas y ofertas requieren ese identificador como `imageId`; en la actualización es opcional y omitirlo conserva la imagen vigente. La validación del archivo durante la carga y la validación de su referencia al crear o modificar el recurso son independientes: el rechazo no aplica cambios parciales al recurso ni a su revisión, y un fallo de asociación no deshace la carga previa.
+
+El [contrato de API existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) expone operaciones administrativas. Su alineación integral y las operaciones y representaciones faltantes siguen pendientes bajo OPEN-010 en [cuestiones abiertas](open.md), a la espera de revisar los mockups; el flujo de imágenes ya está decidido.
 
 ## Matriz de reglas de negocio
 
@@ -69,7 +71,6 @@ OPEN-005 queda resuelta para las restricciones de contenido de imagen y el recha
 | `BR-MENU-020` | Biblioteca y revisiones de receta | `REQ-MENU-CONT-001`, `REQ-MENU-CONT-003`, `REQ-MENU-REC-001`, `REQ-MENU-REC-003` |
 | `BR-MENU-029` | Revisiones de ofertas | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-005`, `REQ-MENU-OFFER-006` |
 | `BR-MENU-030` | Eliminación e historial | `REQ-MENU-ENTRY-004`, `REQ-MENU-OFFER-006` |
-| `BR-MENU-031` | Eliminación de recetas en uso | `REQ-MENU-REC-005` |
 | `BR-MENU-031` | Eliminación de recetas en uso | `REQ-MENU-REC-005` |
 
 ## Matriz de invariantes de integridad

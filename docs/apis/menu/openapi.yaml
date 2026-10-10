@@ -1,11 +1,21 @@
 openapi: 3.1.0
 info:
   title: API de administración de Menu
-  version: 1.0.0
+  version: 4.0.1
   description: >-
     Contrato HTTP para las operaciones de consulta y administración usadas por
     el frontend. Se organiza por recurso y no define el host de despliegue; las
     rutas son relativas a una URL base que termina en /api/v1.
+    Las imágenes se cargan previamente mediante
+    POST /media/images, que recibe multipart/form-data y devuelve data.id con
+    un identificador generado por el servidor. Los POST y PATCH de entradas y
+    ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar;
+    omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el
+    archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE,
+    con estado asignado por el servidor.
+    El PATCH de ofertas conserva los campos omitidos y reemplaza recursivamente
+    los conjuntos de slots y opciones enviados. Valida el resultado completo y
+    persiste atómicamente, con un ETag fuerte vigente en If-Match.
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
@@ -113,10 +123,18 @@ components:
       $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferListResponse
     CatalogOfferResponse:
       $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferResponse
+    CatalogOfferPatchResponse:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferPatchResponse
     Composition:
       $ref: ./components/schemas/CatalogOffer.yaml#/Composition
     CompositionInput:
       $ref: ./components/schemas/CatalogOffer.yaml#/CompositionInput
+    CompositionPatchInput:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CompositionPatchInput
+    CompositionSlotPatchInput:
+      $ref: ./components/schemas/CatalogOffer.yaml#/CompositionSlotPatchInput
+    SlotOptionPatchInput:
+      $ref: ./components/schemas/CatalogOffer.yaml#/SlotOptionPatchInput
     CompositionSlot:
       $ref: ./components/schemas/CatalogOffer.yaml#/CompositionSlot
     CompositionSlotInput:

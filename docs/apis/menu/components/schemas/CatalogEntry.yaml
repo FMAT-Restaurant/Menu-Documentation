@@ -94,8 +94,13 @@ CatalogEntryDetail:
 
 CatalogEntryCreateRequest:
   type: object
-  description: Datos requeridos para crear una entrada y asociarla con sus categorías.
-  required: [brandName, description, status, categoryIds]
+  description: >-
+    Datos JSON para crear una entrada y asociarla con sus categorías y una imagen
+    previamente cargada y validada. El backend asigna el estado INACTIVE; el
+    cliente no proporciona status. imageId referencia data.id de la respuesta de
+    POST /api/v1/media/images; no se envía el archivo ni una URL en esta solicitud.
+  required: [brandName, description, categoryIds, imageId]
+  additionalProperties: false
   properties:
     brandName:
       type: string
@@ -105,8 +110,6 @@ CatalogEntryCreateRequest:
       type: string
       description: Descripción de la nueva entrada.
       example: Hamburguesa con piña asada y queso.
-    status:
-      $ref: '#/EntryStatus'
     categoryIds:
       description: Identificadores UUID de las categorías que se asociarán a la entrada.
       type: array
@@ -118,19 +121,26 @@ CatalogEntryCreateRequest:
     imageId:
       type: string
       format: uuid
-      description: Identificador UUID de la imagen que se asociará con la entrada.
-      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      description: >-
+        UUID obligatorio de la imagen previamente cargada y validada, obtenido
+        de data.id en POST /api/v1/media/images. No admite null, archivos ni URLs.
+      example: 55e62412-9249-4db6-8ccb-31f19ea2f501
   example:
     brandName: Hamburguesa Hawaiana
     description: Hamburguesa con piña asada y queso.
-    status: ACTIVE
     categoryIds:
       - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
-    imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
 
 CatalogEntryPatchRequest:
   type: object
-  description: Campos de una entrada que se desean actualizar.
+  description: >-
+    Campos de una entrada que se desean actualizar, enviados como JSON. Los
+    campos omitidos conservan sus valores vigentes. Para reemplazar la imagen se
+    envía imageId con data.id de la respuesta de POST /api/v1/media/images para
+    una imagen previamente cargada y validada. Omitir imageId conserva la imagen
+    vigente; null se rechaza. No se envían archivos ni URLs en esta solicitud.
+  additionalProperties: false
   properties:
     brandName:
       type: string
@@ -142,8 +152,16 @@ CatalogEntryPatchRequest:
       example: Hamburguesa con piña asada, queso y salsa de la casa.
     status:
       $ref: '#/EntryStatus'
+      description: >-
+        Estado administrativo solicitado. Se permite activar o inactivar una
+        entrada y pasar de ACTIVE o INACTIVE a ARCHIVED. Desarchivar requiere
+        pasar de ARCHIVED a INACTIVE; se rechaza el paso directo de ARCHIVED a
+        ACTIVE.
     categoryIds:
-      description: Identificadores UUID de las categorías asociadas a la entrada.
+      description: >-
+        Identificadores UUID de las categorías asociadas a la entrada. Al enviar
+        este campo se reemplaza el conjunto completo de categorías; al omitirlo
+        se conserva el conjunto vigente.
       type: array
       items:
         type: string
@@ -153,8 +171,11 @@ CatalogEntryPatchRequest:
     imageId:
       type: string
       format: uuid
-      description: Identificador UUID de la nueva imagen asociada, si se desea cambiar.
-      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      description: >-
+        UUID de la imagen de reemplazo previamente cargada y validada, obtenido
+        de data.id en POST /api/v1/media/images. Omitirlo conserva la imagen
+        vigente; no admite null, archivos ni URLs.
+      example: 55e62412-9249-4db6-8ccb-31f19ea2f501
 
 CatalogEntryListResponse:
   type: object

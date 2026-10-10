@@ -6,7 +6,10 @@ entries:
     description: >-
       Busca entradas por texto, categoría y estado. La búsqueda considera el
       nombre, la descripción y los nombres de categoría; los resultados se
-      filtran y paginan en el servidor.
+      filtran y paginan en el servidor. Esta consulta administrativa permite
+      recuperar entradas INACTIVE y ARCHIVED mediante los filtros y no excluye
+      entradas por carecer de ofertas publicables. ACTIVE es un estado
+      administrativo; no implica que la entrada sea publicable.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/SearchQuery
       - $ref: ../openapi.yaml#/components/parameters/CategoryFilter
@@ -58,8 +61,19 @@ entries:
     tags: [Entradas]
     operationId: createMenuEntry
     summary: Crear una entrada
-    description: Crea una entrada del catálogo con sus categorías y, de forma
-      opcional, una imagen que ya se haya cargado.
+    description: >-
+      Crea una entrada del catálogo con sus categorías y una imagen obligatoria
+      previamente cargada en POST /api/v1/media/images. Envíe data.id de esa
+      respuesta como imageId en el cuerpo JSON; esta operación no recibe el
+      archivo ni asigna un nuevo identificador de imagen. El backend asigna el
+      estado INACTIVE; el cliente no proporciona status. imageId debe identificar
+      una imagen existente, válida y accesible al solicitante. Los metadatos y
+      las asociaciones de imagen y categorías se validan y persisten de forma
+      atómica. La entrada y sus categorías pertenecen al menú provisionado en
+      la instalación. Una referencia de imagen inválida, categorías inexistentes
+      o de otro menú y cualquier solicitud inválida devuelven 422 sin crear la
+      entrada ni aplicar cambios. La carga previa de imagen es una operación
+      independiente y no se deshace si falla la creación de la entrada.
     requestBody:
       required: true
       content:
@@ -68,17 +82,16 @@ entries:
             $ref: ../openapi.yaml#/components/schemas/CatalogEntryCreateRequest
           examples:
             hamburguesaHawaiana:
-              summary: Crear una entrada activa
+              summary: Crear una entrada inactiva con imagen
               value:
                 brandName: Hamburguesa Hawaiana
                 description: Carne, jamón, queso y piña en pan artesanal.
-                status: ACTIVE
                 categoryIds:
                   - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
                 imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
     responses:
       '201':
-        description: Entrada creada.
+        description: Entrada creada en INACTIVE y asociada con la imagen previamente cargada.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -94,7 +107,7 @@ entries:
                     id: 7d19a8ce-402c-4bab-b383-9969b69fe101
                     brandName: Hamburguesa Hawaiana
                     description: Carne, jamón, queso y piña en pan artesanal.
-                    status: ACTIVE
+                    status: INACTIVE
                     image:
                       id: 55e62412-9249-4db6-8ccb-31f19ea2f501
                       url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
@@ -125,7 +138,7 @@ entryById:
     operationId: getMenuEntry
     summary: Consultar una entrada
     description: Devuelve el detalle de una entrada, incluidos los UUID de sus
-      categorías y los datos de la imagen asociada, si existe.
+      categorías y los datos de la imagen asociada.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
     responses:
@@ -167,8 +180,23 @@ entryById:
     tags: [Entradas]
     operationId: patchMenuEntry
     summary: Actualizar una entrada
-    description: Actualiza los campos de la entrada incluidos en el cuerpo.
-      Envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+    description: >-
+      Actualiza los campos enviados; los omitidos conservan sus valores. Enviar
+      categoryIds reemplaza el conjunto completo de categorías. La entrada y sus
+      categorías deben pertenecer al menú provisionado en la instalación.
+      Se permite activar o inactivar la entrada, pasar de ACTIVE o INACTIVE a
+      ARCHIVED y desarchivar de ARCHIVED a INACTIVE. El paso directo de ARCHIVED
+      a ACTIVE devuelve 422. Estas transiciones no alteran los estados de las
+      ofertas. Para reemplazar la imagen, envíe imageId en el cuerpo JSON con
+      data.id de la respuesta de POST /api/v1/media/images para una imagen
+      previamente cargada y validada. Debe existir y ser accesible al solicitante;
+      una referencia inválida devuelve 422. Omitir imageId conserva la imagen
+      vigente; null se rechaza. Esta operación no recibe archivos ni URLs.
+      La validación y persistencia de metadatos y asociaciones de imagen y
+      categorías es atómica; un error no aplica cambios parciales y conserva la
+      imagen vigente. La carga previa es una operación independiente y no se
+      deshace si falla la actualización. Envíe el ETag leído en If-Match:
+      su ausencia devuelve 428 y un valor obsoleto devuelve 412, sin modificaciones.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -181,11 +209,10 @@ entryById:
             actualizarEntrada:
               summary: Cambiar el estado de una entrada
               value:
-                brandName: Hamburguesa Hawaiana
-                description: Carne, jamón, queso y piña en pan artesanal.
                 status: ACTIVE
-                categoryIds:
-                  - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+            reemplazarImagen:
+              summary: Reemplazar únicamente la imagen de una entrada
+              value:
                 imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
     responses:
       '200':
@@ -222,6 +249,18 @@ entryById:
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '428':
+        description: Se requiere el encabezado If-Match para actualizar la entrada.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              faltaIfMatch:
+                summary: Encabezado de concurrencia ausente
+                value:
+                  error:
+                    message: El encabezado If-Match es requerido.
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
   delete:

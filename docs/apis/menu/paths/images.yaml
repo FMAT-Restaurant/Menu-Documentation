@@ -3,19 +3,36 @@ images:
     tags: [Imágenes]
     operationId: uploadMenuImage
     summary: Subir una imagen
-    description: Sube el archivo del campo file mediante multipart/form-data y
-      devuelve la imagen creada junto con sus URL.
+    description: >-
+      Sube el archivo del campo file mediante multipart/form-data. Acepta JPEG,
+      PNG y WebP de hasta 10 MiB (10485760 bytes), con ancho y alto máximos de
+      4096 px cada uno. Valida el contenido real y su decodificación, además del
+      tipo declarado. Solo tras validar la carga, el servidor genera el UUID y
+      devuelve data.id, data.url y data.thumbnailUrl. El cliente utiliza data.id
+      como imageId en las solicitudes JSON de creación o edición de entradas y
+      ofertas, sin reenviar el archivo. La carga y la asociación son operaciones
+      separadas: cargar una imagen no crea una entrada ni una oferta. Una imagen
+      inválida devuelve 422 sin crear una imagen utilizable ni modificar un
+      recurso existente o su revisión.
     requestBody:
       required: true
       content:
         multipart/form-data:
           schema:
             type: object
+            additionalProperties: false
             required: [file]
             properties:
               file:
                 type: string
                 format: binary
+                description: >-
+                  Archivo JPEG, PNG o WebP de hasta 10 MiB (10485760 bytes), con
+                  ancho y alto máximos de 4096 px cada uno. Su contenido real debe
+                  ser válido y decodificable, además de coincidir con el tipo declarado.
+          encoding:
+            file:
+              contentType: image/jpeg, image/png, image/webp
           examples:
             archivoDeMenu:
               summary: Archivo de imagen seleccionado para cargar
@@ -23,7 +40,7 @@ images:
                 file: hamburguesa-hawaiana.jpg
     responses:
       '201':
-        description: Imagen recibida y disponible por URL.
+        description: Imagen validada, con UUID generado por el servidor y URL disponibles.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -33,7 +50,7 @@ images:
               $ref: ../openapi.yaml#/components/schemas/ImageUploadResponse
             examples:
               imagenCargada:
-                summary: Imagen disponible por URL
+                summary: Imagen validada con identificador generado por el servidor
                 value:
                   data:
                     id: 55e62412-9249-4db6-8ccb-31f19ea2f501

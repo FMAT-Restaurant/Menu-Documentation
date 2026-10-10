@@ -32,12 +32,12 @@ Una CatalogEntry solo puede eliminarse desde ARCHIVED. Una CatalogOffer solo pue
 
 ## Entidades y Atributos Principales
 
-La siguiente tabla resume los 16 conceptos del modelo, sus responsabilidades, atributos y relaciones. CatalogEntry declara ACTIVE, INACTIVE o ARCHIVED; CatalogOffer, CompositionSlot, SlotOption y RecipeDefinition declaran ACTIVE o INACTIVE. El estado de CompositionSlot es derivado de las opciones. Los identificadores son conceptuales: no prescriben claves de base de datos ni un esquema de almacenamiento.
+La siguiente tabla resume los 16 conceptos del modelo, sus responsabilidades, atributos y relaciones. CatalogEntry declara ACTIVE, INACTIVE o ARCHIVED; CatalogOffer, CompositionSlot y SlotOption declaran ACTIVE o INACTIVE. El estado de CompositionSlot es derivado de las opciones. Los identificadores son conceptuales: no prescriben claves de base de datos ni un esquema de almacenamiento.
 
 | Entidad o concepto | Responsabilidad | Atributos y relaciones principales |
 | :--- | :--- | :--- |
 | Menu | Propietario del conjunto de categorías y entradas comerciales. | id, name, currency; contiene Category y CatalogEntry. |
-| Category | Categoría reutilizable que clasifica entradas. | id, menuId, name, description; pertenece a Menu y clasifica cero o más CatalogEntry. |
+| Category | Categoría reutilizable que clasifica entradas. | id, menuId, name, description?; name es obligatorio y description es opcional; pertenece a Menu y clasifica cero o más CatalogEntry. |
 | CatalogEntry | Identidad comercial que contiene las ofertas de un producto de la carta. | id, menuId, brandName, description, imageRef, status, categoryIds[]; pertenece a Menu, contiene CatalogOffer y usa categorías del mismo menú. Se publica solo si está ACTIVE y tiene al menos una oferta ACTIVE válida; si no, permanece ACTIVE pero oculta. La oferta no cambia el estado administrativo de la entrada. |
 | CatalogOffer | Oferta concreta, individualmente vendible y seleccionable, con precio base y composición propia. | id, entryId, presentationTag?, basePrice, status efectivo (ACTIVE/INACTIVE), offerImageRef; pertenece a CatalogEntry y contiene exactamente una Composition. Pasa a INACTIVE si ningún CompositionSlot está ACTIVE; al volver a haber un slot ACTIVE, se reactiva automáticamente si la inactivación fue causada por la ausencia de slots activos y la oferta seguía habilitada administrativamente. Una inactivación administrativa explícita permanece hasta una nueva activación administrativa. La eliminación individual requiere INACTIVE y no invalidar una entrada ACTIVE; las revisiones publicadas se conservan como historia consultable. |
 | CatalogOfferRevision | Instantánea inmutable de una revisión publicada de oferta. | entryId, offerId, revision, brandNameSnapshot, basePrice, offerImageRef, compositionSnapshot; conserva la composición histórica consultable aunque se elimine la oferta vigente. |
@@ -50,7 +50,7 @@ La siguiente tabla resume los 16 conceptos del modelo, sus responsabilidades, at
 | RecipeSource | Referencia a una receta de RecipeLibrary desde una SlotOption. | recipeId, recipeRevision; fija una RecipeDefinition publicada. |
 | InventoryItem | Artículo o ingrediente cuya identidad, unidad de medida y stock son de Inventario. | id, name, baseUnit; concepto externo referenciado por InventoryItemSource y ComponentIngredient. |
 | RecipeLibrary | Colección de recetas administradas por Catálogo. | id, name, recipes[]; contiene definiciones vigentes e historial de revisiones publicadas. |
-| RecipeDefinition | Receta versionada con datos textuales, rendimiento y líneas de ingredientes. | id, name, description, instructions (texto), revision, yieldQuantity, yieldUnit, ingredients[], status; pertenece a RecipeLibrary. |
+| RecipeDefinition | Receta versionada con datos textuales y líneas de ingredientes. | id, name, description, instructions (texto), revision, ingredients[]; pertenece a RecipeLibrary. |
 | ComponentIngredient | Ingrediente de Inventario incluido en una receta. | id, recipeId, inventoryItemId, quantity, unit; referencia exactamente un InventoryItem. La unidad de Inventario se muestra al seleccionar, consultar o editar. |
 
 ### Selección de composición y contenido
@@ -114,7 +114,7 @@ classDiagram
     class Category {
         +id
         +name
-        +description
+        +description?
     }
     class CatalogEntry {
         +id
@@ -180,8 +180,6 @@ classDiagram
         +description
         +instructions
         +revision
-        +yieldQuantity
-        +yieldUnit
     }
     class ComponentIngredient {
         +inventoryItemId

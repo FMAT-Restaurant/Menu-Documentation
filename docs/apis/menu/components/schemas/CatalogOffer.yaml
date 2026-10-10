@@ -22,7 +22,7 @@ SourceReference:
 
 RecipeSlotOption:
   type: object
-  description: Opción de slot cuyo origen es una receta.
+  description: Opción de slot cuyo origen es una receta. La respuesta del PATCH incluye su estado y la revisión fijada de la receta.
   required: [optionId, sourceType, recipeId, displayName, source]
   properties:
     optionId:
@@ -41,6 +41,13 @@ RecipeSlotOption:
     inventoryItemId:
       type: 'null'
       description: El origen alternativo no aplica a una opción de receta.
+    recipeRevision:
+      type: integer
+      minimum: 1
+      description: Revisión de receta fijada por la opción, incluida en la respuesta del PATCH.
+    status:
+      $ref: '#/OfferStatus'
+      description: Estado de la opción, incluido en la respuesta del PATCH.
     displayName:
       type: string
       description: Nombre que se muestra para esta opción en el catálogo.
@@ -59,7 +66,7 @@ RecipeSlotOption:
 
 InventoryItemSlotOption:
   type: object
-  description: Opción de slot cuyo origen es un insumo de inventario.
+  description: Opción de slot cuyo origen es un insumo de inventario. La respuesta del PATCH incluye su estado, cantidad y unidad.
   required: [optionId, sourceType, inventoryItemId, displayName, source]
   properties:
     optionId:
@@ -78,6 +85,17 @@ InventoryItemSlotOption:
       format: uuid
       description: Identificador UUID del insumo de inventario de origen.
       example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    quantity:
+      type: number
+      exclusiveMinimum: 0
+      description: Cantidad positiva del artículo, incluida en la respuesta del PATCH.
+    unit:
+      type: string
+      minLength: 1
+      description: Unidad compatible con la del artículo, incluida en la respuesta del PATCH.
+    status:
+      $ref: '#/OfferStatus'
+      description: Estado de la opción, incluido en la respuesta del PATCH.
     displayName:
       type: string
       description: Nombre que se muestra para esta opción en el catálogo.
@@ -173,7 +191,7 @@ SlotOptionInput:
 CompositionSlot:
   type: object
   description: Slot de la composición con una cantidad, un curso y las opciones que pueden ocuparlo.
-  required: [slotId, name, required, quantity, course, options]
+  required: [slotId, name, required, quantity, options]
   properties:
     slotId:
       type: string
@@ -187,15 +205,18 @@ CompositionSlot:
     required:
       const: true
       description: La API siempre devuelve true para este campo.
+    status:
+      $ref: '#/OfferStatus'
+      description: Estado derivado, incluido en la respuesta del PATCH; ACTIVE si alguna opción está ACTIVE e INACTIVE si ninguna lo está.
     quantity:
       type: number
       description: Rango y precisión no definidos en la fuente.
       example: 1
     course:
       type: string
-      enum: ['', Entrada, Plato fuerte, Postre, Bebida]
+      enum: [entrada, plato fuerte, postre, bebida]
       description: Curso al que pertenece el slot, si se especifica.
-      example: Plato fuerte
+      example: plato fuerte
     options:
       type: array
       description: Opciones disponibles para ocupar el slot.
@@ -206,7 +227,7 @@ CompositionSlot:
     name: Hamburguesa
     required: true
     quantity: 1
-    course: Plato fuerte
+    course: plato fuerte
     options:
       - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
         sourceType: RECIPE
@@ -220,7 +241,7 @@ CompositionSlot:
 CompositionSlotInput:
   type: object
   description: Datos para crear o actualizar un slot de una composición.
-  required: [slotId, name, required, quantity, course, options]
+  required: [slotId, name, required, quantity, options]
   properties:
     slotId:
       type: string
@@ -240,9 +261,9 @@ CompositionSlotInput:
       example: 1
     course:
       type: string
-      enum: ['', Entrada, Plato fuerte, Postre, Bebida]
+      enum: [entrada, plato fuerte, postre, bebida]
       description: Curso al que pertenece el slot, si se especifica.
-      example: Plato fuerte
+      example: plato fuerte
     options:
       type: array
       description: Opciones disponibles para ocupar el slot.
@@ -253,7 +274,7 @@ CompositionSlotInput:
     name: Hamburguesa
     required: true
     quantity: 1
-    course: Plato fuerte
+    course: plato fuerte
     options:
       - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
         sourceType: RECIPE
@@ -277,7 +298,7 @@ Composition:
         name: Hamburguesa
         required: true
         quantity: 1
-        course: Plato fuerte
+        course: plato fuerte
         options:
           - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
             sourceType: RECIPE
@@ -393,7 +414,7 @@ CatalogOfferDetail:
           name: Hamburguesa
           required: true
           quantity: 1
-          course: Plato fuerte
+          course: plato fuerte
           options:
             - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
               sourceType: RECIPE
@@ -406,8 +427,12 @@ CatalogOfferDetail:
 
 CatalogOfferCreateRequest:
   type: object
-  description: Datos para crear una oferta y definir su composición inicial.
-  required: [basePrice, status, composition]
+  description: >-
+    Datos JSON para crear una oferta y definir su composición inicial. La imagen
+    se carga previamente mediante POST /api/v1/media/images y esta solicitud
+    asocia su identificador; la carga y la asociación son operaciones separadas.
+    No se envían archivos ni URLs en esta solicitud.
+  required: [basePrice, status, composition, imageId]
   properties:
     presentationTag:
       type: string
@@ -422,7 +447,10 @@ CatalogOfferCreateRequest:
     imageId:
       type: string
       format: uuid
-      description: Identificador UUID de la imagen asociada a la oferta.
+      description: >-
+        UUID obligatorio de la imagen previamente cargada y validada, obtenido
+        de data.id en POST /api/v1/media/images. Debe identificar una imagen
+        existente y accesible al solicitante; no admite null, archivos ni URLs.
       example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
     composition:
       $ref: '#/CompositionInput'
@@ -437,7 +465,7 @@ CatalogOfferCreateRequest:
           name: Hamburguesa
           required: true
           quantity: 1
-          course: Plato fuerte
+          course: plato fuerte
           options:
             - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
               sourceType: RECIPE
@@ -447,7 +475,24 @@ CatalogOfferCreateRequest:
 
 CatalogOfferPatchRequest:
   type: object
-  description: Campos de una oferta que se desean actualizar.
+  description: >-
+    Campos de una oferta que se desean actualizar mediante JSON. La imagen de
+    reemplazo se carga previamente mediante POST /api/v1/media/images; esta
+    solicitud actualiza su asociación con imageId. La carga y la asociación son
+    operaciones separadas. No se envían archivos ni URLs en esta solicitud.
+    Los campos omitidos se conservan recursivamente; un objeto vacío conserva
+    todos los valores y composition vacío conserva sus slots. Enviar slots u options
+    reemplaza su conjunto completo; los elementos existentes incluidos pueden
+    omitir campos para conservarlos y las opciones omitidas de un slot existente
+    se conservan. Las listas vacías devuelven 422. Los identificadores existentes
+    deben pertenecer a la oferta y al slot correspondiente: desconocidos, ajenos
+    o duplicados se rechazan con 422; no se mueven elementos ni se crean con ID
+    proporcionado. Los nuevos elementos omiten su ID y el servidor lo genera.
+    Se valida el resultado completo y las invariantes antes de persistir;
+    cualquier error rechaza toda la operación. Se recalculan los estados de
+    slots y oferta según las opciones y su habilitación administrativa. If-Match
+    protege la actualización de modificaciones concurrentes.
+  additionalProperties: false
   properties:
     presentationTag:
       type: string
@@ -459,13 +504,419 @@ CatalogOfferPatchRequest:
       example: 195.0
     status:
       $ref: '#/OfferStatus'
+      description: >-
+        Estado administrativo solicitado. Activar exige una composición válida
+        con al menos un slot ACTIVE. Una solicitud INACTIVE explícita prevalece
+        sobre la reactivación automática.
     imageId:
       type: string
       format: uuid
-      description: Identificador UUID de la nueva imagen asociada, si se desea cambiar.
+      description: >-
+        UUID opcional de la imagen de reemplazo previamente cargada y validada,
+        obtenido de data.id en POST /api/v1/media/images. Debe identificar una
+        imagen existente y accesible al solicitante. Omitirlo conserva la imagen
+        vigente; no admite null, archivos ni URLs.
       example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
     composition:
-      $ref: '#/CompositionInput'
+      $ref: '#/CompositionPatchInput'
+
+CompositionPatchInput:
+  type: object
+  additionalProperties: false
+  description: Composición enviada al PATCH; omitir slots o enviar un objeto vacío conserva los slots vigentes. Enviar slots reemplaza el conjunto completo y no admite una lista vacía.
+  properties:
+    slots:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/CompositionSlotPatchInput'
+
+CompositionSlotPatchInput:
+  type: object
+  additionalProperties: false
+  description: >-
+    Con slotId actualiza un slot existente de esta oferta y conserva los campos omitidos. Sin slotId
+    crea un slot y requiere name, quantity y options; el servidor genera su ID. options reemplaza el
+    conjunto completo al enviarse; omitirlo en un slot existente conserva sus opciones. IDs
+    desconocidos, ajenos o duplicados se rechazan con 422; no permite mover slots ni crear nuevos
+    con ID. course null retira el curso opcional.
+  properties:
+    slotId:
+      type: string
+      format: uuid
+    name:
+      type: string
+    quantity:
+      type: number
+      description: Rango y precisión pendientes en OPEN-006.
+    course:
+      type:
+        - string
+        - 'null'
+      enum:
+        - entrada
+        - plato fuerte
+        - postre
+        - bebida
+        - null
+    required:
+      const: true
+      description: Siempre true cuando se informa.
+    options:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/SlotOptionPatchInput'
+  allOf:
+    - if:
+        not:
+          properties:
+            slotId: {}
+            name: {}
+            quantity: {}
+            course: {}
+            required: {}
+            options: {}
+          required:
+            - slotId
+      then:
+        properties:
+          name: {}
+          quantity: {}
+          options: {}
+          slotId: {}
+          course: {}
+          required: {}
+        required:
+          - name
+          - quantity
+          - options
+
+SlotOptionPatchInput:
+  type: object
+  additionalProperties: false
+  description: >-
+    Con optionId actualiza una opción existente del slot y conserva los campos omitidos; un objeto
+    con solo optionId es válido. Sin optionId crea una opción con displayName, status, sourceType y
+    el origen completo; el servidor genera su ID. IDs desconocidos, ajenos o duplicados se rechazan
+    con 422 y no permiten mover opciones ni crear nuevas con ID. En una opción existente, informar
+    sourceType conserva el origen si coincide con el tipo almacenado; el servidor compara ambos tipos
+    y, si cambia, exige la tupla completa del nuevo origen y aplica el cambio atómicamente. Sin
+    sourceType se permiten cambios parciales del origen existente. El resultado debe tener exactamente
+    un origen válido; mezclar tipos se rechaza con 422. Los campos de origen no admiten null.
+  properties:
+    optionId:
+      type: string
+      format: uuid
+    displayName:
+      type: string
+    status:
+      $ref: '#/OfferStatus'
+    sourceType:
+      type: string
+      enum:
+        - RECIPE
+        - INVENTORY_ITEM
+    recipeId:
+      type: string
+      format: uuid
+    recipeRevision:
+      type: integer
+      minimum: 1
+    inventoryItemId:
+      type: string
+      format: uuid
+    quantity:
+      type: number
+      exclusiveMinimum: 0
+    unit:
+      type: string
+      minLength: 1
+  dependentRequired:
+    recipeId:
+      - recipeRevision
+  allOf:
+    - if:
+        anyOf:
+          - properties:
+              recipeId: {}
+              optionId: {}
+              displayName: {}
+              status: {}
+              sourceType: {}
+              recipeRevision: {}
+              inventoryItemId: {}
+              quantity: {}
+              unit: {}
+            required:
+              - recipeId
+          - properties:
+              recipeRevision: {}
+              optionId: {}
+              displayName: {}
+              status: {}
+              sourceType: {}
+              recipeId: {}
+              inventoryItemId: {}
+              quantity: {}
+              unit: {}
+            required:
+              - recipeRevision
+      then:
+        not:
+          anyOf:
+            - properties:
+                inventoryItemId: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                quantity: {}
+                unit: {}
+              required:
+                - inventoryItemId
+            - properties:
+                quantity: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                unit: {}
+              required:
+                - quantity
+            - properties:
+                unit: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+              required:
+                - unit
+    - if:
+        not:
+          properties:
+            optionId: {}
+            displayName: {}
+            status: {}
+            sourceType: {}
+            recipeId: {}
+            recipeRevision: {}
+            inventoryItemId: {}
+            quantity: {}
+            unit: {}
+          required:
+            - optionId
+      then:
+        properties:
+          displayName: {}
+          status: {}
+          sourceType: {}
+          optionId: {}
+          recipeId: {}
+          recipeRevision: {}
+          inventoryItemId: {}
+          quantity: {}
+          unit: {}
+        required:
+          - displayName
+          - status
+          - sourceType
+    - if:
+        required:
+          - sourceType
+        properties:
+          sourceType:
+            const: RECIPE
+          optionId: {}
+          displayName: {}
+          status: {}
+          recipeId: {}
+          recipeRevision: {}
+          inventoryItemId: {}
+          quantity: {}
+          unit: {}
+      then:
+        properties:
+          recipeId: {}
+          recipeRevision: {}
+          optionId: {}
+          displayName: {}
+          status: {}
+          sourceType: {}
+          inventoryItemId: {}
+          quantity: {}
+          unit: {}
+        not:
+          anyOf:
+            - properties:
+                inventoryItemId: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                quantity: {}
+                unit: {}
+              required:
+                - inventoryItemId
+            - properties:
+                quantity: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                unit: {}
+              required:
+                - quantity
+            - properties:
+                unit: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+              required:
+                - unit
+    - if:
+        required:
+          - sourceType
+        properties:
+          sourceType:
+            const: INVENTORY_ITEM
+          optionId: {}
+          displayName: {}
+          status: {}
+          recipeId: {}
+          recipeRevision: {}
+          inventoryItemId: {}
+          quantity: {}
+          unit: {}
+      then:
+        properties:
+          inventoryItemId: {}
+          quantity: {}
+          unit: {}
+          optionId: {}
+          displayName: {}
+          status: {}
+          sourceType: {}
+          recipeId: {}
+          recipeRevision: {}
+        not:
+          anyOf:
+            - properties:
+                recipeId: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+                unit: {}
+              required:
+                - recipeId
+            - properties:
+                recipeRevision: {}
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                inventoryItemId: {}
+                quantity: {}
+                unit: {}
+              required:
+                - recipeRevision
+    - if:
+        not:
+          properties:
+            optionId: {}
+            displayName: {}
+            status: {}
+            sourceType: {}
+            recipeId: {}
+            recipeRevision: {}
+            inventoryItemId: {}
+            quantity: {}
+            unit: {}
+          required:
+            - optionId
+      then:
+        allOf:
+          - if:
+              required:
+                - sourceType
+              properties:
+                sourceType:
+                  const: RECIPE
+                optionId: {}
+                displayName: {}
+                status: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+                unit: {}
+            then:
+              properties:
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+                unit: {}
+              required:
+                - recipeId
+                - recipeRevision
+          - if:
+              required:
+                - sourceType
+              properties:
+                sourceType:
+                  const: INVENTORY_ITEM
+                optionId: {}
+                displayName: {}
+                status: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+                unit: {}
+            then:
+              properties:
+                optionId: {}
+                displayName: {}
+                status: {}
+                sourceType: {}
+                recipeId: {}
+                recipeRevision: {}
+                inventoryItemId: {}
+                quantity: {}
+                unit: {}
+              required:
+                - inventoryItemId
+                - quantity
+                - unit
 
 CatalogOfferListResponse:
   type: object
@@ -486,3 +937,85 @@ CatalogOfferResponse:
   properties:
     data:
       $ref: '#/CatalogOfferDetail'
+
+CatalogOfferPatchRecipeSlotOption:
+  allOf:
+    - $ref: '#/RecipeSlotOption'
+    - type: object
+      description: >-
+        En la respuesta del PATCH siempre se incluyen el estado de la opción y la revisión fijada
+        de la receta.
+      required: [status, recipeRevision]
+      properties:
+        status:
+          $ref: '#/OfferStatus'
+        recipeRevision:
+          type: integer
+          minimum: 1
+
+CatalogOfferPatchInventoryItemSlotOption:
+  allOf:
+    - $ref: '#/InventoryItemSlotOption'
+    - type: object
+      description: >-
+        En la respuesta del PATCH siempre se incluyen el estado de la opción, la cantidad y la
+        unidad del insumo.
+      required: [status, quantity, unit]
+      properties:
+        status:
+          $ref: '#/OfferStatus'
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          type: string
+          minLength: 1
+
+CatalogOfferPatchSlotOption:
+  description: Opción de slot devuelta por PATCH con los campos obligatorios de su tipo de origen.
+  oneOf:
+    - $ref: '#/CatalogOfferPatchRecipeSlotOption'
+    - $ref: '#/CatalogOfferPatchInventoryItemSlotOption'
+
+CatalogOfferPatchCompositionSlot:
+  allOf:
+    - $ref: '#/CompositionSlot'
+    - type: object
+      description: La respuesta del PATCH siempre incluye el estado derivado del slot.
+      required: [status]
+      properties:
+        status:
+          $ref: '#/OfferStatus'
+        options:
+          type: array
+          items:
+            $ref: '#/CatalogOfferPatchSlotOption'
+
+CatalogOfferPatchComposition:
+  allOf:
+    - $ref: '#/Composition'
+    - type: object
+      properties:
+        slots:
+          type: array
+          items:
+            $ref: '#/CatalogOfferPatchCompositionSlot'
+
+CatalogOfferPatchDetail:
+  allOf:
+    - $ref: '#/CatalogOfferDetail'
+    - type: object
+      description: >-
+        Detalle devuelto por PATCH. Los estados derivados y los datos de origen específicos de cada
+        opción están presentes en todos los slots y opciones.
+      properties:
+        composition:
+          $ref: '#/CatalogOfferPatchComposition'
+
+CatalogOfferPatchResponse:
+  type: object
+  description: Respuesta del PATCH de una oferta con los estados y datos de origen completos.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/CatalogOfferPatchDetail'

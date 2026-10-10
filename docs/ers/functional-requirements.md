@@ -4,19 +4,21 @@ Esta sección define las capacidades observables que el servicio Menu debe ofrec
 
 ## Criterio común para imágenes
 
-- Crear una entrada requiere una imagen. Al editarla, la imagen puede reemplazarse; si no se cambia, se conserva la imagen vigente.
-- Crear una oferta requiere una imagen. Al crear una revisión, la imagen puede reemplazarse; si no se cambia, se conserva la imagen vigente.
+- Antes de crear una entrada o una oferta, el administrador carga el archivo mediante `POST /api/v1/media/images`. El servidor valida la imagen, genera su UUID y devuelve `data.id`; la creación del recurso requiere ese identificador como `imageId` en un cuerpo JSON, sin reenviar el archivo ni una URL.
+- Al editar una entrada, actualizar una oferta o crear una revisión, puede reemplazarse la imagen enviando como `imageId` el identificador de otra imagen previamente cargada y validada. Si se omite `imageId`, se conserva la imagen vigente.
 - Solo se admiten JPEG, PNG y WebP, con tamaño máximo de 10 MiB y ancho y alto máximos de 4096 px cada uno. El servicio valida el contenido real del archivo, no solo el tipo declarado.
-- Una imagen inválida o no decodificable, que exceda el tamaño o cualquiera de las dimensiones máximas, se rechaza. El rechazo es íntegro: no crea el recurso ni la revisión, no aplica cambios parciales y conserva la imagen vigente.
+- Un archivo inválido o no decodificable, que exceda el tamaño o cualquiera de las dimensiones máximas, se rechaza durante la carga sin crear una imagen utilizable ni modificar recursos existentes.
+- Un `imageId` inexistente, inválido o no accesible al solicitante se rechaza al crear o modificar el recurso. El rechazo es íntegro: no crea el recurso ni la revisión, no aplica cambios parciales y conserva la imagen vigente.
+- La carga de la imagen es una operación independiente de su asociación. Un fallo posterior al crear o modificar el recurso no deshace la carga previa.
 
-El transporte, las operaciones y la representación de datos de la API quedan pendientes de revisar los mockups y se registran en [OPEN-010](open.md).
+El flujo de imágenes queda acordado conforme al [contrato de la API](https://fmat-restaurant.github.io/Menu-Documentation/api/): carga previa del archivo y asociación posterior mediante `imageId` en JSON. La alineación restante del transporte, las operaciones y la representación de datos de la API continúa pendiente de revisar los mockups y se registra en [OPEN-010](open.md).
 
 ## Categorías y entradas del catálogo
 
 ### REQ-MENU-CAT-001 — Administración de categorías
 
-- **Requisito:** El sistema deberá permitir al administrador crear y editar categorías de un menú, indicando su nombre y descripción.
-- **Criterio de aceptación:** Una categoría creada o editada conserva el nombre y la descripción indicados y puede clasificarse en más de una entrada del mismo menú.
+- **Requisito:** El sistema deberá permitir al administrador crear y editar categorías de un menú, indicando un nombre obligatorio y, opcionalmente, una descripción.
+- **Criterio de aceptación:** El sistema acepta la creación de una categoría sin descripción. Al editar, omitir la descripción conserva el valor vigente y enviar una cadena vacía deja la categoría sin texto descriptivo. La categoría puede clasificarse en más de una entrada del mismo menú.
 
 ### REQ-MENU-CAT-002 — Consulta del catálogo publicable
 
@@ -26,12 +28,12 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 ### REQ-MENU-ENTRY-001 — Creación de una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador crear una entrada del catálogo indicando su nombre comercial, descripción, imagen y las categorías que correspondan dentro del mismo menú. Toda entrada nueva deberá iniciar inactiva.
-- **Criterio de aceptación:** La creación requiere la imagen junto con los metadatos y las categorías seleccionadas. El sistema conserva esos datos y registra la entrada como inactiva, sin publicarla hasta una activación posterior del administrador.
+- **Criterio de aceptación:** La creación requiere `imageId` de una imagen previamente cargada y validada, junto con los metadatos y las categorías seleccionadas. El sistema conserva esos datos y registra la entrada como inactiva, sin publicarla hasta una activación posterior del administrador.
 
 ### REQ-MENU-ENTRY-002 — Edición de una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador cambiar el nombre comercial, la descripción, la imagen y las categorías de una entrada existente.
-- **Criterio de aceptación:** La imagen puede reemplazarse al editar; si no se cambia, se conserva la imagen vigente. Tras guardar los cambios, la entrada muestra los valores actualizados y permanece asociada únicamente a categorías del menú al que pertenece.
+- **Criterio de aceptación:** La imagen puede reemplazarse al editar enviando `imageId` de una nueva imagen previamente cargada y validada; si se omite, se conserva la imagen vigente. Tras guardar los cambios, la entrada muestra los valores actualizados y permanece asociada únicamente a categorías del menú al que pertenece.
 
 ### REQ-MENU-ENTRY-003 — Estado y archivado de una entrada
 
@@ -48,7 +50,7 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 ### REQ-MENU-OFFER-001 — Creación de ofertas para una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador crear una o más ofertas pertenecientes a una entrada del catálogo. Para cada oferta deberá poder indicar una etiqueta de presentación opcional, un precio base y una imagen. Toda oferta nueva deberá iniciar inactiva.
-- **Criterio de aceptación:** La creación de cada oferta requiere su imagen. Una entrada puede tener varias ofertas con precios, etiquetas e imágenes propios. Al crear una oferta, queda inactiva hasta que el administrador la active.
+- **Criterio de aceptación:** La creación de cada oferta requiere `imageId` de su imagen previamente cargada y validada. Una entrada puede tener varias ofertas con precios, etiquetas e imágenes propios. Al crear una oferta, queda inactiva hasta que el administrador la active.
 
 ### REQ-MENU-OFFER-002 — Identidad de entrada y presentación vendible
 
@@ -99,6 +101,12 @@ El transporte, las operaciones y la representación de datos de la API quedan pe
 
 - **Requisito:** El sistema deberá permitir configurar opcionalmente en un slot el curso sugerido de servicio, con uno de estos valores: entrada, plato fuerte, postre o bebida.
 - **Criterio de aceptación:** Si se informa el curso, el sistema acepta exactamente entrada, plato fuerte, postre o bebida y rechaza cualquier otro valor. El curso aceptado se muestra asociado al slot como sugerencia de tiempo de servicio y no cambia sus opciones, sus rondas de selección ni el precio.
+
+### Actualización de la composición de una oferta
+
+- **Comportamiento:** El administrador actualiza la composición mediante `PATCH` recursivo. Los campos omitidos en un objeto conservan sus valores vigentes. Un objeto con el identificador de un slot u opción existente actualiza parcialmente ese elemento. Si se omite la lista de slots u opciones, se conserva la lista vigente; si se incluye, reemplaza la lista completa y elimina los elementos vigentes que no aparezcan en ella. Los slots y opciones nuevos se envían sin identificador y el servidor les asigna uno. Un slot nuevo requiere nombre, cantidad y al menos una opción; una opción nueva requiere la tupla `displayName`, `status` y `origin`.
+- **Criterio de aceptación:** La solicitud rechaza listas vacías, identificadores duplicados, desconocidos o pertenecientes a otro recurso. También rechaza un slot nuevo sin nombre, cantidad u opciones, y una opción nueva sin `displayName`, `status` u `origin`. Cualquier rechazo deja íntegra la composición, sin aplicar cambios parciales. El servidor deriva el estado de cada slot a partir de sus opciones y ajusta automáticamente el estado de la oferta según la intención administrativa vigente; estos ajustes no cambian el estado de la entrada. Las revisiones publicadas permanecen intactas.
+- **Control de concurrencia:** La solicitud debe incluir `If-Match` para la versión vigente de la composición. Si falta, el servidor responde `428`; si está desactualizado, responde `412`. Ambos rechazos son atómicos y conservan íntegra la composición.
 
 ## Contenido y recetas
 

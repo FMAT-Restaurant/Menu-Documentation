@@ -88,11 +88,11 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 
 ### 3.2. `Category`
 
-**Atributos:** `id`, `menuId`, `name`, `description`.
+**Atributos:** `id`, `menuId`, `name`, `description?`.
 
 **Relaciones:** pertenece a un menú; clasifica cero o más entradas. Una entrada puede tener varias categorías (relación conceptual muchos a muchos).
 
-**Reglas e invariantes:** no se duplica una entrada por asignarla a más de una categoría; la asignación puede almacenarse como `categoryIds[]` en el modelo de dominio sin convertir la tabla de unión futura en una entidad de negocio obligatoria.
+**Reglas e invariantes:** el nombre es obligatorio y la descripción es opcional. No se duplica una entrada por asignarla a más de una categoría; la asignación puede almacenarse como `categoryIds[]` en el modelo de dominio sin convertir la tabla de unión futura en una entidad de negocio obligatoria.
 
 ### 3.3. `CatalogEntry`
 
@@ -203,7 +203,7 @@ Las marcas **obligatorio**, **opcional** y **derivado** expresan necesidades de 
 
 ### 3.13. `RecipeDefinition`
 
-**Atributos:** `id`, `name`, `description`, `instructions: Text`, `revision`, `yieldQuantity`, `yieldUnit`, `ingredients[]`, `status: ACTIVE | INACTIVE`.
+**Atributos:** `id`, `name`, `description`, `instructions: Text`, `revision`, `ingredients[]`.
 
 **Relaciones:** pertenece siempre a `RecipeLibrary`; contiene una o más líneas `ComponentIngredient`, cada una referida a un `InventoryItem`.
 
@@ -248,7 +248,7 @@ classDiagram
         +id
         +menuId
         +name
-        +description
+        +description?
     }
     class CatalogEntry {
         +id
@@ -317,8 +317,6 @@ classDiagram
         +description
         +instructions
         +revision
-        +yieldQuantity
-        +yieldUnit
     }
     class ComponentIngredient {
         +id
