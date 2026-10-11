@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 4.0.2
+  version: 5.0.0
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
     con una referencia a la consulta externa de Inventario para facilitar el

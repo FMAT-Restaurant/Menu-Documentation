@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 4.0.2
+  version: 5.0.0
   description: 'Contrato HTTP de las operaciones de consulta y administración de Menu, con una referencia a la consulta externa de Inventario para facilitar el trabajo del frontend. El frontend llama directamente al microservicio de Inventario; el backend de Menu no implementa ni atiende /inventory/items. Las operaciones de Menu se organizan por recurso y no definen el host de despliegue; sus rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. El PATCH de ofertas conserva los campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match.'
   license:
     name: MIT
@@ -569,15 +569,41 @@ paths:
             schema:
               $ref: '#/components/schemas/CatalogOfferCreateRequest'
             examples:
-              ofertaIndividual:
-                summary: Crear una oferta individual sin composición inicial
+              ofertaConReceta:
+                summary: Crear una oferta con una opción de receta
+                value:
+                  presentationTag: Individual
+                  basePrice: 185
+                  status: ACTIVE
+                  imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                  composition:
+                    slots:
+                      - name: Plato principal
+                        quantity: 1
+                        course: plato fuerte
+                        options:
+                          - sourceType: RECIPE
+                            recipeId: c4813f65-00b4-4921-874e-03c555796401
+                            recipeRevision: 2
+                            displayName: Hamburguesa Hawaiana
+              ofertaConInventario:
+                summary: Crear una oferta con una opción de insumo de inventario
                 value:
                   presentationTag: Individual
                   basePrice: 180
-                  status: INACTIVE
+                  status: ACTIVE
                   imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                   composition:
-                    slots: []
+                    slots:
+                      - name: Acompañamiento
+                        quantity: 1
+                        course: plato fuerte
+                        options:
+                          - sourceType: INVENTORY_ITEM
+                            inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                            quantity: 200
+                            unit: g
+                            displayName: Papas
       responses:
         '201':
           description: Oferta creada.
@@ -589,21 +615,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/CatalogOfferResponse'
               examples:
-                ofertaCreada:
-                  summary: Oferta creada
+                ofertaCreadaConReceta:
+                  summary: Oferta creada con una opción de receta
                   value:
                     data:
                       id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
                       entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
                       presentationTag: Individual
-                      basePrice: 180
-                      status: INACTIVE
+                      basePrice: 185
+                      status: ACTIVE
                       image:
                         id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                         url: https://cdn.example.com/menu/hamburguesa-individual.jpg
                         thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
                       composition:
-                        slots: []
+                        slots:
+                          - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                            name: Plato principal
+                            quantity: 1
+                            course: plato fuerte
+                            options:
+                              - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                                sourceType: RECIPE
+                                recipeId: c4813f65-00b4-4921-874e-03c555796401
+                                recipeRevision: 2
+                                displayName: Hamburguesa Hawaiana
+                                status: ACTIVE
+                ofertaCreadaConInventario:
+                  summary: Oferta creada con una opción de insumo de inventario
+                  value:
+                    data:
+                      id: c68f8a31-7f0e-4b4b-a8ed-118da2ce4102
+                      entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      presentationTag: Individual
+                      basePrice: 180
+                      status: ACTIVE
+                      image:
+                        id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                        url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                      composition:
+                        slots:
+                          - slotId: c43a9201-0c4b-4f23-9cf8-437ab312e501
+                            name: Acompañamiento
+                            quantity: 1
+                            course: plato fuerte
+                            options:
+                              - optionId: 79a1bc24-0d4f-489b-9836-3a60b5c4ed12
+                                sourceType: INVENTORY_ITEM
+                                inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                                quantity: 200
+                                unit: g
+                                displayName: Papas
+                                status: ACTIVE
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -639,7 +703,7 @@ paths:
         - Ofertas
       operationId: getMenuOffer
       summary: Consultar una oferta y su composición
-      description: Devuelve los datos de la oferta y su composición. Cada opción incluye el tipo y UUID de su origen; source contiene la referencia de solo lectura del recurso de origen.
+      description: 'Devuelve los datos de la oferta y su composición. Cada opción identifica su origen mediante sourceType y los campos específicos del tipo: RECIPE incluye recipeId y recipeRevision; INVENTORY_ITEM incluye inventoryItemId, quantity y unit. displayName es el nombre de la opción que se muestra en el menú.'
       parameters:
         - $ref: '#/components/parameters/IfNoneMatch'
       responses:
@@ -670,18 +734,40 @@ paths:
                         slots:
                           - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                             name: Plato principal
-                            required: true
                             quantity: 1
                             course: plato fuerte
                             options:
                               - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                                 sourceType: RECIPE
                                 recipeId: c4813f65-00b4-4921-874e-03c555796401
-                                inventoryItemId: null
+                                recipeRevision: 2
                                 displayName: Hamburguesa Hawaiana
-                                source:
-                                  id: c4813f65-00b4-4921-874e-03c555796401
-                                  name: Hamburguesa Hawaiana
+                ofertaConInventario:
+                  summary: Oferta con un espacio de insumo de inventario
+                  value:
+                    data:
+                      id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                      entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      presentationTag: Individual
+                      basePrice: 180
+                      status: ACTIVE
+                      image:
+                        id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                        url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                      composition:
+                        slots:
+                          - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                            name: Acompañamiento
+                            quantity: 1
+                            course: plato fuerte
+                            options:
+                              - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+                                sourceType: INVENTORY_ITEM
+                                inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                                quantity: 200
+                                unit: g
+                                displayName: Papas
         '304':
           $ref: '#/components/responses/NotModified'
         '401':
@@ -697,7 +783,7 @@ paths:
         - Ofertas
       operationId: patchMenuOffer
       summary: Actualizar una oferta
-      description: 'Actualiza los campos incluidos en el cuerpo; los omitidos conservan sus valores recursivamente. Un cuerpo vacío conserva todos los campos y composition vacío conserva los slots. Requiere el ETag fuerte vigente en If-Match: su ausencia devuelve 428 y un valor obsoleto devuelve 412, sin mutaciones. Si envía composition.slots o las options de un slot, la lista representa el conjunto completo deseado: elimina los miembros no incluidos. Los elementos existentes identificados por slotId u optionId conservan sus campos omitidos; omitir options en un slot existente conserva sus opciones. Los nuevos elementos omiten su ID, generado por el servidor. Un slot nuevo requiere name, quantity y options; una opción nueva requiere displayName, status y el origen completo: sourceType RECIPE con recipeId y recipeRevision, o INVENTORY_ITEM con inventoryItemId, quantity positiva y unit. Para una opción existente, si sourceType coincide con el tipo de origen almacenado, puede omitirse el resto del origen y sus campos omitidos se conservan; por ejemplo, reenviar RECIPE no requiere recipeId ni recipeRevision si no se cambia la receta. Si sourceType difiere del tipo almacenado, el servidor lo determina al comparar ambos valores y requiere la tupla completa del nuevo origen; entonces descarta los campos del origen anterior. Una tupla incompleta o inválida devuelve 422. La comparación con el estado almacenado, la validación del resultado completo y la persistencia son atómicas: el error no modifica ningún campo. Un slotId debe pertenecer a esta oferta y un optionId al slot indicado. IDs desconocidos, ajenos o duplicados se rechazan con 422; no se mueven elementos ni se crean con ID suministrado. Las listas vacías se rechazan con 422 incluso para ofertas INACTIVE. El estado del slot es derivado y source es de solo lectura: no se admite en la solicitud. Se recalculan los estados de slots a partir de sus opciones; sin slots ACTIVE la oferta se inactiva automáticamente y solo se recupera al volver a tener uno si seguía habilitada administrativamente. Una inactivación administrativa explícita se conserva. No cambia el estado administrativo de la entrada ni las revisiones históricas. imageId es opcional y reemplaza la asociación de imagen con una imagen previamente cargada mediante POST /api/v1/media/images, usando data.id de su respuesta. Omitir imageId conserva la imagen vigente; null se rechaza. Esta operación recibe JSON, no archivos ni URLs. La imagen referenciada debe existir, ser válida y ser accesible al solicitante. Una referencia inválida devuelve 422 sin modificar la oferta ni aplicar cambios parciales. La carga previa es una operación independiente y no se deshace si falla la actualización de la oferta.'
+      description: Actualiza parcialmente una oferta. Los campos omitidos se conservan; enviar composition.slots o las options de un slot reemplaza el conjunto completo. La composición se valida íntegramente y se persiste de forma atómica. Requiere el ETag vigente en If-Match. Las reglas de IDs, tipos de opción, estados e imagen se detallan en el esquema de solicitud.
       parameters:
         - $ref: '#/components/parameters/IfMatch'
       requestBody:
@@ -716,8 +802,10 @@ paths:
                       - slotId: b37c1bd7-17b2-47a2-a3a4-802559445302
                         options:
                           - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                            sourceType: RECIPE
                             status: INACTIVE
                           - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+                            sourceType: INVENTORY_ITEM
               agregarSlot:
                 summary: Conservar un slot existente y agregar un slot nuevo
                 value:
@@ -792,7 +880,6 @@ paths:
                         slots:
                           - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                             name: Plato principal
-                            required: true
                             status: ACTIVE
                             quantity: 1
                             course: plato fuerte
@@ -800,13 +887,9 @@ paths:
                               - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                                 sourceType: RECIPE
                                 recipeId: c4813f65-00b4-4921-874e-03c555796401
-                                recipeRevision: 1
+                                recipeRevision: 2
                                 status: ACTIVE
-                                inventoryItemId: null
                                 displayName: Hamburguesa Hawaiana
-                                source:
-                                  id: c4813f65-00b4-4921-874e-03c555796401
-                                  name: Hamburguesa Hawaiana
                               - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                                 sourceType: INVENTORY_ITEM
                                 inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
@@ -814,9 +897,6 @@ paths:
                                 displayName: Papas
                                 quantity: 200
                                 unit: g
-                                source:
-                                  id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
-                                  name: Papas
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1746,21 +1826,18 @@ components:
           slots:
             - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
               name: Hamburguesa
-              required: true
               quantity: 1
               course: plato fuerte
               options:
                 - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
                   sourceType: RECIPE
                   recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-                  inventoryItemId: null
+                  recipeRevision: 3
                   displayName: Hamburguesa hawaiana
-                  source:
-                    id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-                    name: Receta de hamburguesa
     CatalogOfferCreateRequest:
       type: object
-      description: Datos JSON para crear una oferta y definir su composición inicial. La imagen se carga previamente mediante POST /api/v1/media/images y esta solicitud asocia su identificador; la carga y la asociación son operaciones separadas. No se envían archivos ni URLs en esta solicitud.
+      description: Datos JSON para crear una oferta y definir su composición inicial. La imagen se carga previamente mediante POST /api/v1/media/images y esta solicitud asocia su identificador; la carga y la asociación son operaciones separadas. No se envían archivos ni URLs en esta solicitud. Los UUID de los slots y las opciones los genera el servidor; no deben incluirse en este cuerpo.
+      additionalProperties: false
       required:
         - basePrice
         - status
@@ -1791,16 +1868,13 @@ components:
         imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
         composition:
           slots:
-            - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
-              name: Hamburguesa
-              required: true
+            - name: Hamburguesa
               quantity: 1
               course: plato fuerte
               options:
-                - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
-                  sourceType: RECIPE
+                - sourceType: RECIPE
                   recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-                  inventoryItemId: null
+                  recipeRevision: 3
                   displayName: Hamburguesa hawaiana
     CatalogOfferPatchRequest:
       type: object
@@ -1869,21 +1943,18 @@ components:
         slots:
           - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
             name: Hamburguesa
-            required: true
             quantity: 1
             course: plato fuerte
             options:
               - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
                 sourceType: RECIPE
                 recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-                inventoryItemId: null
+                recipeRevision: 3
                 displayName: Hamburguesa hawaiana
-                source:
-                  id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-                  name: Receta de hamburguesa
     CompositionInput:
       type: object
-      description: Datos de una composición enviados al crear o actualizar una oferta.
+      description: Datos de la composición inicial enviados al crear una oferta.
+      additionalProperties: false
       required:
         - slots
       properties:
@@ -1925,9 +1996,6 @@ components:
             - postre
             - bebida
             - null
-        required:
-          const: true
-          description: Siempre true cuando se informa.
         options:
           type: array
           minItems: 1
@@ -1941,7 +2009,6 @@ components:
                 name: {}
                 quantity: {}
                 course: {}
-                required: {}
                 options: {}
               required:
                 - slotId
@@ -1952,335 +2019,21 @@ components:
               options: {}
               slotId: {}
               course: {}
-              required: {}
             required:
               - name
               - quantity
               - options
     SlotOptionPatchInput:
-      type: object
-      additionalProperties: false
-      description: Con optionId actualiza una opción existente del slot y conserva los campos omitidos; un objeto con solo optionId es válido. Sin optionId crea una opción con displayName, status, sourceType y el origen completo; el servidor genera su ID. IDs desconocidos, ajenos o duplicados se rechazan con 422 y no permiten mover opciones ni crear nuevas con ID. En una opción existente, informar sourceType conserva el origen si coincide con el tipo almacenado; el servidor compara ambos tipos y, si cambia, exige la tupla completa del nuevo origen y aplica el cambio atómicamente. Sin sourceType se permiten cambios parciales del origen existente. El resultado debe tener exactamente un origen válido; mezclar tipos se rechaza con 422. Los campos de origen no admiten null.
-      properties:
-        optionId:
-          type: string
-          format: uuid
-        displayName:
-          type: string
-        status:
-          $ref: '#/components/schemas/OfferStatus'
-        sourceType:
-          type: string
-          enum:
-            - RECIPE
-            - INVENTORY_ITEM
-        recipeId:
-          type: string
-          format: uuid
-        recipeRevision:
-          type: integer
-          minimum: 1
-        inventoryItemId:
-          type: string
-          format: uuid
-        quantity:
-          type: number
-          exclusiveMinimum: 0
-        unit:
-          type: string
-          minLength: 1
-      dependentRequired:
-        recipeId:
-          - recipeRevision
-      allOf:
-        - if:
-            anyOf:
-              - properties:
-                  recipeId: {}
-                  optionId: {}
-                  displayName: {}
-                  status: {}
-                  sourceType: {}
-                  recipeRevision: {}
-                  inventoryItemId: {}
-                  quantity: {}
-                  unit: {}
-                required:
-                  - recipeId
-              - properties:
-                  recipeRevision: {}
-                  optionId: {}
-                  displayName: {}
-                  status: {}
-                  sourceType: {}
-                  recipeId: {}
-                  inventoryItemId: {}
-                  quantity: {}
-                  unit: {}
-                required:
-                  - recipeRevision
-          then:
-            not:
-              anyOf:
-                - properties:
-                    inventoryItemId: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    quantity: {}
-                    unit: {}
-                  required:
-                    - inventoryItemId
-                - properties:
-                    quantity: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    unit: {}
-                  required:
-                    - quantity
-                - properties:
-                    unit: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                  required:
-                    - unit
-        - if:
-            not:
-              properties:
-                optionId: {}
-                displayName: {}
-                status: {}
-                sourceType: {}
-                recipeId: {}
-                recipeRevision: {}
-                inventoryItemId: {}
-                quantity: {}
-                unit: {}
-              required:
-                - optionId
-          then:
-            properties:
-              displayName: {}
-              status: {}
-              sourceType: {}
-              optionId: {}
-              recipeId: {}
-              recipeRevision: {}
-              inventoryItemId: {}
-              quantity: {}
-              unit: {}
-            required:
-              - displayName
-              - status
-              - sourceType
-        - if:
-            required:
-              - sourceType
-            properties:
-              sourceType:
-                const: RECIPE
-              optionId: {}
-              displayName: {}
-              status: {}
-              recipeId: {}
-              recipeRevision: {}
-              inventoryItemId: {}
-              quantity: {}
-              unit: {}
-          then:
-            properties:
-              recipeId: {}
-              recipeRevision: {}
-              optionId: {}
-              displayName: {}
-              status: {}
-              sourceType: {}
-              inventoryItemId: {}
-              quantity: {}
-              unit: {}
-            not:
-              anyOf:
-                - properties:
-                    inventoryItemId: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    quantity: {}
-                    unit: {}
-                  required:
-                    - inventoryItemId
-                - properties:
-                    quantity: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    unit: {}
-                  required:
-                    - quantity
-                - properties:
-                    unit: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                  required:
-                    - unit
-        - if:
-            required:
-              - sourceType
-            properties:
-              sourceType:
-                const: INVENTORY_ITEM
-              optionId: {}
-              displayName: {}
-              status: {}
-              recipeId: {}
-              recipeRevision: {}
-              inventoryItemId: {}
-              quantity: {}
-              unit: {}
-          then:
-            properties:
-              inventoryItemId: {}
-              quantity: {}
-              unit: {}
-              optionId: {}
-              displayName: {}
-              status: {}
-              sourceType: {}
-              recipeId: {}
-              recipeRevision: {}
-            not:
-              anyOf:
-                - properties:
-                    recipeId: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                    unit: {}
-                  required:
-                    - recipeId
-                - properties:
-                    recipeRevision: {}
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                    unit: {}
-                  required:
-                    - recipeRevision
-        - if:
-            not:
-              properties:
-                optionId: {}
-                displayName: {}
-                status: {}
-                sourceType: {}
-                recipeId: {}
-                recipeRevision: {}
-                inventoryItemId: {}
-                quantity: {}
-                unit: {}
-              required:
-                - optionId
-          then:
-            allOf:
-              - if:
-                  required:
-                    - sourceType
-                  properties:
-                    sourceType:
-                      const: RECIPE
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                    unit: {}
-                then:
-                  properties:
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                    unit: {}
-                  required:
-                    - recipeId
-                    - recipeRevision
-              - if:
-                  required:
-                    - sourceType
-                  properties:
-                    sourceType:
-                      const: INVENTORY_ITEM
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                    unit: {}
-                then:
-                  properties:
-                    optionId: {}
-                    displayName: {}
-                    status: {}
-                    sourceType: {}
-                    recipeId: {}
-                    recipeRevision: {}
-                    inventoryItemId: {}
-                    quantity: {}
-                    unit: {}
-                  required:
-                    - inventoryItemId
-                    - quantity
-                    - unit
+      description: Con optionId actualiza una opción existente del slot y conserva los campos omitidos; sourceType debe coincidir con el tipo almacenado para que los cambios parciales sean válidos. Sin optionId crea una opción nueva; debe incluir displayName, status y la tupla completa del origen indicado. El servidor genera el ID. IDs desconocidos, ajenos o duplicados se rechazan con 422; no se pueden mover opciones ni crear nuevas con ID. Para cambiar el tipo de una opción existente, se debe enviar sourceType y la tupla completa del nuevo origen; el servidor aplica el cambio atómicamente.
+      oneOf:
+        - $ref: '#/components/schemas/RecipeSlotOptionPatchInput'
+        - $ref: '#/components/schemas/InventoryItemSlotOptionPatchInput'
     CompositionSlot:
       type: object
       description: Slot de la composición con una cantidad, un curso y las opciones que pueden ocuparlo.
       required:
         - slotId
         - name
-        - required
         - quantity
         - options
       properties:
@@ -2293,9 +2046,6 @@ components:
           type: string
           description: Nombre que identifica el slot dentro de la composición.
           example: Hamburguesa
-        required:
-          const: true
-          description: La API siempre devuelve true para este campo.
         status:
           $ref: '#/components/schemas/OfferStatus'
           description: Estado derivado, incluido en la respuesta del PATCH; ACTIVE si alguna opción está ACTIVE e INACTIVE si ninguna lo está.
@@ -2320,40 +2070,27 @@ components:
       example:
         slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
         name: Hamburguesa
-        required: true
         quantity: 1
         course: plato fuerte
         options:
           - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
             sourceType: RECIPE
             recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-            inventoryItemId: null
+            recipeRevision: 3
             displayName: Hamburguesa hawaiana
-            source:
-              id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-              name: Receta de hamburguesa
     CompositionSlotInput:
       type: object
-      description: Datos para crear o actualizar un slot de una composición.
+      description: Datos para crear un slot de una composición; el servidor genera slotId.
+      additionalProperties: false
       required:
-        - slotId
         - name
-        - required
         - quantity
         - options
       properties:
-        slotId:
-          type: string
-          format: uuid
-          description: Identificador UUID del slot.
-          example: c3d4e5f6-789a-4bcd-8ef0-123456789abc
         name:
           type: string
           description: Nombre que identifica el slot dentro de la composición.
           example: Hamburguesa
-        required:
-          const: true
-          description: La API requiere el valor true para este campo.
         quantity:
           type: number
           description: Rango y precisión no definidos en la fuente.
@@ -2373,16 +2110,13 @@ components:
           items:
             $ref: '#/components/schemas/SlotOptionInput'
       example:
-        slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
         name: Hamburguesa
-        required: true
         quantity: 1
         course: plato fuerte
         options:
-          - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
-            sourceType: RECIPE
+          - sourceType: RECIPE
             recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-            inventoryItemId: null
+            recipeRevision: 3
             displayName: Hamburguesa hawaiana
     SlotOption:
       description: Opción de un slot; cada opción identifica una receta o un insumo de inventario.
@@ -2663,18 +2397,14 @@ components:
               message: El nombre es obligatorio.
     RecipeSlotOptionInput:
       type: object
-      description: Datos para crear o actualizar una opción de slot basada en una receta.
+      description: Datos para crear una opción de slot basada en una receta; el servidor genera optionId.
+      additionalProperties: false
       required:
-        - optionId
         - sourceType
         - recipeId
+        - recipeRevision
         - displayName
       properties:
-        optionId:
-          type: string
-          format: uuid
-          description: Identificador UUID de la opción.
-          example: a1b2c3d4-e5f6-4789-8abc-def012345678
         sourceType:
           const: RECIPE
           description: Indica que la opción se basa en una receta.
@@ -2683,140 +2413,34 @@ components:
           format: uuid
           description: Identificador UUID de la receta de origen.
           example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        inventoryItemId:
-          type: 'null'
-          description: Campo no aplicable cuando el origen de la opción es una receta.
-        displayName:
-          type: string
-          description: Nombre que se mostrará para esta opción.
-          example: Hamburguesa hawaiana
-      example:
-        optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
-        sourceType: RECIPE
-        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        inventoryItemId: null
-        displayName: Hamburguesa hawaiana
-    InventoryItemSlotOptionInput:
-      type: object
-      description: Datos para crear o actualizar una opción de slot basada en un insumo de inventario.
-      required:
-        - optionId
-        - sourceType
-        - inventoryItemId
-        - displayName
-      properties:
-        optionId:
-          type: string
-          format: uuid
-          description: Identificador UUID de la opción.
-          example: b2c3d4e5-f678-489a-bcde-f0123456789a
-        sourceType:
-          const: INVENTORY_ITEM
-          description: Indica que la opción se basa directamente en un insumo de inventario.
-        recipeId:
-          type: 'null'
-          description: Campo no aplicable cuando el origen de la opción es un insumo de inventario.
-        inventoryItemId:
-          type: string
-          format: uuid
-          description: Identificador UUID del insumo de inventario de origen.
-          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
-        displayName:
-          type: string
-          description: Nombre que se mostrará para esta opción.
-          example: Queso cheddar
-      example:
-        optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
-        sourceType: INVENTORY_ITEM
-        recipeId: null
-        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
-        displayName: Queso cheddar
-    SourceReference:
-      type: object
-      readOnly: true
-      description: Referencia de solo lectura al origen de una opción de composición.
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Identificador UUID de la receta o del insumo de inventario referenciado.
-          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        name:
-          type: string
-          description: Nombre del origen que se muestra en la respuesta.
-          example: Receta de hamburguesa
-    RecipeSlotOption:
-      type: object
-      description: Opción de slot cuyo origen es una receta. La respuesta del PATCH incluye su estado y la revisión fijada de la receta.
-      required:
-        - optionId
-        - sourceType
-        - recipeId
-        - displayName
-        - source
-      properties:
-        optionId:
-          type: string
-          format: uuid
-          description: Identificador UUID de la opción.
-          example: a1b2c3d4-e5f6-4789-8abc-def012345678
-        sourceType:
-          const: RECIPE
-          description: Indica que la opción se basa en una receta.
-        recipeId:
-          type: string
-          format: uuid
-          description: Identificador UUID de la receta de origen.
-          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        inventoryItemId:
-          type: 'null'
-          description: El origen alternativo no aplica a una opción de receta.
         recipeRevision:
           type: integer
           minimum: 1
-          description: Revisión de receta fijada por la opción, incluida en la respuesta del PATCH.
-        status:
-          $ref: '#/components/schemas/OfferStatus'
-          description: Estado de la opción, incluido en la respuesta del PATCH.
+          description: Revisión de receta fijada por la opción.
+          example: 3
         displayName:
           type: string
-          description: Nombre que se muestra para esta opción en el catálogo.
+          description: Nombre que se mostrará para esta opción en el menú. Puede diferir del nombre de la receta de origen, que se resuelve mediante recipeId.
           example: Hamburguesa hawaiana
-        source:
-          $ref: '#/components/schemas/SourceReference'
       example:
-        optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
         sourceType: RECIPE
         recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        inventoryItemId: null
+        recipeRevision: 3
         displayName: Hamburguesa hawaiana
-        source:
-          id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-          name: Receta de hamburguesa
-    InventoryItemSlotOption:
+    InventoryItemSlotOptionInput:
       type: object
-      description: Opción de slot cuyo origen es un insumo de inventario. La respuesta del PATCH incluye su estado, cantidad y unidad.
+      description: Datos para crear una opción de slot basada en un insumo de inventario; el servidor genera optionId.
+      additionalProperties: false
       required:
-        - optionId
         - sourceType
         - inventoryItemId
+        - quantity
+        - unit
         - displayName
-        - source
       properties:
-        optionId:
-          type: string
-          format: uuid
-          description: Identificador UUID de la opción.
-          example: b2c3d4e5-f678-489a-bcde-f0123456789a
         sourceType:
           const: INVENTORY_ITEM
           description: Indica que la opción se basa directamente en un insumo de inventario.
-        recipeId:
-          type: 'null'
-          description: El origen alternativo no aplica a una opción de inventario.
         inventoryItemId:
           type: string
           format: uuid
@@ -2825,11 +2449,97 @@ components:
         quantity:
           type: number
           exclusiveMinimum: 0
-          description: Cantidad positiva del artículo, incluida en la respuesta del PATCH.
+          description: Cantidad positiva del artículo.
+          example: 150
         unit:
           type: string
           minLength: 1
-          description: Unidad compatible con la del artículo, incluida en la respuesta del PATCH.
+          description: Unidad compatible con la del artículo.
+          example: g
+        displayName:
+          type: string
+          description: Nombre que se mostrará para esta opción en el menú. Puede diferir del nombre del insumo de origen, que se resuelve mediante inventoryItemId.
+          example: Queso cheddar
+      example:
+        sourceType: INVENTORY_ITEM
+        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 150
+        unit: g
+        displayName: Queso cheddar
+    RecipeSlotOption:
+      type: object
+      description: Opción de slot cuyo origen es una receta. La respuesta incluye la revisión fijada y la respuesta del PATCH también incluye su estado.
+      additionalProperties: false
+      required:
+        - optionId
+        - sourceType
+        - recipeId
+        - recipeRevision
+        - displayName
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la opción.
+          example: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType:
+          const: RECIPE
+          description: Indica que la opción se basa en una receta.
+        recipeId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la receta de origen.
+          example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        recipeRevision:
+          type: integer
+          minimum: 1
+          description: Revisión de receta fijada por la opción.
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+          description: Estado de la opción, incluido en la respuesta del PATCH.
+        displayName:
+          type: string
+          description: Nombre que se muestra para esta opción en el catálogo.
+          example: Hamburguesa hawaiana
+      example:
+        optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+        sourceType: RECIPE
+        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        recipeRevision: 3
+        displayName: Hamburguesa hawaiana
+    InventoryItemSlotOption:
+      type: object
+      description: Opción de slot cuyo origen es un insumo de inventario. La respuesta incluye cantidad y unidad; la respuesta del PATCH también incluye su estado.
+      additionalProperties: false
+      required:
+        - optionId
+        - sourceType
+        - inventoryItemId
+        - quantity
+        - unit
+        - displayName
+      properties:
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador UUID de la opción.
+          example: b2c3d4e5-f678-489a-bcde-f0123456789a
+        sourceType:
+          const: INVENTORY_ITEM
+          description: Indica que la opción se basa directamente en un insumo de inventario.
+        inventoryItemId:
+          type: string
+          format: uuid
+          description: Identificador UUID del insumo de inventario de origen.
+          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+          description: Cantidad positiva del artículo.
+        unit:
+          type: string
+          minLength: 1
+          description: Unidad compatible con la del artículo.
         status:
           $ref: '#/components/schemas/OfferStatus'
           description: Estado de la opción, incluido en la respuesta del PATCH.
@@ -2837,17 +2547,92 @@ components:
           type: string
           description: Nombre que se muestra para esta opción en el catálogo.
           example: Queso cheddar
-        source:
-          $ref: '#/components/schemas/SourceReference'
       example:
         optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
         sourceType: INVENTORY_ITEM
-        recipeId: null
         inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        quantity: 150
+        unit: g
         displayName: Queso cheddar
-        source:
-          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
-          name: Queso cheddar
+    RecipeSlotOptionPatchInput:
+      type: object
+      description: Datos para actualizar o crear una opción basada en una receta.
+      additionalProperties: false
+      required:
+        - sourceType
+      properties:
+        sourceType:
+          const: RECIPE
+          description: Tipo de origen de esta opción.
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador de una opción existente; se omite para crearla.
+        displayName:
+          type: string
+          description: Nombre que se muestra para esta opción.
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        recipeId:
+          type: string
+          format: uuid
+        recipeRevision:
+          type: integer
+          minimum: 1
+      dependentRequired:
+        recipeId:
+          - recipeRevision
+      allOf:
+        - if:
+            not:
+              required:
+                - optionId
+          then:
+            required:
+              - displayName
+              - status
+              - recipeId
+              - recipeRevision
+    InventoryItemSlotOptionPatchInput:
+      type: object
+      description: Datos para actualizar o crear una opción basada en un insumo de inventario.
+      additionalProperties: false
+      required:
+        - sourceType
+      properties:
+        sourceType:
+          const: INVENTORY_ITEM
+          description: Tipo de origen de esta opción.
+        optionId:
+          type: string
+          format: uuid
+          description: Identificador de una opción existente; se omite para crearla.
+        displayName:
+          type: string
+          description: Nombre que se muestra para esta opción.
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        inventoryItemId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          type: string
+          minLength: 1
+      allOf:
+        - if:
+            not:
+              required:
+                - optionId
+          then:
+            required:
+              - displayName
+              - status
+              - inventoryItemId
+              - quantity
+              - unit
     CatalogOfferPatchRecipeSlotOption:
       allOf:
         - $ref: '#/components/schemas/RecipeSlotOption'

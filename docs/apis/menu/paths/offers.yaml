@@ -82,15 +82,41 @@ entryOffers:
           schema:
             $ref: ../openapi.yaml#/components/schemas/CatalogOfferCreateRequest
           examples:
-            ofertaIndividual:
-              summary: Crear una oferta individual sin composición inicial
+            ofertaConReceta:
+              summary: Crear una oferta con una opción de receta
+              value:
+                presentationTag: Individual
+                basePrice: 185.0
+                status: ACTIVE
+                imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                composition:
+                  slots:
+                    - name: Plato principal
+                      quantity: 1
+                      course: plato fuerte
+                      options:
+                        - sourceType: RECIPE
+                          recipeId: c4813f65-00b4-4921-874e-03c555796401
+                          recipeRevision: 2
+                          displayName: Hamburguesa Hawaiana
+            ofertaConInventario:
+              summary: Crear una oferta con una opción de insumo de inventario
               value:
                 presentationTag: Individual
                 basePrice: 180.0
-                status: INACTIVE
+                status: ACTIVE
                 imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                 composition:
-                  slots: []
+                  slots:
+                    - name: Acompañamiento
+                      quantity: 1
+                      course: plato fuerte
+                      options:
+                        - sourceType: INVENTORY_ITEM
+                          inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                          quantity: 200
+                          unit: g
+                          displayName: Papas
     responses:
       '201':
         description: Oferta creada.
@@ -102,21 +128,59 @@ entryOffers:
             schema:
               $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
             examples:
-              ofertaCreada:
-                summary: Oferta creada
+              ofertaCreadaConReceta:
+                summary: Oferta creada con una opción de receta
                 value:
                   data:
                     id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
                     entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
                     presentationTag: Individual
-                    basePrice: 180.0
-                    status: INACTIVE
+                    basePrice: 185.0
+                    status: ACTIVE
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
                       thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
                     composition:
-                      slots: []
+                      slots:
+                        - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                          name: Plato principal
+                          quantity: 1
+                          course: plato fuerte
+                          options:
+                            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                              sourceType: RECIPE
+                              recipeId: c4813f65-00b4-4921-874e-03c555796401
+                              recipeRevision: 2
+                              displayName: Hamburguesa Hawaiana
+                              status: ACTIVE
+              ofertaCreadaConInventario:
+                summary: Oferta creada con una opción de insumo de inventario
+                value:
+                  data:
+                    id: c68f8a31-7f0e-4b4b-a8ed-118da2ce4102
+                    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    presentationTag: Individual
+                    basePrice: 180.0
+                    status: ACTIVE
+                    image:
+                      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                      url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                    composition:
+                      slots:
+                        - slotId: c43a9201-0c4b-4f23-9cf8-437ab312e501
+                          name: Acompañamiento
+                          quantity: 1
+                          course: plato fuerte
+                          options:
+                            - optionId: 79a1bc24-0d4f-489b-9836-3a60b5c4ed12
+                              sourceType: INVENTORY_ITEM
+                              inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                              quantity: 200
+                              unit: g
+                              displayName: Papas
+                              status: ACTIVE
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
@@ -152,9 +216,11 @@ offerById:
     tags: [Ofertas]
     operationId: getMenuOffer
     summary: Consultar una oferta y su composición
-    description: Devuelve los datos de la oferta y su composición. Cada opción
-      incluye el tipo y UUID de su origen; source contiene la referencia de solo
-      lectura del recurso de origen.
+    description: >-
+      Devuelve los datos de la oferta y su composición. Cada opción identifica su
+      origen mediante sourceType y los campos específicos del tipo: RECIPE incluye
+      recipeId y recipeRevision; INVENTORY_ITEM incluye inventoryItemId, quantity
+      y unit. displayName es el nombre de la opción que se muestra en el menú.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
     responses:
@@ -185,18 +251,40 @@ offerById:
                       slots:
                         - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                           name: Plato principal
-                          required: true
                           quantity: 1
                           course: plato fuerte
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
-                              inventoryItemId: null
+                              recipeRevision: 2
                               displayName: Hamburguesa Hawaiana
-                              source:
-                                id: c4813f65-00b4-4921-874e-03c555796401
-                                name: Hamburguesa Hawaiana
+              ofertaConInventario:
+                summary: Oferta con un espacio de insumo de inventario
+                value:
+                  data:
+                    id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                    presentationTag: Individual
+                    basePrice: 180.0
+                    status: ACTIVE
+                    image:
+                      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                      url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                      thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                    composition:
+                      slots:
+                        - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                          name: Acompañamiento
+                          quantity: 1
+                          course: plato fuerte
+                          options:
+                            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+                              sourceType: INVENTORY_ITEM
+                              inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                              quantity: 200
+                              unit: g
+                              displayName: Papas
       '304':
         $ref: ../openapi.yaml#/components/responses/NotModified
       '401':
@@ -212,46 +300,11 @@ offerById:
     operationId: patchMenuOffer
     summary: Actualizar una oferta
     description: >-
-      Actualiza los campos incluidos en el cuerpo; los omitidos conservan sus
-      valores recursivamente. Un cuerpo vacío conserva todos los campos y
-      composition vacío conserva los slots. Requiere
-      el ETag fuerte vigente en If-Match: su ausencia devuelve 428 y un valor
-      obsoleto devuelve 412, sin mutaciones. Si envía composition.slots o las
-      options de un slot, la lista representa el conjunto completo deseado:
-      elimina los miembros no incluidos. Los elementos existentes identificados
-      por slotId u optionId conservan sus campos omitidos; omitir options en un
-      slot existente conserva sus opciones. Los nuevos elementos omiten su ID,
-      generado por el servidor. Un slot nuevo requiere name, quantity y options;
-      una opción nueva requiere displayName, status y el origen completo:
-      sourceType RECIPE con recipeId y recipeRevision, o INVENTORY_ITEM con
-      inventoryItemId, quantity positiva y unit. Para una opción existente, si
-      sourceType coincide con el tipo de origen almacenado, puede omitirse el
-      resto del origen y sus campos omitidos se conservan; por ejemplo, reenviar
-      RECIPE no requiere recipeId ni recipeRevision si no se cambia la receta.
-      Si sourceType difiere del tipo almacenado, el servidor lo determina al
-      comparar ambos valores y requiere la tupla completa del nuevo origen;
-      entonces descarta los campos del origen anterior. Una tupla incompleta o
-      inválida devuelve 422. La comparación con el estado almacenado, la
-      validación del resultado completo y la persistencia son atómicas: el error
-      no modifica ningún campo. Un slotId debe pertenecer a esta oferta y un
-      optionId al slot indicado. IDs
-      desconocidos, ajenos o duplicados se rechazan con 422; no se mueven
-      elementos ni se crean con ID suministrado. Las listas vacías se rechazan
-      con 422 incluso para ofertas INACTIVE. El estado del slot es derivado y
-      source es de solo lectura: no se admite en la solicitud. Se recalculan los
-      estados de slots a partir de sus opciones; sin
-      slots ACTIVE la oferta se inactiva automáticamente y solo se recupera al
-      volver a tener uno si seguía habilitada administrativamente. Una
-      inactivación administrativa explícita se conserva. No cambia el estado
-      administrativo de la entrada ni las revisiones históricas.
-      imageId es opcional y reemplaza la asociación
-      de imagen con una imagen previamente cargada mediante
-      POST /api/v1/media/images, usando data.id de su respuesta. Omitir imageId
-      conserva la imagen vigente; null se rechaza. Esta operación recibe JSON,
-      no archivos ni URLs. La imagen referenciada debe existir, ser válida y ser
-      accesible al solicitante. Una referencia inválida devuelve 422 sin modificar
-      la oferta ni aplicar cambios parciales. La carga previa es una operación
-      independiente y no se deshace si falla la actualización de la oferta.
+      Actualiza parcialmente una oferta. Los campos omitidos se conservan;
+      enviar composition.slots o las options de un slot reemplaza el conjunto
+      completo. La composición se valida íntegramente y se persiste de forma
+      atómica. Requiere el ETag vigente en If-Match. Las reglas de IDs, tipos de
+      opción, estados e imagen se detallan en el esquema de solicitud.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -270,8 +323,10 @@ offerById:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445302
                       options:
                         - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                          sourceType: RECIPE
                           status: INACTIVE
                         - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+                          sourceType: INVENTORY_ITEM
             agregarSlot:
               summary: Conservar un slot existente y agregar un slot nuevo
               value:
@@ -346,7 +401,6 @@ offerById:
                       slots:
                         - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                           name: Plato principal
-                          required: true
                           status: ACTIVE
                           quantity: 1
                           course: plato fuerte
@@ -354,13 +408,9 @@ offerById:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
-                              recipeRevision: 1
+                              recipeRevision: 2
                               status: ACTIVE
-                              inventoryItemId: null
                               displayName: Hamburguesa Hawaiana
-                              source:
-                                id: c4813f65-00b4-4921-874e-03c555796401
-                                name: Hamburguesa Hawaiana
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                               sourceType: INVENTORY_ITEM
                               inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
@@ -368,9 +418,6 @@ offerById:
                               displayName: Papas
                               quantity: 200
                               unit: g
-                              source:
-                                id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
-                                name: Papas
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
