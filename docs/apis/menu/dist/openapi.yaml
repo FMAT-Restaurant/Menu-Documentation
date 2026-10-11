@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: API de administración de Menu
-  version: 4.0.1
-  description: 'Contrato HTTP para las operaciones de consulta y administración usadas por el frontend. Se organiza por recurso y no define el host de despliegue; las rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. El PATCH de ofertas conserva los campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match.'
+  title: API de Menu y referencia externa de Inventario
+  version: 4.0.2
+  description: 'Contrato HTTP de las operaciones de consulta y administración de Menu, con una referencia a la consulta externa de Inventario para facilitar el trabajo del frontend. El frontend llama directamente al microservicio de Inventario; el backend de Menu no implementa ni atiende /inventory/items. Las operaciones de Menu se organizan por recurso y no definen el host de despliegue; sus rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. El PATCH de ofertas conserva los campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match.'
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
@@ -23,7 +23,7 @@ tags:
   - name: Recetas
     description: Administración y consulta de recetas.
   - name: Inventario
-    description: Consulta de artículos usados como fuentes de composición.
+    description: Referencia al servicio externo de Inventario; el frontend consulta allí los artículos usados como fuentes de composición, no en el backend Menu.
   - name: Imágenes
     description: Carga de imágenes utilizadas por entradas y ofertas.
 paths:
@@ -125,6 +125,43 @@ paths:
           type: string
           format: uuid
           example: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+    get:
+      tags:
+        - Categorías
+      operationId: getMenuCategory
+      summary: Consultar una categoría
+      description: Devuelve la categoría solicitada. La respuesta incluye el ETag fuerte vigente de esta categoría; el cliente puede enviarlo en If-Match al actualizar o eliminar este mismo recurso.
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Categoría solicitada.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+              examples:
+                categoria:
+                  summary: Categoría consultada
+                  value:
+                    data:
+                      id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                      name: Bebidas
+                      description: Bebidas frías y preparadas.
+                      entryCount: 4
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
     patch:
       tags:
         - Categorías
@@ -1076,12 +1113,18 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
   /inventory/items:
+    servers:
+      - url: https://{inventoryHost}/api/v1
+        variables:
+          inventoryHost:
+            default: inventory.example.invalid
+            description: Dominio reservado como marcador; reemplazarlo por el host de despliegue del microservicio de Inventario.
     get:
       tags:
         - Inventario
       operationId: searchInventoryItems
-      summary: Buscar artículos de inventario
-      description: Busca artículos de inventario por texto y devuelve una página para seleccionar insumos en recetas u opciones de composición. Los artículos son referencias de solo lectura en este contrato.
+      summary: Consultar artículos del servicio externo de Inventario
+      description: Operación del microservicio externo de Inventario, llamada directamente por el frontend para buscar artículos por texto y seleccionar insumos en recetas u opciones de composición. El backend de Menu no implementa esta ruta; Menu solo conserva referencias de solo lectura a los artículos.
       parameters:
         - $ref: '#/components/parameters/SearchQuery'
         - $ref: '#/components/parameters/Page'
