@@ -1,11 +1,14 @@
 openapi: 3.1.0
 info:
-  title: API de administración de Menu
-  version: 4.0.1
+  title: API de Menu y referencia externa de Inventario
+  version: 4.0.2
   description: >-
-    Contrato HTTP para las operaciones de consulta y administración usadas por
-    el frontend. Se organiza por recurso y no define el host de despliegue; las
-    rutas son relativas a una URL base que termina en /api/v1.
+    Contrato HTTP de las operaciones de consulta y administración de Menu,
+    con una referencia a la consulta externa de Inventario para facilitar el
+    trabajo del frontend. El frontend llama directamente al microservicio de
+    Inventario; el backend de Menu no implementa ni atiende /inventory/items.
+    Las operaciones de Menu se organizan por recurso y no definen el host de
+    despliegue; sus rutas son relativas a una URL base que termina en /api/v1.
     Las imágenes se cargan previamente mediante
     POST /media/images, que recibe multipart/form-data y devuelve data.id con
     un identificador generado por el servidor. Los POST y PATCH de entradas y
@@ -38,7 +41,9 @@ tags:
   - name: Recetas
     description: Administración y consulta de recetas.
   - name: Inventario
-    description: Consulta de artículos usados como fuentes de composición.
+    description: >-
+      Referencia al servicio externo de Inventario; el frontend consulta allí
+      los artículos usados como fuentes de composición, no en el backend Menu.
   - name: Imágenes
     description: Carga de imágenes utilizadas por entradas y ofertas.
 paths:

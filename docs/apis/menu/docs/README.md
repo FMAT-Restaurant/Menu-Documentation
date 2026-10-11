@@ -1,6 +1,6 @@
 # Contrato OpenAPI de administración
 
-Esta carpeta contiene la especificación modular de las operaciones que consume la vista de administración del frontend. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 4.0.1; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.17.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y la referencia `GET /api/v1/inventory/items`, incluida para que los trabajadores frontend puedan consultar artículos. Esta operación pertenece al servicio externo de Inventario: el frontend la llama directamente en el host propio de ese servicio y el backend de Menu no la implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 4.0.2; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.17.
 
 ## Índice
 
@@ -20,7 +20,7 @@ El comando escribe el bundle en `docs/apis/menu/dist/openapi.yaml`.
 
 ## Convenciones
 
-La URL base de cada entorno se configura con API_BASE_URL y termina en /api/v1. Las respuestas JSON exitosas usan el campo data; las listas agregan meta. Las solicitudes requieren Bearer; PATCH y DELETE requieren If-Match. Las consultas aceptan If-None-Match.
+API_BASE_URL identifica el host de las rutas de Menu y termina en /api/v1. `GET /api/v1/inventory/items` se incluye como referencia para consulta de los trabajadores frontend, pero pertenece al servicio externo de Inventario y el frontend lo llama directamente en el host propio de Inventario. Ese host se configura para cada despliegue; no forma parte de API_BASE_URL. Menu no implementa esa ruta y solo conserva referencias a artículos. Las respuestas JSON exitosas usan el campo data; las listas agregan meta. Las solicitudes requieren Bearer; PATCH y DELETE requieren If-Match. Las consultas aceptan If-None-Match.
 
 Para asociar una imagen, primero se carga el archivo mediante `POST /api/v1/media/images`, con `multipart/form-data` y el campo `file`. El servicio valida JPEG, PNG o WebP, hasta 10 MiB y 4096 px de ancho y alto cada uno, incluido el contenido real y su decodificación. Tras validar la carga, el servidor genera el identificador y lo devuelve como `data.id`.
 

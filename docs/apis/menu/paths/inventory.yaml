@@ -1,12 +1,21 @@
 inventoryItems:
+  servers:
+    - url: https://{inventoryHost}/api/v1
+      variables:
+        inventoryHost:
+          default: inventory.example.invalid
+          description: >-
+            Dominio reservado como marcador; reemplazarlo por el host de
+            despliegue del microservicio de Inventario.
   get:
     tags: [Inventario]
     operationId: searchInventoryItems
-    summary: Buscar artículos de inventario
+    summary: Consultar artículos del servicio externo de Inventario
     description: >-
-      Busca artículos de inventario por texto y devuelve una página para
-      seleccionar insumos en recetas u opciones de composición. Los artículos
-      son referencias de solo lectura en este contrato.
+      Operación del microservicio externo de Inventario, llamada directamente
+      por el frontend para buscar artículos por texto y seleccionar insumos en
+      recetas u opciones de composición. El backend de Menu no implementa esta
+      ruta; Menu solo conserva referencias de solo lectura a los artículos.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/SearchQuery
       - $ref: ../openapi.yaml#/components/parameters/Page
