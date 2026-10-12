@@ -73,6 +73,7 @@ entryOffers:
       respuesta como imageId en el cuerpo JSON. Esta operación no recibe archivos
       ni URLs. imageId debe identificar una imagen existente, válida y accesible
       al solicitante; una referencia inválida devuelve 422 sin crear la oferta.
+      Toda oferta se crea con estado INACTIVE y debe activarse manualmente después.
       La carga previa es una operación independiente y no se deshace si falla la
       creación de la oferta.
     requestBody:
@@ -87,7 +88,6 @@ entryOffers:
               value:
                 presentationTag: Individual
                 basePrice: 185.0
-                status: ACTIVE
                 imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                 composition:
                   slots:
@@ -104,7 +104,6 @@ entryOffers:
               value:
                 presentationTag: Individual
                 basePrice: 180.0
-                status: ACTIVE
                 imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                 composition:
                   slots:
@@ -126,7 +125,18 @@ entryOffers:
         content:
           application/json:
             schema:
-              $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
+              allOf:
+                - $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
+                - type: object
+                  properties:
+                    data:
+                      allOf:
+                        - $ref: ../openapi.yaml#/components/schemas/CatalogOfferDetail
+                        - type: object
+                          properties:
+                            status:
+                              type: string
+                              const: INACTIVE
             examples:
               ofertaCreadaConReceta:
                 summary: Oferta creada con una opción de receta
@@ -136,7 +146,7 @@ entryOffers:
                     entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
                     presentationTag: Individual
                     basePrice: 185.0
-                    status: ACTIVE
+                    status: INACTIVE
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -162,7 +172,7 @@ entryOffers:
                     entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
                     presentationTag: Individual
                     basePrice: 180.0
-                    status: ACTIVE
+                    status: INACTIVE
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg

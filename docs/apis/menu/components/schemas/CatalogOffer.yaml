@@ -383,9 +383,11 @@ CatalogOfferCreateRequest:
     se carga previamente mediante POST /api/v1/media/images y esta solicitud
     asocia su identificador; la carga y la asociación son operaciones separadas.
     No se envían archivos ni URLs en esta solicitud. Los UUID de los slots y las
-    opciones los genera el servidor; no deben incluirse en este cuerpo.
+    opciones los genera el servidor; no deben incluirse en este cuerpo. El
+    servidor asigna INACTIVE al crear la oferta; su activación manual se realiza
+    después mediante una actualización.
   additionalProperties: false
-  required: [basePrice, status, composition, imageId]
+  required: [basePrice, composition, imageId]
   properties:
     presentationTag:
       type: string
@@ -395,8 +397,6 @@ CatalogOfferCreateRequest:
       type: number
       description: Precio base de la oferta.
       example: 180.0
-    status:
-      $ref: '#/OfferStatus'
     imageId:
       type: string
       format: uuid
@@ -410,7 +410,6 @@ CatalogOfferCreateRequest:
   example:
     presentationTag: Combo
     basePrice: 180.0
-    status: ACTIVE
     imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
     composition:
       slots:

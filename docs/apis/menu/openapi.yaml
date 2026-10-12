@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.0.0
+  version: 5.0.1
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
     con una referencia a la consulta externa de Inventario para facilitar el
@@ -16,6 +16,7 @@ info:
     omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el
     archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE,
     con estado asignado por el servidor.
+    Las ofertas nuevas también inician INACTIVE y deben activarse manualmente.
     El PATCH de ofertas conserva los campos omitidos y reemplaza recursivamente
     los conjuntos de slots y opciones enviados. Valida el resultado completo y
     persiste atómicamente, con un ETag fuerte vigente en If-Match.
