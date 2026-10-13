@@ -6,7 +6,7 @@ OfferStatus:
 
 RecipeSlotOption:
   type: object
-  description: Opción de slot cuyo origen es una receta. La respuesta incluye la revisión fijada y la respuesta del PATCH también incluye su estado.
+  description: Opción de slot cuyo origen es una receta. La respuesta incluye la revisión fijada; las respuestas del POST y del PATCH también incluyen su estado.
   additionalProperties: false
   required: [optionId, sourceType, recipeId, recipeRevision, displayName]
   properties:
@@ -29,7 +29,7 @@ RecipeSlotOption:
       description: Revisión de receta fijada por la opción.
     status:
       $ref: '#/OfferStatus'
-      description: Estado de la opción, incluido en la respuesta del PATCH.
+      description: Estado de la opción, incluido en las respuestas del POST y del PATCH; al crearla mediante POST el servidor asigna ACTIVE.
     displayName:
       type: string
       description: Nombre que se muestra para esta opción en el catálogo.
@@ -43,7 +43,7 @@ RecipeSlotOption:
 
 InventoryItemSlotOption:
   type: object
-  description: Opción de slot cuyo origen es un insumo de inventario. La respuesta incluye cantidad y unidad; la respuesta del PATCH también incluye su estado.
+  description: Opción de slot cuyo origen es un insumo de inventario. La respuesta incluye cantidad y unidad; las respuestas del POST y del PATCH también incluyen su estado.
   additionalProperties: false
   required: [optionId, sourceType, inventoryItemId, quantity, unit, displayName]
   properties:
@@ -70,7 +70,7 @@ InventoryItemSlotOption:
       description: Unidad compatible con la del artículo.
     status:
       $ref: '#/OfferStatus'
-      description: Estado de la opción, incluido en la respuesta del PATCH.
+      description: Estado de la opción, incluido en las respuestas del POST y del PATCH; al crearla mediante POST el servidor asigna ACTIVE.
     displayName:
       type: string
       description: Nombre que se muestra para esta opción en el catálogo.
@@ -91,7 +91,7 @@ SlotOption:
 
 RecipeSlotOptionInput:
   type: object
-  description: Datos para crear una opción de slot basada en una receta; el servidor genera optionId.
+  description: Datos para crear una opción de slot basada en una receta mediante POST; el servidor genera optionId y asigna status ACTIVE. No se envían optionId ni status en la solicitud.
   additionalProperties: false
   required: [sourceType, recipeId, recipeRevision, displayName]
   properties:
@@ -122,7 +122,7 @@ RecipeSlotOptionInput:
 
 InventoryItemSlotOptionInput:
   type: object
-  description: Datos para crear una opción de slot basada en un insumo de inventario; el servidor genera optionId.
+  description: Datos para crear una opción de slot basada en un insumo de inventario mediante POST; el servidor genera optionId y asigna status ACTIVE. No se envían optionId ni status en la solicitud.
   additionalProperties: false
   required: [sourceType, inventoryItemId, quantity, unit, displayName]
   properties:
@@ -296,7 +296,7 @@ CatalogOfferSummary:
       example: Hamburguesa Hawaiana
     presentationTag:
       type: string
-      description: Etiqueta que distingue esta presentación de la entrada.
+      description: Etiqueta obligatoria que distingue esta presentación de la entrada; no admite null.
       example: Combo
     basePrice:
       type: number
@@ -341,7 +341,7 @@ CatalogOfferDetail:
       example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
     presentationTag:
       type: string
-      description: Etiqueta que distingue esta presentación de la entrada.
+      description: Etiqueta obligatoria que distingue esta presentación de la entrada; no admite null.
       example: Combo
     basePrice:
       type: number
@@ -384,14 +384,15 @@ CatalogOfferCreateRequest:
     asocia su identificador; la carga y la asociación son operaciones separadas.
     No se envían archivos ni URLs en esta solicitud. Los UUID de los slots y las
     opciones los genera el servidor; no deben incluirse en este cuerpo. El
-    servidor asigna INACTIVE al crear la oferta; su activación manual se realiza
-    después mediante una actualización.
+    servidor asigna INACTIVE al crear la oferta y status ACTIVE a cada opción
+    nueva; status de las opciones no se envía en esta solicitud. La activación
+    manual de la oferta se realiza después mediante una actualización.
   additionalProperties: false
-  required: [basePrice, composition, imageId]
+  required: [presentationTag, basePrice, composition, imageId]
   properties:
     presentationTag:
       type: string
-      description: Etiqueta que distingue esta presentación de la entrada.
+      description: Etiqueta obligatoria que distingue esta presentación de la entrada; no admite null.
       example: Combo
     basePrice:
       type: number
@@ -429,8 +430,9 @@ CatalogOfferPatchRequest:
     reemplazo se carga previamente mediante POST /api/v1/media/images; esta
     solicitud actualiza su asociación con imageId. La carga y la asociación son
     operaciones separadas. No se envían archivos ni URLs en esta solicitud.
-    Los campos omitidos se conservan recursivamente; un objeto vacío conserva
-    todos los valores y composition vacío conserva sus slots. Enviar slots u options
+    presentationTag es obligatorio en toda solicitud; si no se desea cambiar,
+    se reenvía su valor vigente. Los demás campos omitidos se conservan
+    recursivamente; composition vacío conserva sus slots. Enviar slots u options
     reemplaza su conjunto completo; los elementos existentes incluidos pueden
     omitir campos para conservarlos y las opciones omitidas de un slot existente
     se conservan. Las listas vacías devuelven 422. Los identificadores existentes
@@ -442,10 +444,11 @@ CatalogOfferPatchRequest:
     slots y oferta según las opciones y su habilitación administrativa. If-Match
     protege la actualización de modificaciones concurrentes.
   additionalProperties: false
+  required: [presentationTag]
   properties:
     presentationTag:
       type: string
-      description: Nueva etiqueta de presentación, si se desea cambiar.
+      description: Etiqueta obligatoria de presentación; reenviar el valor vigente si no se desea cambiar. No admite null.
       example: Combo familiar
     basePrice:
       type: number

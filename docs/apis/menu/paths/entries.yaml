@@ -267,23 +267,51 @@ entryById:
     tags: [Entradas]
     operationId: deleteMenuEntry
     summary: Eliminar una entrada
-    description: Elimina la entrada y también las ofertas asociadas. Envíe el
-      ETag leído en If-Match para confirmar que la entrada no cambió.
+    description: >-
+      Elimina la entrada y también las ofertas asociadas, preservando el historial
+      según las reglas del dominio. La entrada debe estar ARCHIVED; cualquier
+      otro estado devuelve 409 sin eliminar la entrada ni sus ofertas. Envíe el
+      ETag leído en If-Match para confirmar que la entrada no cambió: su ausencia
+      devuelve 428 y un valor obsoleto devuelve 412, sin modificaciones.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     responses:
       '204':
-        description: Entrada y ofertas asociadas eliminadas.
-        headers:
-          ETag:
-            $ref: ../openapi.yaml#/components/headers/ETag
+        description: >-
+          Entrada y ofertas asociadas eliminadas. La respuesta no contiene cuerpo
+          ni encabezado ETag porque no queda una representación vigente del
+          recurso eliminado; se preserva el historial según las reglas del dominio.
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '404':
         $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        description: La entrada debe estar ARCHIVED para poder eliminarse; no se aplican cambios.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              entradaNoArchivada:
+                summary: Entrada en un estado distinto de ARCHIVED
+                value:
+                  error:
+                    message: La entrada debe estar archivada para eliminarse.
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '428':
+        description: Se requiere el encabezado If-Match para eliminar la entrada; no se aplican cambios.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              faltaIfMatch:
+                summary: Encabezado de concurrencia ausente
+                value:
+                  error:
+                    message: El encabezado If-Match es requerido.
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests

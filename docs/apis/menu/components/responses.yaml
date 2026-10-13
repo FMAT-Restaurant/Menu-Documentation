@@ -126,3 +126,20 @@ TooManyRequests:
           value:
             error:
               message: Espera antes de volver a enviar solicitudes.
+
+InventoryUnavailable:
+  description: >-
+    502 cuando Menu no pudo consultar Inventario para validar los artículos o
+    insumos de la operación. No se persiste la creación ni la actualización y no
+    se aplican cambios parciales. Una referencia que se validó como inválida
+    devuelve 422, no 502.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        inventoryUnavailable:
+          summary: Inventario no disponible para validar la operación
+          value:
+            error:
+              message: No se pudo consultar Inventario; no se aplicaron cambios.

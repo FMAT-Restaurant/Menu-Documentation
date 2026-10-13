@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.0.1
+  version: 5.1.0
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
     con una referencia a la consulta externa de Inventario para facilitar el
@@ -17,9 +17,18 @@ info:
     archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE,
     con estado asignado por el servidor.
     Las ofertas nuevas también inician INACTIVE y deben activarse manualmente.
-    El PATCH de ofertas conserva los campos omitidos y reemplaza recursivamente
+    El servidor asigna status: ACTIVE a todas las opciones nuevas de POST;
+    la solicitud no acepta status para ellas. presentationTag es requerido en
+    POST y PATCH de ofertas y en sus respuestas. El PATCH de ofertas conserva
+    los demás campos omitidos y reemplaza recursivamente
     los conjuntos de slots y opciones enviados. Valida el resultado completo y
     persiste atómicamente, con un ETag fuerte vigente en If-Match.
+    Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de
+    eliminación del dominio, 428 si falta If-Match y 412 si el ETag es obsoleto.
+    Su respuesta 204 no contiene cuerpo ni ETag porque el recurso eliminado
+    ya no tiene una representación vigente. Si falla la consulta a Inventario
+    necesaria para validar insumos en POST o PATCH de ofertas o recetas, se
+    devuelve 502 sin aplicar cambios.
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
@@ -208,3 +217,5 @@ components:
       $ref: ./components/responses.yaml#/UnprocessableEntity
     TooManyRequests:
       $ref: ./components/responses.yaml#/TooManyRequests
+    InventoryUnavailable:
+      $ref: ./components/responses.yaml#/InventoryUnavailable

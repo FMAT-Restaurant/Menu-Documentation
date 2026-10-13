@@ -74,6 +74,10 @@ entryOffers:
       ni URLs. imageId debe identificar una imagen existente, válida y accesible
       al solicitante; una referencia inválida devuelve 422 sin crear la oferta.
       Toda oferta se crea con estado INACTIVE y debe activarse manualmente después.
+      El servidor asigna status: ACTIVE a todas las opciones nuevas; el cuerpo
+      de POST no acepta status para las opciones. Si falla la consulta a Inventario
+      necesaria para validar un origen INVENTORY_ITEM, devuelve 502 sin crear la
+      oferta; un artículo de inventario inválido devuelve 422.
       La carga previa es una operación independiente y no se deshace si falla la
       creación de la oferta.
     requestBody:
@@ -211,6 +215,8 @@ entryOffers:
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
 
 offerById:
   parameters:
@@ -310,11 +316,15 @@ offerById:
     operationId: patchMenuOffer
     summary: Actualizar una oferta
     description: >-
-      Actualiza parcialmente una oferta. Los campos omitidos se conservan;
+      Actualiza parcialmente una oferta. presentationTag es un string requerido
+      en cada solicitud; los demás campos omitidos se conservan;
       enviar composition.slots o las options de un slot reemplaza el conjunto
       completo. La composición se valida íntegramente y se persiste de forma
       atómica. Requiere el ETag vigente en If-Match. Las reglas de IDs, tipos de
       opción, estados e imagen se detallan en el esquema de solicitud.
+      Si falla la consulta a Inventario necesaria para validar un origen
+      INVENTORY_ITEM, devuelve 502 sin aplicar cambios; un artículo de inventario
+      inválido devuelve 422.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -327,6 +337,7 @@ offerById:
             actualizarComposicion:
               summary: Conservar dos slots y actualizar parcialmente las opciones del segundo
               value:
+                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -340,6 +351,7 @@ offerById:
             agregarSlot:
               summary: Conservar un slot existente y agregar un slot nuevo
               value:
+                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -355,6 +367,7 @@ offerById:
             cambiarOrigen:
               summary: Reemplazar el origen de una opción existente por una revisión de receta
               value:
+                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -366,6 +379,7 @@ offerById:
             actualizarNombreReceta:
               summary: Cambiar el nombre de una opción existente que ya usa RECIPE, sin cambiar receta ni revisión
               value:
+                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -376,6 +390,7 @@ offerById:
             actualizarCantidadInventario:
               summary: Cambiar solo la cantidad de una opción existente que ya usa INVENTORY_ITEM
               value:
+                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445302
@@ -452,25 +467,61 @@ offerById:
                     message: El encabezado If-Match es requerido.
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
   delete:
     tags: [Ofertas]
     operationId: deleteMenuOffer
     summary: Eliminar una oferta
+    description: >-
+      Requiere el ETag vigente en If-Match y que la oferta esté INACTIVE. Devuelve
+      409 si la oferta no está INACTIVE o si eliminarla deja una entrada ACTIVE
+      sin una oferta ACTIVE válida. El rechazo conserva íntegramente la oferta
+      y su historia. Si falta If-Match, devuelve 428; si no coincide con el ETag
+      vigente, devuelve 412.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     responses:
       '204':
-        description: Oferta eliminada.
-        headers:
-          ETag:
-            $ref: ../openapi.yaml#/components/headers/ETag
+        description: >-
+          Oferta eliminada. La respuesta no contiene cuerpo ni encabezado ETag,
+          porque no queda una representación vigente del recurso eliminado.
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '404':
         $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        description: El estado de la oferta o de su entrada impide eliminarla.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              ofertaNoInactiva:
+                summary: La oferta debe estar INACTIVE para eliminarse
+                value:
+                  error:
+                    message: La oferta debe estar INACTIVE para eliminarse.
+              entradaSinOfertaActiva:
+                summary: La entrada ACTIVE quedaría sin una oferta ACTIVE válida
+                value:
+                  error:
+                    message: No se puede dejar una entrada ACTIVE sin una oferta ACTIVE válida.
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '428':
+        description: Se requiere el encabezado If-Match para eliminar la oferta.
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
+            examples:
+              faltaIfMatch:
+                summary: Encabezado de concurrencia ausente
+                value:
+                  error:
+                    message: El encabezado If-Match es requerido.
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests

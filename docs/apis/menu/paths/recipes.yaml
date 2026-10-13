@@ -52,8 +52,12 @@ recipes:
     tags: [Recetas]
     operationId: createMenuRecipe
     summary: Crear una receta
-    description: Crea una receta con sus insumos y cantidades. Cada
-      inventoryItemId debe referirse a un artículo de inventario existente.
+    description: >-
+      Crea una receta con sus insumos y cantidades. Cada inventoryItemId debe
+      referirse a un artículo de inventario existente; una referencia inexistente
+      o inválida devuelve 422. Si falla la consulta a Inventario necesaria para
+      validar los insumos, devuelve 502 sin crear la receta ni aplicar cambios
+      parciales.
     requestBody:
       required: true
       content:
@@ -104,6 +108,8 @@ recipes:
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
 
 recipeById:
   parameters:
@@ -163,9 +169,13 @@ recipeById:
     tags: [Recetas]
     operationId: patchMenuRecipe
     summary: Actualizar una receta
-    description: Actualiza los campos de la receta incluidos en el cuerpo. Cada
+    description: >-
+      Actualiza los campos de la receta incluidos en el cuerpo. Cada
       inventoryItemId proporcionado debe referirse a un artículo existente;
-      envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+      una referencia inexistente o inválida devuelve 422. Si falla la consulta
+      a Inventario necesaria para validar los insumos, devuelve 502 sin modificar
+      la receta ni aplicar cambios parciales. Envíe el ETag leído en If-Match para
+      evitar sobrescribir cambios recientes.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -222,6 +232,8 @@ recipeById:
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
   delete:
     tags: [Recetas]
     operationId: deleteMenuRecipe
