@@ -1,12 +1,13 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.2.0
+  version: 5.3.0
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
-    con una referencia a la consulta externa de Inventario para facilitar el
+    con referencias a las consultas externas de Inventario para facilitar el
     trabajo del frontend. El frontend llama directamente al microservicio de
-    Inventario; el backend de Menu no implementa ni atiende /inventory/items.
+    Inventario; el backend de Menu no implementa ni atiende /inventory/items
+    ni /inventory/item/{id}.
     InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto.
     Las operaciones de Menu se organizan por recurso y no definen el host de
     despliegue; sus rutas son relativas a una URL base que termina en /api/v1.
@@ -78,6 +79,8 @@ paths:
     $ref: ./paths/recipes.yaml#/recipeById
   /inventory/items:
     $ref: ./paths/inventory.yaml#/inventoryItems
+  /inventory/item/{id}:
+    $ref: ./paths/inventory.yaml#/inventoryItemById
   /media/images:
     $ref: ./paths/images.yaml#/images
 components:
@@ -179,6 +182,8 @@ components:
       $ref: ./components/schemas/Common.yaml#/ImageUploadResponse
     InventoryItemListResponse:
       $ref: ./components/schemas/Common.yaml#/InventoryItemListResponse
+    InventoryItemResponse:
+      $ref: ./components/schemas/Common.yaml#/InventoryItemResponse
   parameters:
     Page:
       $ref: ./components/parameters.yaml#/Page

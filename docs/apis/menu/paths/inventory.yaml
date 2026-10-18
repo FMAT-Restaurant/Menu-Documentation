@@ -52,3 +52,60 @@ inventoryItems:
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+inventoryItemById:
+  servers:
+    - url: https://{inventoryHost}/api/v1
+      variables:
+        inventoryHost:
+          default: inventory.example.invalid
+          description: >-
+            Dominio reservado como marcador; reemplazarlo por el host de
+            despliegue del microservicio de Inventario.
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: Identificador opaco del insumo, sin formato impuesto.
+      schema:
+        type: string
+        example: CARNE-150G
+  get:
+    tags: [Inventario]
+    operationId: getInventoryItem
+    summary: Consultar artículo por ID
+    description: >-
+      Operación del microservicio externo de Inventario, llamada directamente
+      por el frontend para consultar un artículo por su identificador. El backend
+      de Menu no implementa esta ruta; Menu solo conserva referencias de solo
+      lectura a los artículos.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Artículo de inventario encontrado.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/InventoryItemResponse
+            examples:
+              articuloEncontrado:
+                summary: Artículo de inventario encontrado
+                value:
+                  data:
+                    id: CARNE-150G
+                    name: Carne Molida Res 80/20
+                    unit: g
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

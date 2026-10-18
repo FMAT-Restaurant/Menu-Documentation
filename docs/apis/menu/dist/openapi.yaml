@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.2.0
-  description: 'Contrato HTTP de las operaciones de consulta y administración de Menu, con una referencia a la consulta externa de Inventario para facilitar el trabajo del frontend. El frontend llama directamente al microservicio de Inventario; el backend de Menu no implementa ni atiende /inventory/items. InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto. Las operaciones de Menu se organizan por recurso y no definen el host de despliegue; sus rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. Las ofertas nuevas también inician INACTIVE y deben activarse manualmente. El servidor asigna status: ACTIVE a todas las opciones nuevas de POST; la solicitud no acepta status para ellas. presentationTag es requerido en POST y PATCH de ofertas y en sus respuestas. El PATCH de ofertas conserva los demás campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match. Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de eliminación del dominio, 428 si falta If-Match y 412 si el ETag es obsoleto. Su respuesta 204 no contiene cuerpo ni ETag porque el recurso eliminado ya no tiene una representación vigente. Si falla la consulta a Inventario necesaria para validar insumos en POST o PATCH de ofertas o recetas, se devuelve 502 sin aplicar cambios.'
+  version: 5.3.0
+  description: 'Contrato HTTP de las operaciones de consulta y administración de Menu, con referencias a las consultas externas de Inventario para facilitar el trabajo del frontend. El frontend llama directamente al microservicio de Inventario; el backend de Menu no implementa ni atiende /inventory/items ni /inventory/item/{id}. InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto. Las operaciones de Menu se organizan por recurso y no definen el host de despliegue; sus rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. Las ofertas nuevas también inician INACTIVE y deben activarse manualmente. El servidor asigna status: ACTIVE a todas las opciones nuevas de POST; la solicitud no acepta status para ellas. presentationTag es requerido en POST y PATCH de ofertas y en sus respuestas. El PATCH de ofertas conserva los demás campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match. Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de eliminación del dominio, 428 si falta If-Match y 412 si el ETag es obsoleto. Su respuesta 204 no contiene cuerpo ni ETag porque el recurso eliminado ya no tiene una representación vigente. Si falla la consulta a Inventario necesaria para validar insumos en POST o PATCH de ofertas o recetas, se devuelve 502 sin aplicar cambios.'
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
@@ -1311,6 +1311,57 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/TooManyRequests'
+  /inventory/item/{id}:
+    servers:
+      - url: https://{inventoryHost}/api/v1
+        variables:
+          inventoryHost:
+            default: inventory.example.invalid
+            description: Dominio reservado como marcador; reemplazarlo por el host de despliegue del microservicio de Inventario.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Identificador opaco del insumo, sin formato impuesto.
+        schema:
+          type: string
+          example: CARNE-150G
+    get:
+      tags:
+        - Inventario
+      operationId: getInventoryItem
+      summary: Consultar artículo por ID
+      description: Operación del microservicio externo de Inventario, llamada directamente por el frontend para consultar un artículo por su identificador. El backend de Menu no implementa esta ruta; Menu solo conserva referencias de solo lectura a los artículos.
+      parameters:
+        - $ref: '#/components/parameters/IfNoneMatch'
+      responses:
+        '200':
+          description: Artículo de inventario encontrado.
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemResponse'
+              examples:
+                articuloEncontrado:
+                  summary: Artículo de inventario encontrado
+                  value:
+                    data:
+                      id: CARNE-150G
+                      name: Carne Molida Res 80/20
+                      unit: g
+        '304':
+          $ref: '#/components/responses/NotModified'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
   /media/images:
     post:
       tags:
@@ -2417,6 +2468,19 @@ components:
             $ref: '#/components/schemas/InventoryItem'
         meta:
           $ref: '#/components/schemas/PageMeta'
+    InventoryItemResponse:
+      type: object
+      description: Respuesta con el artículo de inventario consultado.
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/InventoryItem'
+      example:
+        data:
+          id: CARNE-150G
+          name: Carne Molida Res 80/20
+          unit: g
     ValidationViolation:
       type: object
       description: Incumplimiento de validación asociado a un campo del cuerpo de la solicitud.

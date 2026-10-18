@@ -162,6 +162,19 @@ ImageUploadResponse:
     data:
       $ref: '#/Image'
 
+InventoryItemResponse:
+  type: object
+  description: Respuesta con el artículo de inventario consultado.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/InventoryItem'
+  example:
+    data:
+      id: CARNE-150G
+      name: Carne Molida Res 80/20
+      unit: g
+
 InventoryItemListResponse:
   type: object
   description: Página de insumos de inventario que coincide con la consulta.
