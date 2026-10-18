@@ -49,8 +49,8 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-OFFER-001 — Creación de ofertas para una entrada
 
-- **Requisito:** El sistema deberá permitir al administrador crear una o más ofertas pertenecientes a una entrada del catálogo. Para cada oferta deberá poder indicar una etiqueta de presentación opcional, un precio base y una imagen. Toda oferta nueva deberá iniciar inactiva.
-- **Criterio de aceptación:** La creación de cada oferta requiere `imageId` de su imagen previamente cargada y validada. Una entrada puede tener varias ofertas con precios, etiquetas e imágenes propios. Al crear una oferta, queda inactiva hasta que el administrador la active.
+- **Requisito:** El sistema deberá permitir al administrador crear una o más ofertas pertenecientes a una entrada del catálogo. Para cada oferta deberá indicar una etiqueta de presentación (`presentationTag`), un precio base y una imagen. Toda oferta nueva deberá iniciar inactiva.
+- **Criterio de aceptación:** La creación de cada oferta requiere `presentationTag` de tipo string, sin admitir `null`, e `imageId` de su imagen previamente cargada y validada. Se rechaza la creación si se omite `presentationTag` o se envía con valor `null`. Una entrada puede tener varias ofertas con precios, etiquetas e imágenes propios. Al crear una oferta, queda inactiva hasta que el administrador la active.
 
 ### REQ-MENU-OFFER-002 — Identidad de entrada y presentación vendible
 

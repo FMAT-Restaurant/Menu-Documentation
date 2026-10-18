@@ -1,6 +1,6 @@
 # Contrato OpenAPI de administración
 
-Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/item/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 5.3.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.17.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/item/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 5.3.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.18.
 
 ## Índice
 
