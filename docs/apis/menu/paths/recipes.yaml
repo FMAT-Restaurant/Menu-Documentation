@@ -29,10 +29,10 @@ recipes:
                       name: Hamburguesa Hawaiana
                       description: Carne, jamón, queso y piña.
                       supplies:
-                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        - inventoryItemId: CARNE-150G
                           quantity: 200
                           inventoryItem:
-                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            id: CARNE-150G
                             name: Carne Molida Res 80/20
                             unit: g
                   meta:
@@ -72,7 +72,7 @@ recipes:
                 description: Carne, jamón, queso y piña.
                 instructions: Asar carne, dorar jamón y piña. Montar en pan.
                 supplies:
-                  - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                  - inventoryItemId: CARNE-150G
                     quantity: 200
     responses:
       '201':
@@ -94,10 +94,10 @@ recipes:
                     description: Carne, jamón, queso y piña.
                     instructions: Asar carne, dorar jamón y piña. Montar en pan.
                     supplies:
-                      - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      - inventoryItemId: CARNE-150G
                         quantity: 200
                         inventoryItem:
-                          id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          id: CARNE-150G
                           name: Carne Molida Res 80/20
                           unit: g
       '401':
@@ -149,10 +149,10 @@ recipeById:
                     description: Carne, jamón, queso y piña.
                     instructions: Asar carne, dorar jamón y piña. Montar en pan.
                     supplies:
-                      - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      - inventoryItemId: CARNE-150G
                         quantity: 200
                         inventoryItem:
-                          id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          id: CARNE-150G
                           name: Carne Molida Res 80/20
                           unit: g
       '304':
@@ -192,7 +192,7 @@ recipeById:
                 description: Carne, jamón, queso y piña.
                 instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
                 supplies:
-                  - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                  - inventoryItemId: CARNE-150G
                     quantity: 200
     responses:
       '200':
@@ -214,10 +214,10 @@ recipeById:
                     description: Carne, jamón, queso y piña.
                     instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
                     supplies:
-                      - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      - inventoryItemId: CARNE-150G
                         quantity: 200
                         inventoryItem:
-                          id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          id: CARNE-150G
                           name: Carne Molida Res 80/20
                           unit: g
       '401':

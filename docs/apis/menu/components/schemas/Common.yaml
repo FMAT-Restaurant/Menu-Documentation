@@ -61,9 +61,8 @@ InventoryItem:
   properties:
     id:
       type: string
-      format: uuid
-      description: Identificador UUID del insumo.
-      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      description: Identificador opaco del insumo como string, sin formato UUID requerido.
+      example: CARNE-150G
     name:
       type: string
       description: Nombre legible del insumo.
@@ -73,7 +72,7 @@ InventoryItem:
       description: Unidad usada para expresar la cantidad del insumo.
       example: g
   example:
-    id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    id: CARNE-150G
     name: Carne Molida Res 80/20
     unit: g
 

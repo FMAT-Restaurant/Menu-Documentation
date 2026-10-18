@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.1.0
-  description: 'Contrato HTTP de las operaciones de consulta y administración de Menu, con una referencia a la consulta externa de Inventario para facilitar el trabajo del frontend. El frontend llama directamente al microservicio de Inventario; el backend de Menu no implementa ni atiende /inventory/items. Las operaciones de Menu se organizan por recurso y no definen el host de despliegue; sus rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. Las ofertas nuevas también inician INACTIVE y deben activarse manualmente. El servidor asigna status: ACTIVE a todas las opciones nuevas de POST; la solicitud no acepta status para ellas. presentationTag es requerido en POST y PATCH de ofertas y en sus respuestas. El PATCH de ofertas conserva los demás campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match. Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de eliminación del dominio, 428 si falta If-Match y 412 si el ETag es obsoleto. Su respuesta 204 no contiene cuerpo ni ETag porque el recurso eliminado ya no tiene una representación vigente. Si falla la consulta a Inventario necesaria para validar insumos en POST o PATCH de ofertas o recetas, se devuelve 502 sin aplicar cambios.'
+  version: 5.2.0
+  description: 'Contrato HTTP de las operaciones de consulta y administración de Menu, con una referencia a la consulta externa de Inventario para facilitar el trabajo del frontend. El frontend llama directamente al microservicio de Inventario; el backend de Menu no implementa ni atiende /inventory/items. InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto. Las operaciones de Menu se organizan por recurso y no definen el host de despliegue; sus rutas son relativas a una URL base que termina en /api/v1. Las imágenes se cargan previamente mediante POST /media/images, que recibe multipart/form-data y devuelve data.id con un identificador generado por el servidor. Los POST y PATCH de entradas y ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar; omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE, con estado asignado por el servidor. Las ofertas nuevas también inician INACTIVE y deben activarse manualmente. El servidor asigna status: ACTIVE a todas las opciones nuevas de POST; la solicitud no acepta status para ellas. presentationTag es requerido en POST y PATCH de ofertas y en sus respuestas. El PATCH de ofertas conserva los demás campos omitidos y reemplaza recursivamente los conjuntos de slots y opciones enviados. Valida el resultado completo y persiste atómicamente, con un ETag fuerte vigente en If-Match. Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de eliminación del dominio, 428 si falta If-Match y 412 si el ETag es obsoleto. Su respuesta 204 no contiene cuerpo ni ETag porque el recurso eliminado ya no tiene una representación vigente. Si falla la consulta a Inventario necesaria para validar insumos en POST o PATCH de ofertas o recetas, se devuelve 502 sin aplicar cambios.'
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
@@ -619,7 +619,7 @@ paths:
                         course: plato fuerte
                         options:
                           - sourceType: INVENTORY_ITEM
-                            inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                            inventoryItemId: CARNE-150G
                             quantity: 200
                             unit: g
                             displayName: Papas
@@ -693,7 +693,7 @@ paths:
                             options:
                               - optionId: 79a1bc24-0d4f-489b-9836-3a60b5c4ed12
                                 sourceType: INVENTORY_ITEM
-                                inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                                inventoryItemId: CARNE-150G
                                 quantity: 200
                                 unit: g
                                 displayName: Papas
@@ -796,7 +796,7 @@ paths:
                             options:
                               - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                                 sourceType: INVENTORY_ITEM
-                                inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                                inventoryItemId: CARNE-150G
                                 quantity: 200
                                 unit: g
                                 displayName: Papas
@@ -852,7 +852,7 @@ paths:
                           - displayName: Papas
                             status: ACTIVE
                             sourceType: INVENTORY_ITEM
-                            inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                            inventoryItemId: CARNE-150G
                             quantity: 200
                             unit: g
               cambiarOrigen:
@@ -929,7 +929,7 @@ paths:
                                 displayName: Hamburguesa Hawaiana
                               - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                                 sourceType: INVENTORY_ITEM
-                                inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                                inventoryItemId: CARNE-150G
                                 status: ACTIVE
                                 displayName: Papas
                                 quantity: 200
@@ -1041,10 +1041,10 @@ paths:
                         name: Hamburguesa Hawaiana
                         description: Carne, jamón, queso y piña.
                         supplies:
-                          - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                          - inventoryItemId: CARNE-150G
                             quantity: 200
                             inventoryItem:
-                              id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                              id: CARNE-150G
                               name: Carne Molida Res 80/20
                               unit: g
                     meta:
@@ -1080,7 +1080,7 @@ paths:
                   description: Carne, jamón, queso y piña.
                   instructions: Asar carne, dorar jamón y piña. Montar en pan.
                   supplies:
-                    - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                    - inventoryItemId: CARNE-150G
                       quantity: 200
       responses:
         '201':
@@ -1102,10 +1102,10 @@ paths:
                       description: Carne, jamón, queso y piña.
                       instructions: Asar carne, dorar jamón y piña. Montar en pan.
                       supplies:
-                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        - inventoryItemId: CARNE-150G
                           quantity: 200
                           inventoryItem:
-                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            id: CARNE-150G
                             name: Carne Molida Res 80/20
                             unit: g
         '401':
@@ -1156,10 +1156,10 @@ paths:
                       description: Carne, jamón, queso y piña.
                       instructions: Asar carne, dorar jamón y piña. Montar en pan.
                       supplies:
-                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        - inventoryItemId: CARNE-150G
                           quantity: 200
                           inventoryItem:
-                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            id: CARNE-150G
                             name: Carne Molida Res 80/20
                             unit: g
         '304':
@@ -1194,7 +1194,7 @@ paths:
                   description: Carne, jamón, queso y piña.
                   instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
                   supplies:
-                    - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                    - inventoryItemId: CARNE-150G
                       quantity: 200
       responses:
         '200':
@@ -1216,10 +1216,10 @@ paths:
                       description: Carne, jamón, queso y piña.
                       instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
                       supplies:
-                        - inventoryItemId: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                        - inventoryItemId: CARNE-150G
                           quantity: 200
                           inventoryItem:
-                            id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                            id: CARNE-150G
                             name: Carne Molida Res 80/20
                             unit: g
         '401':
@@ -1295,7 +1295,7 @@ paths:
                   summary: Artículo de inventario encontrado
                   value:
                     data:
-                      - id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                      - id: CARNE-150G
                         name: Carne Molida Res 80/20
                         unit: g
                     meta:
@@ -1444,9 +1444,8 @@ components:
       properties:
         id:
           type: string
-          format: uuid
-          description: Identificador UUID del insumo.
-          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          description: Identificador opaco del insumo como string, sin formato UUID requerido.
+          example: CARNE-150G
         name:
           type: string
           description: Nombre legible del insumo.
@@ -1456,7 +1455,7 @@ components:
           description: Unidad usada para expresar la cantidad del insumo.
           example: g
       example:
-        id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        id: CARNE-150G
         name: Carne Molida Res 80/20
         unit: g
     Error:
@@ -2229,10 +2228,10 @@ components:
         name: Hamburguesa Hawaiana
         description: Preparación de hamburguesa con piña asada y queso.
         supplies:
-          - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          - inventoryItemId: CARNE-150G
             quantity: 200
             inventoryItem:
-              id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+              id: CARNE-150G
               name: Carne Molida Res 80/20
               unit: g
     RecipeDetail:
@@ -2273,10 +2272,10 @@ components:
         description: Preparación de hamburguesa con piña asada y queso.
         instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
         supplies:
-          - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          - inventoryItemId: CARNE-150G
             quantity: 200
             inventoryItem:
-              id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+              id: CARNE-150G
               name: Carne Molida Res 80/20
               unit: g
     RecipeCreateRequest:
@@ -2310,7 +2309,7 @@ components:
         description: Preparación de hamburguesa con piña asada y queso.
         instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
         supplies:
-          - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          - inventoryItemId: CARNE-150G
             quantity: 200
     RecipePatchRequest:
       type: object
@@ -2343,9 +2342,8 @@ components:
       properties:
         inventoryItemId:
           type: string
-          format: uuid
-          description: Identificador UUID del insumo utilizado.
-          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          description: Identificador opaco del insumo utilizado, sin formato impuesto.
+          example: CARNE-150G
         quantity:
           type: number
           description: Cantidad del insumo expresada en la unidad de inventario.
@@ -2353,10 +2351,10 @@ components:
         inventoryItem:
           $ref: '#/components/schemas/InventoryItem'
       example:
-        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        inventoryItemId: CARNE-150G
         quantity: 200
         inventoryItem:
-          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          id: CARNE-150G
           name: Carne Molida Res 80/20
           unit: g
     RecipeSupplyInput:
@@ -2368,15 +2366,14 @@ components:
       properties:
         inventoryItemId:
           type: string
-          format: uuid
-          description: Identificador UUID del insumo utilizado.
-          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          description: Identificador opaco del insumo utilizado, sin formato impuesto.
+          example: CARNE-150G
         quantity:
           type: number
           description: Cantidad del insumo expresada en la unidad de inventario.
           example: 200
       example:
-        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        inventoryItemId: CARNE-150G
         quantity: 200
     RecipeListResponse:
       type: object
@@ -2512,9 +2509,8 @@ components:
           description: Indica que la opción se basa directamente en un insumo de inventario.
         inventoryItemId:
           type: string
-          format: uuid
-          description: Identificador UUID del insumo de inventario de origen.
-          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          description: Identificador opaco del insumo de inventario de origen como string, sin formato impuesto.
+          example: CARNE-150G
         quantity:
           type: number
           exclusiveMinimum: 0
@@ -2531,7 +2527,7 @@ components:
           example: Queso cheddar
       example:
         sourceType: INVENTORY_ITEM
-        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        inventoryItemId: CARNE-150G
         quantity: 150
         unit: g
         displayName: Queso cheddar
@@ -2598,9 +2594,8 @@ components:
           description: Indica que la opción se basa directamente en un insumo de inventario.
         inventoryItemId:
           type: string
-          format: uuid
-          description: Identificador UUID del insumo de inventario de origen.
-          example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          description: Identificador opaco del insumo de inventario de origen como string, sin formato impuesto.
+          example: CARNE-150G
         quantity:
           type: number
           exclusiveMinimum: 0
@@ -2619,7 +2614,7 @@ components:
       example:
         optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
         sourceType: INVENTORY_ITEM
-        inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+        inventoryItemId: CARNE-150G
         quantity: 150
         unit: g
         displayName: Queso cheddar
@@ -2683,7 +2678,8 @@ components:
           $ref: '#/components/schemas/OfferStatus'
         inventoryItemId:
           type: string
-          format: uuid
+          description: Identificador opaco del insumo de inventario como string, sin formato impuesto.
+          example: CARNE-150G
         quantity:
           type: number
           exclusiveMinimum: 0

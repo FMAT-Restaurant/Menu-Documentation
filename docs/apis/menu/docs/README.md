@@ -1,6 +1,6 @@
 # Contrato OpenAPI de administración
 
-Esta carpeta contiene la especificación modular de las operaciones de Menu y la referencia `GET /api/v1/inventory/items`, incluida para que los trabajadores frontend puedan consultar artículos. Esta operación pertenece al servicio externo de Inventario: el frontend la llama directamente en el host propio de ese servicio y el backend de Menu no la implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 5.1.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.17.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y la referencia `GET /api/v1/inventory/items`, incluida para que los trabajadores frontend puedan consultar artículos. Esta operación pertenece al servicio externo de Inventario: el frontend la llama directamente en el host propio de ese servicio y el backend de Menu no la implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 5.2.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.17.
 
 ## Índice
 
@@ -64,6 +64,8 @@ La actualización valida todas las invariantes y se aplica de forma atómica. Re
 La descripción de categoría es opcional.
 
 ## Validación con Inventario
+
+`InventoryItem.id` e `inventoryItemId` son strings opacos sin requisito de formato UUID, por ejemplo `CARNE-150G`. Se mantiene la validación de existencia del artículo en Inventario.
 
 En POST y PATCH de ofertas y recetas, si falla una consulta a Inventario necesaria para validar artículos o insumos, Menu devuelve `502` sin crear o modificar el recurso ni aplicar cambios parciales. Una referencia a un artículo inexistente o inválido devuelve `422`.
 

@@ -36,7 +36,7 @@ inventoryItems:
                 summary: Artículo de inventario encontrado
                 value:
                   data:
-                    - id: 2c21767f-0f9a-4e9f-adc7-2730556c1801
+                    - id: CARNE-150G
                       name: Carne Molida Res 80/20
                       unit: g
                   meta:

@@ -116,7 +116,7 @@ entryOffers:
                       course: plato fuerte
                       options:
                         - sourceType: INVENTORY_ITEM
-                          inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                          inventoryItemId: CARNE-150G
                           quantity: 200
                           unit: g
                           displayName: Papas
@@ -190,7 +190,7 @@ entryOffers:
                           options:
                             - optionId: 79a1bc24-0d4f-489b-9836-3a60b5c4ed12
                               sourceType: INVENTORY_ITEM
-                              inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                              inventoryItemId: CARNE-150G
                               quantity: 200
                               unit: g
                               displayName: Papas
@@ -297,7 +297,7 @@ offerById:
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                               sourceType: INVENTORY_ITEM
-                              inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                              inventoryItemId: CARNE-150G
                               quantity: 200
                               unit: g
                               displayName: Papas
@@ -361,7 +361,7 @@ offerById:
                         - displayName: Papas
                           status: ACTIVE
                           sourceType: INVENTORY_ITEM
-                          inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                          inventoryItemId: CARNE-150G
                           quantity: 200
                           unit: g
             cambiarOrigen:
@@ -438,7 +438,7 @@ offerById:
                               displayName: Hamburguesa Hawaiana
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                               sourceType: INVENTORY_ITEM
-                              inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+                              inventoryItemId: CARNE-150G
                               status: ACTIVE
                               displayName: Papas
                               quantity: 200

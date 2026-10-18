@@ -1,12 +1,13 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.1.0
+  version: 5.2.0
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
     con una referencia a la consulta externa de Inventario para facilitar el
     trabajo del frontend. El frontend llama directamente al microservicio de
     Inventario; el backend de Menu no implementa ni atiende /inventory/items.
+    InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto.
     Las operaciones de Menu se organizan por recurso y no definen el host de
     despliegue; sus rutas son relativas a una URL base que termina en /api/v1.
     Las imágenes se cargan previamente mediante

@@ -5,9 +5,8 @@ RecipeSupply:
   properties:
     inventoryItemId:
       type: string
-      format: uuid
-      description: Identificador UUID del insumo utilizado.
-      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      description: Identificador opaco del insumo utilizado, sin formato impuesto.
+      example: CARNE-150G
     quantity:
       type: number
       description: Cantidad del insumo expresada en la unidad de inventario.
@@ -15,10 +14,10 @@ RecipeSupply:
     inventoryItem:
       $ref: 'Common.yaml#/InventoryItem'
   example:
-    inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    inventoryItemId: CARNE-150G
     quantity: 200
     inventoryItem:
-      id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      id: CARNE-150G
       name: Carne Molida Res 80/20
       unit: g
 
@@ -29,15 +28,14 @@ RecipeSupplyInput:
   properties:
     inventoryItemId:
       type: string
-      format: uuid
-      description: Identificador UUID del insumo utilizado.
-      example: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      description: Identificador opaco del insumo utilizado, sin formato impuesto.
+      example: CARNE-150G
     quantity:
       type: number
       description: Cantidad del insumo expresada en la unidad de inventario.
       example: 200
   example:
-    inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+    inventoryItemId: CARNE-150G
     quantity: 200
 
 RecipeSummary:
@@ -68,10 +66,10 @@ RecipeSummary:
     name: Hamburguesa Hawaiana
     description: Preparación de hamburguesa con piña asada y queso.
     supplies:
-      - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      - inventoryItemId: CARNE-150G
         quantity: 200
         inventoryItem:
-          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          id: CARNE-150G
           name: Carne Molida Res 80/20
           unit: g
 
@@ -108,10 +106,10 @@ RecipeDetail:
     description: Preparación de hamburguesa con piña asada y queso.
     instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
     supplies:
-      - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      - inventoryItemId: CARNE-150G
         quantity: 200
         inventoryItem:
-          id: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+          id: CARNE-150G
           name: Carne Molida Res 80/20
           unit: g
 
@@ -142,7 +140,7 @@ RecipeCreateRequest:
     description: Preparación de hamburguesa con piña asada y queso.
     instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
     supplies:
-      - inventoryItemId: 5c67b890-1a2b-4d3e-8f9a-0b1c2d3e4f5a
+      - inventoryItemId: CARNE-150G
         quantity: 200
 
 RecipePatchRequest:
