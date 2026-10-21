@@ -1,6 +1,6 @@
 # Contrato OpenAPI de administración
 
-Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/item/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 6.0.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.19.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/item/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 7.0.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.19.
 
 ## Índice
 
@@ -60,24 +60,68 @@ El servidor asigna `INACTIVE` a la entrada creada.
 
 En `POST /menu/entries/{entryId}/offers`, el servidor asigna `INACTIVE` a la oferta creada y `ACTIVE` a cada opción nueva; la solicitud no admite `status` en las opciones. `presentationTag` es un string requerido en POST y PATCH de ofertas y está siempre presente en sus representaciones de respuesta.
 
-## Idempotencia de creación
+## Idempotencia de operaciones
 
-`POST /menu/entries` y `POST /menu/entries/{entryId}/offers` requieren el encabezado `Idempotency-Key` con un UUID generado por el cliente, sin comillas, para cada creación lógica. La clave se delimita por el sujeto autenticado, el menú provisionado, el método `POST` y la ruta concreta, incluido `entryId`. Una creación distinta usa una clave nueva.
+Las siguientes operaciones requieren el encabezado `Idempotency-Key` con un UUID generado por el cliente, sin comillas:
 
-Durante las 24 horas posteriores a la confirmación inicial exitosa, reenviar la misma clave y el mismo cuerpo JSON devuelve el `201`, el cuerpo y el `ETag` originales. Los reintentos no extienden ese plazo, no crean otro recurso ni repiten la asociación de imagen o la selección de revisión de receta. La comparación de JSON ignora espacios y el orden de las propiedades de objetos, conserva el orden de los arrays y distingue un campo omitido de `null`.
+| Operación | Respuesta exitosa original y de reintento |
+| --- | --- |
+| `POST /menu/categories` | `201` con la misma categoría. |
+| `POST /menu/entries` | `201` con la misma entrada y asociación de imagen. |
+| `POST /menu/entries/{entryId}/offers` | `201` con la misma oferta y composición. |
+| `POST /menu/recipes` | `201` con la misma receta. |
+| `POST /media/images` | `201` con el mismo `imageId`, URLs y `ETag`. |
+| `PATCH /menu/offers/{offerId}` | `200` con el resultado del mismo guardado. |
 
-El cliente conserva la clave, el cuerpo y el `imageId` para los reintentos, incluso si pierde la respuesta o recibe un error de conexión. No vuelve a cargar la imagen para reintentar la creación. Estas claves no cubren `POST /media/images`: la carga previa conserva su interfaz y es una operación independiente.
+El cliente genera una clave por operación lógica y conserva esa clave para doble clic, timeout o reintentos del mismo envío. Cada paso independiente utiliza su propia clave: cargar una imagen, crear una receta y guardar una oferta son operaciones distintas. La clave se delimita por el sujeto autenticado, el menú provisionado, el método HTTP y la ruta concreta, incluidos `entryId` u `offerId` cuando correspondan.
+
+Durante las 24 horas posteriores a la confirmación inicial exitosa, reenviar la misma clave y la misma solicitud devuelve el estado HTTP, cuerpo y `ETag` originales. Los reintentos no extienden ese plazo, no crean otro recurso ni repiten una actualización, una asociación de imagen o una selección de revisión de receta. En JSON, la comparación ignora espacios y orden de propiedades de objetos; conserva el orden de los arrays y distingue un campo omitido de `null`. El cliente conserva el cuerpo y el `imageId` originales; no vuelve a cargar una imagen ya confirmada para reintentar la creación o actualización que la referencia.
+
+En `POST /media/images`, la solicitud equivalente conserva exactamente los bytes del campo `file` y su tipo de medio declarado. El boundary de `multipart/form-data`, el orden de las partes y el nombre del archivo no cambian su identidad para idempotencia. Si se pierde la respuesta de la carga, se reenvía el mismo archivo y tipo con la clave de esa carga para recuperar el mismo `data.id`; la asociación posterior continúa siendo una operación independiente. Por ejemplo:
+
+```http
+POST /api/v1/media/images
+Authorization: Bearer <token>
+Idempotency-Key: a04bfdc0-7506-4708-bf49-01b1aa278794
+Content-Type: multipart/form-data; boundary=menu-image
+
+--menu-image
+Content-Disposition: form-data; name="file"; filename="hamburguesa.jpg"
+Content-Type: image/jpeg
+
+<bytes del archivo JPEG>
+--menu-image--
+```
+
+En `PATCH /menu/offers/{offerId}`, la comparación incluye el JSON y el valor de `If-Match` original. Ambos encabezados son obligatorios y se conservan sin cambios durante los reintentos. Tras autenticar y autorizar, se recupera un éxito de la misma solicitud antes de volver a evaluar `If-Match`, la oferta o sus referencias actuales. Así se devuelve el `200`, cuerpo y `ETag` originales, incluidos los IDs generados de slots y opciones y las asignaciones de receta, aunque el ETag original ya sea obsoleto o la oferta se haya editado o eliminado después. No se resuelve otra revisión de receta. Por ejemplo, este guardado y su reintento utilizan los mismos encabezados y cuerpo:
+
+```http
+PATCH /api/v1/menu/offers/b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: 23f11eec-15a8-4292-bf0d-31200da7cb88
+If-Match: "rev-3"
+
+{
+  "presentationTag": "Individual",
+  "basePrice": 195
+}
+```
+
+Una ejecución nueva del PATCH valida el ETag vigente: la ausencia de `If-Match` devuelve `428` y, sin un éxito recuperable de la misma solicitud, un ETag obsoleto devuelve `412`. Cambiar `If-Match` bajo una clave ya vinculada a otra solicitud devuelve `409 IDEMPOTENCY_KEY_REUSED`, no `412`. La obligación de enviar `If-Match` también se mantiene en los reintentos.
 
 | Situación | Respuesta | Acción del cliente |
 | --- | --- | --- |
-| Encabezado ausente o UUID inválido | `400`, `error.details.code: INVALID_IDEMPOTENCY_KEY` | Enviar una clave válida. |
-| Misma clave vigente con otro JSON | `409`, `error.details.code: IDEMPOTENCY_KEY_REUSED` | Reenviar los datos originales; usar una clave nueva solo para otra creación. |
-| Misma clave y JSON todavía en proceso | `409`, `error.details.code: IDEMPOTENCY_IN_PROGRESS`, `Retry-After` en segundos | Esperar ese plazo y reenviar la misma clave y los mismos datos. |
-| Misma clave y JSON ya confirmados | `201` con el cuerpo y `ETag` originales | Usar los mismos identificadores del resultado original. |
+| `Idempotency-Key` ausente o UUID inválido | `400`, `error.details.code: INVALID_IDEMPOTENCY_KEY` | Enviar una clave válida. |
+| Misma clave vigente con otros datos, tipo de medio o `If-Match` | `409`, `error.details.code: IDEMPOTENCY_KEY_REUSED` | Reenviar la solicitud original; usar otra clave solo para una operación nueva. |
+| Misma solicitud en proceso o con resultado todavía incierto | `409`, `error.details.code: IDEMPOTENCY_IN_PROGRESS`, `Retry-After` en segundos | Esperar ese plazo y reenviar la misma solicitud y clave; no iniciar otra operación hasta confirmar el resultado anterior. |
+| Misma solicitud ya confirmada | `201` en creaciones o `200` en PATCH, con cuerpo y `ETag` originales | Usar los identificadores del resultado original. |
 
-Cada reintento verifica autenticación y autorización. Un resultado exitoso vigente se recupera antes de volver a validar las referencias actuales; se devuelve aunque después se haya editado o eliminado el recurso. Para conocer su estado y su `ETag` actuales antes de un `PATCH`, consulte el recurso mediante `GET`.
+Cada reintento verifica autenticación y autorización. Un éxito se recupera antes de volver a validar las referencias actuales y se devuelve aunque el recurso se haya editado o eliminado después. La respuesta recuperada describe la operación original; antes de una nueva modificación, consulte mediante `GET` el estado y el `ETag` actuales del recurso.
 
-Los fallos anteriores a la confirmación, incluido `502` al validar con Inventario, no conservan un resultado exitoso ni aplican cambios parciales; puede reintentarse con la misma clave y los mismos datos. Tras las 24 horas, una clave expirada se trata como nueva y podría crear un duplicado. Si una creación sigue sin confirmarse al vencer ese plazo, no la reenvíe automáticamente: primero determine si el recurso ya existe.
+Un fallo confirmado antes de guardar, incluido `502` al validar con Inventario, no aplica cambios ni conserva un resultado exitoso y permite reintentar con la misma clave y solicitud. Un error de conexión o timeout no demuestra que no se haya guardado: mientras el resultado anterior siga incierto, se mantiene la respuesta en proceso y no se ejecuta otra operación. Tras las 24 horas, una clave expirada se trata como nueva y podría duplicar una creación o repetir una actualización. Antes de reenviar automáticamente una operación incierta con una clave expirada, determine su resultado y reconcilie el estado actual.
+
+Los demás PATCH, DELETE y GET no requieren `Idempotency-Key`. Los PATCH restantes y DELETE conservan su control mediante `If-Match`; ante un resultado incierto, consulte el recurso para recuperar su estado. No obtenga un ETag nuevo para reenviar automáticamente un guardado anterior incierto, especialmente si puede crear una revisión de receta.
 
 ## Selección de recetas
 
@@ -91,7 +135,7 @@ En un `PATCH` de una opción existente que conserva `sourceType: RECIPE`, omitir
 
 En una opción existente, reenviar el mismo `sourceType` conserva los campos omitidos del origen. Cambiarlo requiere la tupla completa del nuevo tipo; el servidor lo compara con el tipo almacenado y rechaza con `422` una tupla incompleta sin aplicar cambios.
 
-La actualización valida todas las invariantes y se aplica de forma atómica. Requiere `If-Match` con el ETag fuerte vigente: su ausencia devuelve `428` y una versión desactualizada devuelve `412`.
+La actualización valida todas las invariantes y se aplica de forma atómica. Requiere `Idempotency-Key` e `If-Match`. Una ejecución nueva exige el ETag fuerte vigente: su ausencia devuelve `428` y una versión desactualizada devuelve `412`. Un reintento exacto con éxito recuperable devuelve la respuesta original antes de volver a evaluar ese ETag, conforme a las reglas de idempotencia anteriores.
 
 La descripción de categoría es opcional.
 

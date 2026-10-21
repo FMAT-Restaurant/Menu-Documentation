@@ -58,6 +58,25 @@ recipes:
       o inválida devuelve 422. Si falla la consulta a Inventario necesaria para
       validar los insumos, devuelve 502 sin crear la receta ni aplicar cambios
       parciales.
+      Requiere Idempotency-Key con un UUID generado por el cliente por operación,
+      delimitado por el sujeto autenticado, el menú, el método POST y la ruta concreta.
+      Durante 24 horas desde la confirmación inicial exitosa, reenviar la misma
+      clave y el mismo JSON semántico devuelve el 201, cuerpo, ETag y recipeId
+      originales sin crear otra receta. La comparación ignora espacios y orden
+      de propiedades; conserva el orden de arrays y distingue omisión de null.
+      Cada intento verifica autenticación y autorización antes de recuperar el
+      resultado, que se devuelve antes de revalidar referencias vigentes o volver
+      a consultar Inventario, incluso si la receta fue editada o eliminada después.
+      Un encabezado ausente o inválido devuelve 400 INVALID_IDEMPOTENCY_KEY;
+      otros datos con la misma clave devuelven 409 IDEMPOTENCY_KEY_REUSED. Una
+      operación en curso o con resultado todavía incierto devuelve 409
+      IDEMPOTENCY_IN_PROGRESS con Retry-After; no inicia otra creación hasta
+      confirmar el resultado anterior. Los fallos confirmados antes de guardar,
+      incluido 502, no aplican cambios ni conservan un resultado exitoso y permiten
+      reintentar la misma clave y datos. Los reintentos no extienden las 24 horas;
+      una clave expirada puede tratarse como nueva y crear un duplicado.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
       required: true
       content:
@@ -76,7 +95,7 @@ recipes:
                     quantity: 200
     responses:
       '201':
-        description: Receta creada.
+        description: Receta creada, o reproducción del 201, cuerpo y ETag originales de la misma operación idempotente.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -100,10 +119,14 @@ recipes:
                           id: CARNE-150G
                           name: Carne Molida Res 80/20
                           unit: g
+      '400':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
+      '409':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':

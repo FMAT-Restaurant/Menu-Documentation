@@ -14,6 +14,31 @@ images:
       separadas: cargar una imagen no crea una entrada ni una oferta. Una imagen
       inválida devuelve 422 sin crear una imagen utilizable ni modificar un
       recurso existente o su revisión.
+      Requiere Idempotency-Key con un UUID generado por el cliente para la carga
+      lógica, delimitado por el sujeto autenticado, el menú, el método POST y la
+      ruta concreta. Durante 24 horas desde la confirmación inicial exitosa,
+      reenviar la misma clave, los mismos bytes del archivo y el mismo tipo de
+      medio declarado en la parte file devuelve el 201, cuerpo y ETag originales,
+      incluidos data.id, data.url y data.thumbnailUrl, sin crear otra imagen ni
+      repetir sus efectos de transformación. La comparación ignora el boundary,
+      el orden de las partes y el nombre del archivo; no compara el multipart
+      completo ni deduplica cargas con claves distintas. Una clave nueva permite
+      una carga independiente aunque el archivo sea idéntico.
+      Cada intento verifica autenticación y autorización antes de recuperar el
+      resultado original y antes de volver a validar la imagen vigente.
+      Un encabezado ausente o inválido devuelve 400 INVALID_IDEMPOTENCY_KEY;
+      cambiar el archivo o su tipo de medio con la misma clave devuelve 409
+      IDEMPOTENCY_KEY_REUSED. Una carga en proceso o interrumpida cuyo resultado
+      todavía sea incierto devuelve 409 IDEMPOTENCY_IN_PROGRESS con Retry-After
+      hasta confirmar su resultado. El reintento recupera o continúa la misma
+      carga lógica y no crea otra imagen utilizable para esa clave. Un fallo
+      confirmado antes de obtener una imagen utilizable permite reintentar la
+      misma clave y archivo; un resultado incierto no inicia otra operación.
+      Los reintentos no extienden las 24 horas; una clave expirada puede tratarse
+      como nueva y crear otra imagen. La asociación posterior con una entrada u
+      oferta sigue siendo independiente y utiliza su propia clave de operación.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
       required: true
       content:
@@ -40,7 +65,7 @@ images:
                 file: hamburguesa-hawaiana.jpg
     responses:
       '201':
-        description: Imagen validada, con UUID generado por el servidor y URL disponibles.
+        description: Imagen validada, con UUID y URL disponibles, o reproducción del 201, cuerpo y ETag originales de la misma carga idempotente.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -56,10 +81,14 @@ images:
                     id: 55e62412-9249-4db6-8ccb-31f19ea2f501
                     url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
                     thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+      '400':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
+      '409':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':

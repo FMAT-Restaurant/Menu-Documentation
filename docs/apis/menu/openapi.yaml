@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 6.0.0
+  version: 7.0.0
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
     con referencias a las consultas externas de Inventario para facilitar el
@@ -18,9 +18,19 @@ info:
     omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el
     archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE,
     con estado asignado por el servidor.
-    Los POST de entradas y ofertas requieren Idempotency-Key; durante 24 horas
-    sus reintentos con la misma clave y datos recuperan el 201, el cuerpo y el
-    ETag originales, sin repetir la creación ni la asociación de imagen.
+    Los POST de categorías, entradas, ofertas para una entrada, recetas e imágenes,
+    y PATCH /menu/offers/{offerId}, requieren Idempotency-Key. Durante 24 horas desde
+    la primera confirmación exitosa, la misma clave y solicitud recuperan el estado
+    HTTP original (201 en creaciones y 200 en PATCH), el cuerpo y el ETag, sin repetir
+    efectos, generar otros IDs, asociar otra imagen ni volver a resolver recetas.
+    La carga de imagen compara los bytes del archivo y el tipo de medio declarado
+    de la parte file, ignorando boundary, nombre de archivo y orden de partes.
+    El PATCH conserva también el If-Match original: tras autenticar y autorizar,
+    un reintento coincidente recupera su respuesta antes de validar otra vez el
+    ETag vigente; una ejecución nueva exige el ETag vigente normalmente.
+    Una clave ausente o inválida devuelve 400; datos diferentes, incluido If-Match
+    en PATCH, devuelven 409. Una operación en curso o con resultado incierto devuelve
+    409 con Retry-After y no se ejecuta nuevamente hasta resolver el resultado previo.
     Las ofertas nuevas también inician INACTIVE y deben activarse manualmente.
     El servidor asigna status: ACTIVE a todas las opciones nuevas de POST;
     la solicitud no acepta status para ellas. presentationTag es requerido en

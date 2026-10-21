@@ -343,7 +343,7 @@ offerById:
       en cada solicitud; los demás campos omitidos se conservan;
       enviar composition.slots o las options de un slot reemplaza el conjunto
       completo. La composición se valida íntegramente y se persiste de forma
-      atómica. Requiere el ETag vigente en If-Match. Las reglas de IDs, tipos de
+      atómica. Una ejecución nueva requiere el ETag vigente en If-Match. Las reglas de IDs, tipos de
       opción, estados e imagen se detallan en el esquema de solicitud.
       Si falla la consulta a Inventario necesaria para validar un origen
       INVENTORY_ITEM, devuelve 502 sin aplicar cambios; un artículo de inventario
@@ -354,8 +354,31 @@ offerById:
       de origen a RECIPE requiere recipeId. La revisión resuelta se conserva internamente
       y no se expone en la opción. Una receta inexistente o sin revisión válida devuelve
       422 sin aplicar cambios; editar después la receta no altera las opciones existentes.
+      Requiere Idempotency-Key, un UUID generado por el cliente para este guardado lógico,
+      además de If-Match. La clave se delimita por el sujeto autenticado, el menú,
+      el método PATCH y la ruta concreta de la oferta. Los reintentos conservan la clave,
+      el JSON y el If-Match originales. La comparación ignora espacios y orden de
+      propiedades JSON; conserva el orden de arrays y distingue omisión de null.
+      Tras autenticar y autorizar, un resultado exitoso con la misma solicitud se
+      recupera antes de volver a comprobar el ETag o las referencias vigentes.
+      Durante 24 horas desde la confirmación inicial devuelve el 200, cuerpo y ETag
+      originales, incluidos los IDs generados, la imagen y la asignación de recetas,
+      sin repetir la actualización ni resolver otra revisión, aunque después se haya
+      editado o eliminado la oferta. Cambiar el JSON o el If-Match bajo la misma clave
+      devuelve 409 con error.details.code IDEMPOTENCY_KEY_REUSED. Una solicitud en
+      proceso o cuyo resultado aún no se ha confirmado devuelve 409 con
+      error.details.code IDEMPOTENCY_IN_PROGRESS y Retry-After; no se inicia otra
+      actualización hasta confirmar el resultado anterior. La ausencia o invalidez
+      de Idempotency-Key devuelve 400. If-Match sigue siendo obligatorio: omitirlo
+      devuelve 428; sin un resultado exitoso recuperable, un ETag obsoleto devuelve 412.
+      Un fallo confirmado anterior a la persistencia, incluido 502, no aplica cambios
+      ni conserva un resultado exitoso y permite reintentar los mismos datos y headers.
+      Los reintentos no extienden las 24 horas; una clave expirada se trata como nueva.
+      Antes de reenviar un guardado incierto con una clave expirada, consulte y
+      reconcilie el estado actual para evitar repetir la actualización.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
+      - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
       required: true
       content:
@@ -428,7 +451,7 @@ offerById:
                           quantity: 250
     responses:
       '200':
-        description: Oferta actualizada.
+        description: Oferta actualizada o respuesta original del mismo guardado idempotente, con el cuerpo y ETag originales.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -470,14 +493,19 @@ offerById:
                               displayName: Papas
                               quantity: 200
                               unit: g
+      '400':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '404':
         $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+        description: El ETag de If-Match es obsoleto y no existe un resultado exitoso recuperable para el mismo guardado idempotente.
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '428':

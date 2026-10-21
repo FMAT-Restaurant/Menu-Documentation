@@ -47,7 +47,27 @@ categories:
     tags: [Categorías]
     operationId: createMenuCategory
     summary: Crear una categoría
-    description: Crea una categoría para organizar entradas del catálogo.
+    description: >-
+      Crea una categoría para organizar entradas del catálogo. Requiere
+      Idempotency-Key con un UUID generado por el cliente por operación; su
+      alcance es el sujeto autenticado, el menú, el método POST y la ruta concreta.
+      Durante 24 horas desde la confirmación inicial exitosa, la misma clave y
+      el mismo JSON semántico recuperan el 201, cuerpo, ETag e identificador
+      originales sin crear otra categoría. La comparación ignora espacios y
+      orden de propiedades; conserva el orden de arrays y distingue omisión de null.
+      Cada intento verifica autenticación y autorización antes de recuperar el
+      resultado, que se devuelve antes de revalidar referencias o reglas vigentes,
+      incluso si la categoría fue editada o eliminada posteriormente.
+      Un encabezado ausente o inválido devuelve 400 INVALID_IDEMPOTENCY_KEY;
+      otros datos con la misma clave devuelven 409 IDEMPOTENCY_KEY_REUSED. Una
+      operación en curso o de resultado todavía incierto devuelve 409
+      IDEMPOTENCY_IN_PROGRESS con Retry-After; no inicia otra creación hasta
+      confirmar el resultado anterior. Los fallos confirmados antes de guardar
+      no conservan un resultado exitoso y permiten reintentar la misma clave y datos.
+      Los reintentos no extienden las 24 horas; una clave expirada puede tratarse
+      como nueva y crear un duplicado.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
       required: true
       content:
@@ -62,7 +82,7 @@ categories:
                 description: Opciones dulces.
     responses:
       '201':
-        description: Categoría creada.
+        description: Categoría creada, o reproducción del 201, cuerpo y ETag originales de la misma operación idempotente.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -79,10 +99,14 @@ categories:
                     name: Postres
                     description: Opciones dulces.
                     entryCount: 0
+      '400':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
+      '409':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':

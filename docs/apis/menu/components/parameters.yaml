@@ -75,7 +75,13 @@ IfMatch:
   name: If-Match
   in: header
   required: true
-  description: ETag fuerte de la versión vigente del recurso leída por el cliente; se envía para una actualización condicional con comparación fuerte.
+  description: >-
+    ETag fuerte de la versión vigente del recurso leída por el cliente; se envía
+    para una actualización condicional con comparación fuerte. En PATCH
+    /menu/offers/{offerId}, un reintento idempotente conserva el If-Match original:
+    si coincide con una solicitud exitosa vigente, se recupera su respuesta antes
+    de reevaluar ese ETag, aunque ya sea obsoleto. Una ejecución nueva valida el
+    ETag contra la versión vigente normalmente.
   schema:
     type: string
     example: '"rev-3"'
@@ -94,17 +100,24 @@ IdempotencyKey:
   in: header
   required: true
   description: >-
-    UUID generado por el cliente para una creación lógica de entrada u oferta;
-    se envía sin comillas. Es obligatorio en POST /menu/entries y
-    POST /menu/entries/{entryId}/offers. Su ausencia o un formato inválido
-    devuelve 400. Los reintentos deben conservar la clave y el mismo cuerpo
-    JSON, incluido imageId. La comparación ignora espacios y el orden de las
-    propiedades de objetos; conserva el orden de los arrays y distingue un
-    campo omitido de null. La clave se delimita por el sujeto autenticado,
-    el menú provisionado, el método POST y la ruta concreta, incluido entryId.
+    UUID generado por el cliente para una operación lógica; se envía sin comillas.
+    Es obligatorio en POST /menu/categories, POST /menu/entries,
+    POST /menu/entries/{entryId}/offers, POST /menu/recipes, POST /media/images y
+    PATCH /menu/offers/{offerId}. Su ausencia o un formato inválido devuelve 400.
+    Los reintentos deben conservar la clave y los datos originales. Para JSON,
+    la comparación ignora espacios y el orden de las propiedades de objetos;
+    conserva el orden de los arrays y distingue un campo omitido de null.
+    En PATCH de ofertas también se compara el If-Match original; el cliente
+    conserva ambos encabezados y el cuerpo, y una respuesta exitosa vigente se
+    recupera antes de reevaluar el ETag. En la carga multipart de imágenes se
+    comparan los bytes exactos del archivo y el tipo de medio declarado de la
+    parte file; se ignoran el boundary, el orden de las partes y el nombre de
+    archivo. La clave se delimita por el sujeto autenticado, el menú provisionado,
+    el método HTTP y la ruta concreta, incluidos entryId u offerId cuando apliquen.
     El resultado exitoso se conserva durante 24 horas desde la confirmación
     inicial; los reintentos no extienden ese plazo. Una clave expirada se trata
-    como nueva y puede producir otra creación; no debe reutilizarse.
+    como nueva y puede crear otro recurso o volver a aplicar una actualización;
+    no debe reutilizarse.
   schema:
     type: string
     format: uuid
