@@ -24,7 +24,7 @@ El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationT
 
 Cada `SlotOption` es una aparición contextual con exactamente un `ComponentSource`: `INVENTORY_ITEM` o `RECIPE`. Varias opciones pueden referir el mismo artículo o la misma definición de receta en apariciones distintas.
 
-Catálogo administra las `RecipeDefinition` en `RecipeLibrary` y sus líneas `ComponentIngredient`. Una receta define nombre, descripción, instrucciones en texto y uno o más ingredientes seleccionados de Inventario, cada uno con su cantidad. Todas las recetas se almacenan en la biblioteca; si esta se comparte entre varios menús o tiene alcance de un solo menú permanece pendiente en OPEN-003. Al configurar un `CompositionSlot`, se puede seleccionar una receta existente por ID y revisión o crear una receta desde ese flujo. Una receta nueva se guarda en `RecipeLibrary`; `RecipeSource` conserva el ID y la revisión de la definición asignada, que no se modifica desde la opción.
+Catálogo administra las `RecipeDefinition` en `RecipeLibrary` y sus líneas `ComponentIngredient`. Una receta define nombre, descripción, instrucciones en texto, número de revisión y uno o más ingredientes seleccionados de Inventario, cada uno con su cantidad. Todas las recetas se almacenan en la biblioteca; si esta se comparte entre varios menús o tiene alcance de un solo menú permanece pendiente en OPEN-003. Al configurar un `CompositionSlot`, se puede seleccionar una receta existente únicamente por ID o crear una receta desde ese flujo. Una receta nueva se guarda primero en `RecipeLibrary`. Al asignarla, el sistema resuelve la revisión publicada válida más reciente y la fija internamente de forma atómica en `RecipeSource`, junto con el ID; el cliente no especifica la revisión. La definición asignada no se modifica desde la opción. Una reasignación explícita del ID, incluso si es el mismo, adopta la revisión válida más reciente; omitirlo al editar una opción que ya usa receta conserva su asignación.
 
 Cada línea `ComponentIngredient` referencia exactamente un `InventoryItem` e indica la cantidad física de ese ingrediente. Al seleccionar, consultar o editar la línea se muestra su unidad de medida autoritativa, suministrada por Inventario; la unidad de la cantidad debe ser compatible con la del artículo. Editar una receta publicada crea una nueva revisión sin cambiar las referencias existentes. Las cantidades físicas de artículos e ingredientes son distintas de `CompositionSlot.quantity`, que expresa rondas de selección del slot.
 
@@ -67,7 +67,7 @@ flowchart LR
         Source --> ItemSource[INVENTORY_ITEM]
         Source --> RecipeSource[RECIPE]
         RecipeLibrary[RecipeLibrary] --> RecipeDefinition[RecipeDefinition]
-        RecipeSource -. "recipeId + revisión fijada" .-> RecipeDefinition
+        RecipeSource -. "selección por recipeId; última revisión válida fijada internamente" .-> RecipeDefinition
         RecipeDefinition --> Ingredient[ComponentIngredient]
     end
 
@@ -120,7 +120,7 @@ Todo slot `ACTIVE` participa en la selección y genera el número de rondas indi
 - **`SlotOption`:** aparición contextual que contiene un origen único. Las opciones `INACTIVE` no se ofrecen; el estado del slot depende de si tiene al menos una opción `ACTIVE`.
 - **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INVENTORY_ITEM` o `RECIPE`.
 - **`InventoryItemSource`:** contenido que referencia un artículo externo de Inventario con su cantidad física y unidad.
-- **`RecipeSource`:** referencia desde una `SlotOption` a una receta de `RecipeLibrary` mediante `recipeId` y una revisión fijada. Al configurar una opción `RECIPE`, se puede elegir una receta de la biblioteca o definir una nueva, que se guarda en la biblioteca y queda referenciada por ID y revisión.
+- **`RecipeSource`:** referencia interna desde una `SlotOption` a una receta de `RecipeLibrary` mediante `recipeId` y una revisión fijada. Al configurar una opción `RECIPE`, se elige una receta solo por ID o se define una nueva, que se guarda primero en la biblioteca. El sistema fija internamente la revisión publicada válida más reciente al asignarla, sin solicitar un número de revisión al cliente; las ediciones posteriores de la receta no cambian esa referencia ni su historial.
 - **`InventoryItem`:** artículo cuya identidad, unidad de medida y existencias pertenecen a Inventario.
 - **`RecipeLibrary`:** biblioteca administrada por Catálogo que almacena las definiciones de receta; su alcance entre menús permanece pendiente en OPEN-003.
 - **`RecipeDefinition`:** receta con nombre, descripción, instrucciones en texto, revisión y una o más líneas de ingredientes de Inventario.

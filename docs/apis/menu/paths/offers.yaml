@@ -80,6 +80,28 @@ entryOffers:
       oferta; un artículo de inventario inválido devuelve 422.
       La carga previa es una operación independiente y no se deshace si falla la
       creación de la oferta.
+      Requiere Idempotency-Key, un UUID generado por el cliente por creación lógica,
+      con alcance por usuario autenticado, menú, método POST y ruta concreta (incluido
+      entryId). Durante 24 horas desde la primera creación confirmada, reenviar la misma
+      clave y el mismo JSON semántico devuelve el 201, cuerpo y ETag originales, con la
+      misma oferta, slots, opciones e imagen; no repite efectos ni resuelve otra vez las
+      revisiones de recetas. El orden de propiedades y los espacios del JSON no alteran
+      su igualdad; el orden de arrays y la diferencia entre omisión y null sí la alteran.
+      Tras autenticar y autorizar al solicitante, el resultado guardado se recupera antes
+      de validar los recursos o referencias vigentes, incluso si después fueron editados
+      o eliminados. Otra carga JSON con la misma clave devuelve 409 con
+      error.details.code IDEMPOTENCY_KEY_REUSED; una creación todavía en curso
+      devuelve 409 con error.details.code IDEMPOTENCY_IN_PROGRESS y Retry-After. La ausencia o
+      invalidez del encabezado devuelve 400. Los errores anteriores a la creación
+      confirmada, incluido 502, no fijan un resultado y liberan la clave para reintentar
+      la misma solicitud. Los reintentos no extienden el plazo; después de 24 horas la
+      clave puede tratarse como nueva y ya no garantiza evitar duplicados.
+      Una opción RECIPE se selecciona solo por recipeId: al asignarla, el servidor
+      resuelve atómicamente la revisión válida publicada más reciente y la conserva
+      internamente; no se expone una revisión en la opción. Una receta inexistente o
+      sin revisión válida devuelve 422 sin aplicar cambios.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
       required: true
       content:
@@ -101,7 +123,6 @@ entryOffers:
                       options:
                         - sourceType: RECIPE
                           recipeId: c4813f65-00b4-4921-874e-03c555796401
-                          recipeRevision: 2
                           displayName: Hamburguesa Hawaiana
             ofertaConInventario:
               summary: Crear una oferta con una opción de insumo de inventario
@@ -122,7 +143,7 @@ entryOffers:
                           displayName: Papas
     responses:
       '201':
-        description: Oferta creada.
+        description: Oferta creada; un reintento idempotente reproduce el cuerpo y el ETag de la creación original.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -165,7 +186,6 @@ entryOffers:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
-                              recipeRevision: 2
                               displayName: Hamburguesa Hawaiana
                               status: ACTIVE
               ofertaCreadaConInventario:
@@ -195,6 +215,8 @@ entryOffers:
                               unit: g
                               displayName: Papas
                               status: ACTIVE
+      '400':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
@@ -211,6 +233,8 @@ entryOffers:
                 value:
                   error:
                     message: No se encontró la entrada indicada.
+      '409':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':
@@ -235,7 +259,7 @@ offerById:
     description: >-
       Devuelve los datos de la oferta y su composición. Cada opción identifica su
       origen mediante sourceType y los campos específicos del tipo: RECIPE incluye
-      recipeId y recipeRevision; INVENTORY_ITEM incluye inventoryItemId, quantity
+      recipeId; la revisión asignada se conserva internamente. INVENTORY_ITEM incluye inventoryItemId, quantity
       y unit. displayName es el nombre de la opción que se muestra en el menú.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
@@ -273,7 +297,6 @@ offerById:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
-                              recipeRevision: 2
                               displayName: Hamburguesa Hawaiana
               ofertaConInventario:
                 summary: Oferta con un espacio de insumo de inventario
@@ -325,6 +348,12 @@ offerById:
       Si falla la consulta a Inventario necesaria para validar un origen
       INVENTORY_ITEM, devuelve 502 sin aplicar cambios; un artículo de inventario
       inválido devuelve 422.
+      Para una opción RECIPE, enviar recipeId, incluso si coincide con el actual,
+      asigna atómicamente la revisión válida publicada más reciente. Omitir recipeId
+      en una opción que ya es RECIPE conserva la asignación anterior; cambiar el tipo
+      de origen a RECIPE requiere recipeId. La revisión resuelta se conserva internamente
+      y no se expone en la opción. Una receta inexistente o sin revisión válida devuelve
+      422 sin aplicar cambios; editar después la receta no altera las opciones existentes.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -365,7 +394,7 @@ offerById:
                           quantity: 200
                           unit: g
             cambiarOrigen:
-              summary: Reemplazar el origen de una opción existente por una revisión de receta
+              summary: Asignar una receta por ID usando su revisión válida más reciente
               value:
                 presentationTag: Individual
                 composition:
@@ -375,9 +404,8 @@ offerById:
                         - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                           sourceType: RECIPE
                           recipeId: c4813f65-00b4-4921-874e-03c555796401
-                          recipeRevision: 2
             actualizarNombreReceta:
-              summary: Cambiar el nombre de una opción existente que ya usa RECIPE, sin cambiar receta ni revisión
+              summary: Cambiar el nombre de una opción RECIPE conservando su asignación
               value:
                 presentationTag: Individual
                 composition:
@@ -433,7 +461,6 @@ offerById:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
-                              recipeRevision: 2
                               status: ACTIVE
                               displayName: Hamburguesa Hawaiana
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402

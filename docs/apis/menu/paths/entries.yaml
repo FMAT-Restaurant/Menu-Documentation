@@ -74,6 +74,24 @@ entries:
       o de otro menú y cualquier solicitud inválida devuelven 422 sin crear la
       entrada ni aplicar cambios. La carga previa de imagen es una operación
       independiente y no se deshace si falla la creación de la entrada.
+      Requiere Idempotency-Key, un UUID generado por el cliente por creación lógica,
+      con alcance por usuario autenticado, menú, método POST y ruta concreta. Durante
+      24 horas desde la primera creación confirmada, reenviar la misma clave y el mismo
+      JSON semántico devuelve el 201, cuerpo y ETag originales, con la misma entrada y
+      asociación de imagen; no repite efectos. El orden de propiedades y los espacios
+      del JSON no alteran su igualdad; el orden de arrays y la diferencia entre omisión
+      y null sí la alteran. Tras autenticar y autorizar al solicitante, el resultado
+      guardado se recupera antes de validar los recursos o referencias vigentes,
+      incluso si después fueron editados o eliminados. Otra carga JSON con la misma
+      clave devuelve 409 con error.details.code IDEMPOTENCY_KEY_REUSED; una creación
+      todavía en curso devuelve 409 con error.details.code IDEMPOTENCY_IN_PROGRESS
+      y Retry-After. La ausencia o invalidez del encabezado devuelve 400.
+      Los errores anteriores a la creación confirmada no fijan un resultado y liberan
+      la clave para reintentar la misma solicitud. Los reintentos no extienden el plazo;
+      después de 24 horas la clave puede tratarse como nueva y ya no garantiza evitar
+      duplicados.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
       required: true
       content:
@@ -91,7 +109,7 @@ entries:
                 imageId: 55e62412-9249-4db6-8ccb-31f19ea2f501
     responses:
       '201':
-        description: Entrada creada en INACTIVE y asociada con la imagen previamente cargada.
+        description: Entrada creada en INACTIVE y asociada con la imagen previamente cargada; un reintento idempotente reproduce el cuerpo y el ETag originales.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -114,10 +132,14 @@ entries:
                       thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
                     categoryIds:
                       - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+      '400':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
+      '409':
+        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':

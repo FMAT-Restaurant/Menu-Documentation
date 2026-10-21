@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 5.3.0
+  version: 6.0.0
   description: >-
     Contrato HTTP de las operaciones de consulta y administración de Menu,
     con referencias a las consultas externas de Inventario para facilitar el
@@ -18,11 +18,17 @@ info:
     omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el
     archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE,
     con estado asignado por el servidor.
+    Los POST de entradas y ofertas requieren Idempotency-Key; durante 24 horas
+    sus reintentos con la misma clave y datos recuperan el 201, el cuerpo y el
+    ETag originales, sin repetir la creación ni la asociación de imagen.
     Las ofertas nuevas también inician INACTIVE y deben activarse manualmente.
     El servidor asigna status: ACTIVE a todas las opciones nuevas de POST;
     la solicitud no acepta status para ellas. presentationTag es requerido en
-    POST y PATCH de ofertas y en sus respuestas. El PATCH de ofertas conserva
-    los demás campos omitidos y reemplaza recursivamente
+    POST y PATCH de ofertas y en sus respuestas.
+    Para un origen RECIPE solo se indica recipeId: al asignarlo, el servidor
+    selecciona la revisión válida más reciente y conserva internamente la
+    referencia histórica; las opciones no exponen recipeRevision.
+    El PATCH de ofertas conserva los demás campos omitidos y reemplaza recursivamente
     los conjuntos de slots y opciones enviados. Valida el resultado completo y
     persiste atómicamente, con un ETag fuerte vigente en If-Match.
     Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de
@@ -203,6 +209,8 @@ components:
       $ref: ./components/parameters.yaml#/IfMatch
     IfNoneMatch:
       $ref: ./components/parameters.yaml#/IfNoneMatch
+    IdempotencyKey:
+      $ref: ./components/parameters.yaml#/IdempotencyKey
   headers:
     ETag:
       $ref: ./components/headers.yaml#/ETag
@@ -225,3 +233,7 @@ components:
       $ref: ./components/responses.yaml#/TooManyRequests
     InventoryUnavailable:
       $ref: ./components/responses.yaml#/InventoryUnavailable
+    IdempotencyBadRequest:
+      $ref: ./components/responses.yaml#/IdempotencyBadRequest
+    IdempotencyConflict:
+      $ref: ./components/responses.yaml#/IdempotencyConflict

@@ -143,3 +143,84 @@ InventoryUnavailable:
           value:
             error:
               message: No se pudo consultar Inventario; no se aplicaron cambios.
+
+IdempotencyBadRequest:
+  description: Falta el encabezado Idempotency-Key obligatorio o su valor no tiene el formato UUID requerido; no se crea el recurso.
+  content:
+    application/json:
+      schema:
+        type: object
+        required: [error]
+        properties:
+          error:
+            type: object
+            required: [message, details]
+            properties:
+              message:
+                type: string
+              details:
+                type: object
+                required: [code]
+                properties:
+                  code:
+                    type: string
+                    enum: [INVALID_IDEMPOTENCY_KEY]
+      examples:
+        invalidIdempotencyKey:
+          summary: Clave de idempotencia ausente o inválida
+          value:
+            error:
+              message: Envía Idempotency-Key con un UUID válido.
+              details:
+                code: INVALID_IDEMPOTENCY_KEY
+
+IdempotencyConflict:
+  description: >-
+    La clave vigente ya está vinculada a un cuerpo JSON diferente
+    (IDEMPOTENCY_KEY_REUSED), o una solicitud con la misma clave y los mismos
+    datos sigue en proceso (IDEMPOTENCY_IN_PROGRESS). Ninguno de estos rechazos
+    inicia otra creación. Para IN_PROGRESS, espere los segundos indicados en
+    Retry-After y reintente con la misma clave y el mismo cuerpo. Para KEY_REUSED,
+    recupere los datos originales para reintentar esa operación o use una clave
+    nueva solo si pretende una creación distinta.
+  headers:
+    Retry-After:
+      description: Segundos antes de reintentar; solo se devuelve para IDEMPOTENCY_IN_PROGRESS.
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+  content:
+    application/json:
+      schema:
+        type: object
+        required: [error]
+        properties:
+          error:
+            type: object
+            required: [message, details]
+            properties:
+              message:
+                type: string
+              details:
+                type: object
+                required: [code]
+                properties:
+                  code:
+                    type: string
+                    enum: [IDEMPOTENCY_KEY_REUSED, IDEMPOTENCY_IN_PROGRESS]
+      examples:
+        idempotencyKeyReused:
+          summary: La clave ya identifica otros datos de creación
+          value:
+            error:
+              message: La clave de idempotencia ya está vinculada a una solicitud diferente.
+              details:
+                code: IDEMPOTENCY_KEY_REUSED
+        idempotencyInProgress:
+          summary: La misma creación todavía se está procesando
+          value:
+            error:
+              message: La solicitud con esta clave de idempotencia sigue en proceso.
+              details:
+                code: IDEMPOTENCY_IN_PROGRESS

@@ -88,3 +88,25 @@ IfNoneMatch:
   schema:
     type: string
     example: W/"rev-3"
+
+IdempotencyKey:
+  name: Idempotency-Key
+  in: header
+  required: true
+  description: >-
+    UUID generado por el cliente para una creación lógica de entrada u oferta;
+    se envía sin comillas. Es obligatorio en POST /menu/entries y
+    POST /menu/entries/{entryId}/offers. Su ausencia o un formato inválido
+    devuelve 400. Los reintentos deben conservar la clave y el mismo cuerpo
+    JSON, incluido imageId. La comparación ignora espacios y el orden de las
+    propiedades de objetos; conserva el orden de los arrays y distingue un
+    campo omitido de null. La clave se delimita por el sujeto autenticado,
+    el menú provisionado, el método POST y la ruta concreta, incluido entryId.
+    El resultado exitoso se conserva durante 24 horas desde la confirmación
+    inicial; los reintentos no extienden ese plazo. Una clave expirada se trata
+    como nueva y puede producir otra creación; no debe reutilizarse.
+  schema:
+    type: string
+    format: uuid
+    pattern: '^[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$'
+    example: 83f34a6a-5611-41dd-b437-a9cb96d932c2

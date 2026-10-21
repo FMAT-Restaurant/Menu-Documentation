@@ -6,9 +6,9 @@ OfferStatus:
 
 RecipeSlotOption:
   type: object
-  description: Opción de slot cuyo origen es una receta. La respuesta incluye la revisión fijada; las respuestas del POST y del PATCH también incluyen su estado.
+  description: Opción de slot cuyo origen es una receta identificada por recipeId. El servidor conserva internamente la revisión resuelta al asignarla; no se expone en la opción. Las respuestas del POST y del PATCH también incluyen su estado.
   additionalProperties: false
-  required: [optionId, sourceType, recipeId, recipeRevision, displayName]
+  required: [optionId, sourceType, recipeId, displayName]
   properties:
     optionId:
       type: string
@@ -23,10 +23,6 @@ RecipeSlotOption:
       format: uuid
       description: Identificador UUID de la receta de origen.
       example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-    recipeRevision:
-      type: integer
-      minimum: 1
-      description: Revisión de receta fijada por la opción.
     status:
       $ref: '#/OfferStatus'
       description: Estado de la opción, incluido en las respuestas del POST y del PATCH; al crearla mediante POST el servidor asigna ACTIVE.
@@ -38,7 +34,6 @@ RecipeSlotOption:
     optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
     sourceType: RECIPE
     recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-    recipeRevision: 3
     displayName: Hamburguesa hawaiana
 
 InventoryItemSlotOption:
@@ -90,9 +85,15 @@ SlotOption:
 
 RecipeSlotOptionInput:
   type: object
-  description: Datos para crear una opción de slot basada en una receta mediante POST; el servidor genera optionId y asigna status ACTIVE. No se envían optionId ni status en la solicitud.
+  description: >-
+    Datos para crear una opción de slot basada en una receta mediante POST. Se selecciona
+    únicamente por recipeId; el servidor resuelve atómicamente la revisión válida más reciente
+    al asignarla y conserva esa referencia internamente. Las ediciones posteriores de la receta
+    no cambian la opción ni su historia. Una receta inexistente o sin revisión válida devuelve
+    422 sin aplicar cambios. El servidor genera optionId y asigna status ACTIVE; no se envían
+    optionId ni status en la solicitud.
   additionalProperties: false
-  required: [sourceType, recipeId, recipeRevision, displayName]
+  required: [sourceType, recipeId, displayName]
   properties:
     sourceType:
       const: RECIPE
@@ -102,11 +103,6 @@ RecipeSlotOptionInput:
       format: uuid
       description: Identificador UUID de la receta de origen.
       example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-    recipeRevision:
-      type: integer
-      minimum: 1
-      description: Revisión de receta fijada por la opción.
-      example: 3
     displayName:
       type: string
       description: >-
@@ -116,7 +112,6 @@ RecipeSlotOptionInput:
   example:
     sourceType: RECIPE
     recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-    recipeRevision: 3
     displayName: Hamburguesa hawaiana
 
 InventoryItemSlotOptionInput:
@@ -201,7 +196,6 @@ CompositionSlot:
       - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
         sourceType: RECIPE
         recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        recipeRevision: 3
         displayName: Hamburguesa hawaiana
 
 CompositionSlotInput:
@@ -235,7 +229,6 @@ CompositionSlotInput:
     options:
       - sourceType: RECIPE
         recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-        recipeRevision: 3
         displayName: Hamburguesa hawaiana
 
 Composition:
@@ -258,7 +251,6 @@ Composition:
           - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
             sourceType: RECIPE
             recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-            recipeRevision: 3
             displayName: Hamburguesa hawaiana
 
 CompositionInput:
@@ -371,7 +363,6 @@ CatalogOfferDetail:
             - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
               sourceType: RECIPE
               recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-              recipeRevision: 3
               displayName: Hamburguesa hawaiana
 
 CatalogOfferCreateRequest:
@@ -418,7 +409,6 @@ CatalogOfferCreateRequest:
           options:
             - sourceType: RECIPE
               recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
-              recipeRevision: 3
               displayName: Hamburguesa hawaiana
 
 CatalogOfferPatchRequest:
@@ -539,7 +529,13 @@ CompositionSlotPatchInput:
 
 RecipeSlotOptionPatchInput:
   type: object
-  description: Datos para actualizar o crear una opción basada en una receta.
+  description: >-
+    Datos para actualizar o crear una opción basada en una receta. Enviar recipeId, incluso
+    si coincide con el actual, asigna atómicamente la revisión válida más reciente de esa
+    receta; el servidor conserva internamente la referencia resuelta. Omitir recipeId en una
+    opción existente de tipo RECIPE conserva su asignación. Cambiar el tipo de origen a
+    RECIPE requiere recipeId. Las ediciones posteriores de la receta no cambian opciones ni
+    historia. Una receta inexistente o sin revisión válida devuelve 422 sin aplicar cambios.
   additionalProperties: false
   required: [sourceType]
   properties:
@@ -558,18 +554,12 @@ RecipeSlotOptionPatchInput:
     recipeId:
       type: string
       format: uuid
-    recipeRevision:
-      type: integer
-      minimum: 1
-  dependentRequired:
-    recipeId:
-      - recipeRevision
   allOf:
     - if:
         not:
           required: [optionId]
       then:
-        required: [displayName, status, recipeId, recipeRevision]
+        required: [displayName, status, recipeId]
 
 InventoryItemSlotOptionPatchInput:
   type: object
@@ -643,15 +633,12 @@ CatalogOfferPatchRecipeSlotOption:
     - $ref: '#/RecipeSlotOption'
     - type: object
       description: >-
-        En la respuesta del PATCH siempre se incluyen el estado de la opción y la revisión fijada
-        de la receta.
-      required: [status, recipeRevision]
+        En la respuesta del PATCH siempre se incluye el estado de la opción. La receta se
+        identifica mediante recipeId; la revisión asignada se conserva internamente.
+      required: [status]
       properties:
         status:
           $ref: '#/OfferStatus'
-        recipeRevision:
-          type: integer
-          minimum: 1
 
 CatalogOfferPatchInventoryItemSlotOption:
   allOf:

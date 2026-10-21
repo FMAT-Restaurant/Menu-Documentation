@@ -8,7 +8,7 @@ Toda oferta vendible posee una Composition con uno o más CompositionSlot; la co
 
 Una oferta del catálogo puede usarse como plantilla durante la configuración de otra oferta. Sus slots y opciones se copian a la composición destino como definiciones locales editables, conservando los estados de las opciones; el estado de cada slot se deriva de las opciones copiadas. La copia conserva los orígenes de Inventario y las referencias a recetas y sus revisiones, pero no conserva la identidad, el precio ni una referencia persistente a la oferta plantilla; los cambios posteriores no se sincronizan.
 
-RecipeLibrary reúne las RecipeDefinition vigentes y sus revisiones históricas publicadas. Cada receta contiene instrucciones textuales y líneas ComponentIngredient que refieren a InventoryItem; Inventario conserva la identidad, la unidad de medida y el stock de esos artículos. RecipeSource fija el ID y la revisión de la receta asignada a una SlotOption.
+RecipeLibrary reúne las RecipeDefinition vigentes y sus revisiones históricas publicadas. Cada receta contiene instrucciones textuales y líneas ComponentIngredient que refieren a InventoryItem; Inventario conserva la identidad, la unidad de medida y el stock de esos artículos. La selección de una receta para una SlotOption indica solo su ID. Al asignarla, el sistema resuelve la revisión publicada válida más reciente y la fija internamente de forma atómica en RecipeSource; el cliente no especifica la revisión.
 
 ## Agregados y Límites de Consistencia
 
@@ -24,7 +24,7 @@ CatalogEntry contiene CatalogOffer; cada oferta concreta puede seleccionarse ind
 
 Composition es el conjunto de uno o más CompositionSlot y todos permanecen como miembros estructurales de la oferta. Cada slot contiene una o más SlotOption, opciones de contenido que poseen un origen único. Todos los slots ACTIVE participan; los INACTIVE no se seleccionan ni generan rondas. Si ningún slot queda ACTIVE, CatalogOffer pasa automáticamente a INACTIVE; cuando vuelve a haber un slot ACTIVE, la oferta se reactiva automáticamente si su inactividad se originó por esa ausencia y seguía habilitada administrativamente. Una inactivación administrativa explícita permanece hasta una nueva activación administrativa. Usar una oferta como plantilla copia los slots y los estados de sus opciones a otra composición sin conservar relación con la oferta de origen. La habilitación administrativa se distingue del estado efectivo de CatalogOffer sin prescribir su representación.
 
-RecipeLibrary contiene las definiciones vigentes y revisiones históricas de receta. Cada RecipeSource referencia una receta publicada por ID y revisión. CompositionSnapshot pertenece exclusivamente a CatalogOfferRevision y conserva una definición histórica. InventoryItem, su unidad de medida y su stock siguen bajo Inventario.
+RecipeLibrary contiene las definiciones vigentes y revisiones históricas de receta. Cada RecipeSource conserva internamente el ID de la receta seleccionada y la revisión publicada válida más reciente resuelta al asignarla. CompositionSnapshot pertenece exclusivamente a CatalogOfferRevision y conserva una definición histórica. InventoryItem, su unidad de medida y su stock siguen bajo Inventario.
 
 Una receta vigente solo puede eliminarse cuando ninguna SlotOption de ninguna oferta vigente la referencia, incluso si la oferta o la opción está inactiva. Si existe una referencia, se rechaza la eliminación sin cambios; las revisiones históricas publicadas permanecen consultables.
 
@@ -47,7 +47,7 @@ La siguiente tabla resume los 16 conceptos del modelo, sus responsabilidades, at
 | SlotOption | Opción de contenido dentro de un slot. | id, slotId, displayName, status, source; pertenece a CompositionSlot y posee un ComponentSource. Un slot es ACTIVE si al menos una opción está ACTIVE. |
 | ComponentSource | Tipo conceptual del origen único de una opción. | type: INVENTORY_ITEM o RECIPE; especialización exclusiva en InventoryItemSource o RecipeSource. |
 | InventoryItemSource | Referencia directa a un artículo externo de Inventario. | inventoryItemId, quantity, unit, displayNameSnapshot?; referencia exactamente un InventoryItem. |
-| RecipeSource | Referencia a una receta de RecipeLibrary desde una SlotOption. | recipeId, recipeRevision; fija una RecipeDefinition publicada. |
+| RecipeSource | Referencia interna a una receta de RecipeLibrary desde una SlotOption. | recipeId, recipeRevision; al seleccionar solo recipeId, el sistema resuelve y fija la revisión publicada válida más reciente. recipeRevision es interno y no se especifica en el contrato de la opción. |
 | InventoryItem | Artículo o ingrediente cuya identidad, unidad de medida y stock son de Inventario. | id, name, baseUnit; concepto externo referenciado por InventoryItemSource y ComponentIngredient. |
 | RecipeLibrary | Colección de recetas administradas por Catálogo. | id, name, recipes[]; contiene definiciones vigentes e historial de revisiones publicadas. |
 | RecipeDefinition | Receta versionada con datos textuales y líneas de ingredientes. | id, name, description, instructions (texto), revision, ingredients[]; pertenece a RecipeLibrary. |
@@ -71,7 +71,7 @@ Todos los slots pertenecen estructuralmente a la composición; cada slot ACTIVE 
 
 Inventory posee la identidad, unidad de medida y stock de InventoryItem. Catálogo administra RecipeLibrary, las definiciones de receta y las cantidades de sus ComponentIngredient. Cada receta se crea con nombre, descripción, instrucciones en texto y una o más líneas de ingredientes seleccionados de Inventario. Cada línea contiene una referencia a InventoryItem y una cantidad; la unidad administrada por Inventario se muestra al seleccionar, consultar o editar el ingrediente. Su precisión, rangos y conversiones se remiten a OPEN-006.
 
-Una SlotOption de tipo RECIPE se configura seleccionando una receta existente de RecipeLibrary por ID y revisión o definiendo una nueva desde el flujo de configuración. La nueva definición se guarda en RecipeLibrary y RecipeSource conserva su ID y revisión. La opción no modifica la receta asignada. Editar una receta publicada crea una revisión nueva; sus referencias previas permanecen fijadas a la revisión anterior.
+Una SlotOption de tipo RECIPE se configura seleccionando una receta existente de RecipeLibrary solo por ID o definiendo una nueva desde el flujo de configuración. La nueva definición se guarda primero en RecipeLibrary. El sistema resuelve la revisión publicada válida más reciente al asignarla y fija internamente su ID y revisión en RecipeSource de forma atómica con la opción. Si la receta no existe o carece de una revisión válida, se rechaza la asignación sin cambios parciales. La opción no modifica la receta asignada. Editar una receta publicada crea una revisión nueva; sus referencias previas permanecen fijadas a la revisión anterior. Una reasignación explícita mediante recipeId, incluso con el mismo ID, adopta la revisión válida más reciente; omitir recipeId al editar una opción que ya usa RECIPE conserva su asignación.
 
 La definición vigente de una receta solo puede eliminarse cuando ninguna SlotOption de ninguna oferta vigente la referencia, aunque la oferta o la opción esté inactiva. Si hay una referencia, se rechaza la operación sin cambios; se conservan las revisiones históricas publicadas. INVENTORY_ITEM referencia directamente un artículo externo.
 
@@ -97,7 +97,7 @@ flowchart TB
     Recipe -->|se compone de| Ingredients["Ingredientes de Inventario"]
 ```
 
-Inventario conserva la identidad de los artículos, sus unidades y existencias. Menú/Catálogo administra las ofertas comerciales y la biblioteca de recetas; cada opción de tipo RECIPE referencia la receta seleccionada por ID y revisión. Todos los slots ACTIVE participan en la selección; los INACTIVE no generan rondas. Menú declara el precio base de cada presentación; no calcula el precio final de la orden.
+Inventario conserva la identidad de los artículos, sus unidades y existencias. Menú/Catálogo administra las ofertas comerciales y la biblioteca de recetas; cada opción de tipo RECIPE selecciona la receta solo por ID y el sistema fija internamente su revisión publicada válida más reciente al asignarla. Todos los slots ACTIVE participan en la selección; los INACTIVE no generan rondas. Menú declara el precio base de cada presentación; no calcula el precio final de la orden.
 
 #### Vista técnica: diagrama de clases del dominio comercial (para Back)
 
@@ -205,7 +205,7 @@ classDiagram
     ComponentIngredient "0..*" --> "1" InventoryItem : ingrediente
 ```
 
-Todas las RecipeDefinition vigentes pertenecen a RecipeLibrary y sus revisiones publicadas conservan su historial. CompositionSnapshot pertenece únicamente a CatalogOfferRevision y conserva inmutables los slots y el estado de sus opciones; el estado de cada slot se deriva de ellas. Cada ComponentIngredient referencia exactamente un InventoryItem, conserva su cantidad y muestra la unidad que administra Inventario. RecipeSource fija ID y revisión.
+Todas las RecipeDefinition vigentes pertenecen a RecipeLibrary y sus revisiones publicadas conservan su historial. CompositionSnapshot pertenece únicamente a CatalogOfferRevision y conserva inmutables los slots y el estado de sus opciones; el estado de cada slot se deriva de ellas. Cada ComponentIngredient referencia exactamente un InventoryItem, conserva su cantidad y muestra la unidad que administra Inventario. RecipeSource fija internamente ID y revisión; este detalle del dominio no exige un número de revisión en la selección ni lo expone en el contrato de la opción.
 #### Estados comerciales
 
 CatalogEntry declara status ACTIVE, INACTIVE o ARCHIVED. El archivado es reversible: una entrada puede archivarse desde ACTIVE o INACTIVE y al desarchivarse queda INACTIVE. Su estado administrativo es independiente: permanece ACTIVE aunque quede sin ofertas elegibles, pero no se publica hasta tener una oferta ACTIVE válida. CatalogOffer tiene un estado efectivo ACTIVE o INACTIVE y una habilitación administrativa distinguible de ese estado efectivo. SlotOption también declara ACTIVE o INACTIVE, mientras que el estado de CompositionSlot se deriva: ACTIVE si al menos una SlotOption está ACTIVE e INACTIVE si ninguna lo está. Si ningún slot está ACTIVE, CatalogOffer pasa automáticamente a INACTIVE sin cambiar su habilitación administrativa. Cuando vuelve a haber un slot ACTIVE, la oferta se reactiva automáticamente si quedó INACTIVE por la ausencia de slots activos y seguía habilitada administrativamente. Si hubo una inactivación administrativa explícita, permanece INACTIVE hasta una nueva activación administrativa. Una oferta solo se publica bajo una entrada ACTIVE y con composición válida. course es opcional y, cuando se informa, acepta exactamente entrada, plato fuerte, postre o bebida como sugerencia de tiempo de servicio; no es un estado de marcha.
@@ -276,7 +276,7 @@ El modelo establece datos de catálogo y reglas para describir ofertas, composic
 ### Aislamiento Lógico y Reglas de Integración
 
 1. Menu es propietario de sus Category y CatalogEntry. CatalogEntry contiene CatalogOffer; CatalogOffer posee Composition; cada composición es el conjunto de sus CompositionSlot y estos contienen sus opciones SlotOption.
-2. Catálogo administra RecipeLibrary, define sus recetas con datos textuales y cantidades de ingredientes, y asigna una receta a SlotOption mediante ID y revisión.
+2. Catálogo administra RecipeLibrary, define sus recetas con datos textuales y cantidades de ingredientes, y asigna una receta a SlotOption solo mediante ID; el sistema resuelve y fija internamente la revisión publicada válida más reciente al asignarla.
 3. Inventario posee la identidad, unidad de medida y stock de InventoryItem. Catálogo referencia InventoryItem mediante identidades explícitas; igualdad numérica entre identificadores de contextos diferentes no establece identidad compartida.
 4. La validez estructural de una receta no depende de existencias de Inventario. Catálogo no administra el stock externo.
 5. CatalogOffer.basePrice es un dato declarado por el catálogo. El dominio no calcula precios finales de pedidos ni suma cargos por slots, opciones o definiciones copiadas.

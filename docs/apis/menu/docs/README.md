@@ -1,6 +1,6 @@
 # Contrato OpenAPI de administración
 
-Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/item/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 5.3.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.18.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/item/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 6.0.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.19.
 
 ## Índice
 
@@ -8,7 +8,7 @@ Esta carpeta contiene la especificación modular de las operaciones de Menu y la
 - [Bundle compilado](../dist/openapi.yaml): documento autocontenido para herramientas que no resuelven referencias a archivos externos.
 - [Rutas](../paths/): operaciones agrupadas por categorías, entradas, ofertas, recetas, inventario e imágenes.
 - [Esquemas](../components/schemas/): modelos, solicitudes y respuestas JSON.
-- [Parámetros](../components/parameters.yaml): paginación, búsqueda, filtros y ETags.
+- [Parámetros](../components/parameters.yaml): paginación, búsqueda, filtros, ETags e Idempotency-Key.
 - [Respuestas HTTP](../components/responses.yaml): errores reutilizables y respuesta condicional 304.
 - [Headers](../components/headers.yaml): ETag.
 
@@ -40,6 +40,13 @@ Por ejemplo, una carga exitosa devuelve:
 
 Después, `POST /api/v1/menu/entries` recibe:
 
+```http
+POST /api/v1/menu/entries
+Authorization: Bearer <token>
+Content-Type: application/json
+Idempotency-Key: 83f34a6a-5611-41dd-b437-a9cb96d932c2
+```
+
 ```json
 {
   "brandName": "Hamburguesa Hawaiana",
@@ -52,6 +59,31 @@ Después, `POST /api/v1/menu/entries` recibe:
 El servidor asigna `INACTIVE` a la entrada creada.
 
 En `POST /menu/entries/{entryId}/offers`, el servidor asigna `INACTIVE` a la oferta creada y `ACTIVE` a cada opción nueva; la solicitud no admite `status` en las opciones. `presentationTag` es un string requerido en POST y PATCH de ofertas y está siempre presente en sus representaciones de respuesta.
+
+## Idempotencia de creación
+
+`POST /menu/entries` y `POST /menu/entries/{entryId}/offers` requieren el encabezado `Idempotency-Key` con un UUID generado por el cliente, sin comillas, para cada creación lógica. La clave se delimita por el sujeto autenticado, el menú provisionado, el método `POST` y la ruta concreta, incluido `entryId`. Una creación distinta usa una clave nueva.
+
+Durante las 24 horas posteriores a la confirmación inicial exitosa, reenviar la misma clave y el mismo cuerpo JSON devuelve el `201`, el cuerpo y el `ETag` originales. Los reintentos no extienden ese plazo, no crean otro recurso ni repiten la asociación de imagen o la selección de revisión de receta. La comparación de JSON ignora espacios y el orden de las propiedades de objetos, conserva el orden de los arrays y distingue un campo omitido de `null`.
+
+El cliente conserva la clave, el cuerpo y el `imageId` para los reintentos, incluso si pierde la respuesta o recibe un error de conexión. No vuelve a cargar la imagen para reintentar la creación. Estas claves no cubren `POST /media/images`: la carga previa conserva su interfaz y es una operación independiente.
+
+| Situación | Respuesta | Acción del cliente |
+| --- | --- | --- |
+| Encabezado ausente o UUID inválido | `400`, `error.details.code: INVALID_IDEMPOTENCY_KEY` | Enviar una clave válida. |
+| Misma clave vigente con otro JSON | `409`, `error.details.code: IDEMPOTENCY_KEY_REUSED` | Reenviar los datos originales; usar una clave nueva solo para otra creación. |
+| Misma clave y JSON todavía en proceso | `409`, `error.details.code: IDEMPOTENCY_IN_PROGRESS`, `Retry-After` en segundos | Esperar ese plazo y reenviar la misma clave y los mismos datos. |
+| Misma clave y JSON ya confirmados | `201` con el cuerpo y `ETag` originales | Usar los mismos identificadores del resultado original. |
+
+Cada reintento verifica autenticación y autorización. Un resultado exitoso vigente se recupera antes de volver a validar las referencias actuales; se devuelve aunque después se haya editado o eliminado el recurso. Para conocer su estado y su `ETag` actuales antes de un `PATCH`, consulte el recurso mediante `GET`.
+
+Los fallos anteriores a la confirmación, incluido `502` al validar con Inventario, no conservan un resultado exitoso ni aplican cambios parciales; puede reintentarse con la misma clave y los mismos datos. Tras las 24 horas, una clave expirada se trata como nueva y podría crear un duplicado. Si una creación sigue sin confirmarse al vencer ese plazo, no la reenvíe automáticamente: primero determine si el recurso ya existe.
+
+## Selección de recetas
+
+Una opción `RECIPE` se configura únicamente con `recipeId`, además de los campos propios de la opción. Al asignarla, el servidor selecciona y fija atómicamente la revisión publicada válida más reciente. Una receta inexistente o sin revisión válida devuelve `422` sin cambios parciales. La revisión propia de la receta y su historial se conservan; `recipeRevision` no se envía ni se expone en las opciones de ofertas.
+
+En un `PATCH` de una opción existente que conserva `sourceType: RECIPE`, omitir `recipeId` conserva la asignación vigente. Enviar `recipeId`, incluso si es el mismo, selecciona de nuevo la revisión válida más reciente. Editar la receta en la biblioteca no cambia retroactivamente las asignaciones previas ni las revisiones históricas.
 
 ## Actualización de ofertas
 
