@@ -10,31 +10,31 @@ El modelo organiza esta responsabilidad en tres niveles:
 2. **Oferta vendible:** cada `CatalogOffer` concreta pertenece a una `CatalogEntry` y se selecciona y vende individualmente. Cada oferta define su precio base y una `Composition`.
 3. **Composición y contenido:** una composición es el conjunto que contiene uno o más slots (`CompositionSlot`). Cada slot contiene una o más opciones (`SlotOption`) que describen el contenido posible.
 
-El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationTag` obligatorio de `CatalogOffer`. La etiqueta describe la oferta concreta. Una entrada solo se publica mientras está administrativamente `ACTIVE` y cuenta con al menos una `CatalogOffer` `ACTIVE` y válida; si no tiene una, permanece `ACTIVE` pero no se muestra. La inactivación automática de una oferta no cambia el estado administrativo de la entrada. `CatalogEntry` tiene los estados `ACTIVE`, `INACTIVE` y `ARCHIVED`; `CatalogOffer`, `CompositionSlot` y `SlotOption` tienen `ACTIVE` e `INACTIVE`. El estado de `CompositionSlot` se deriva de sus opciones: es `ACTIVE` si al menos una está `ACTIVE`, y `INACTIVE` si ninguna lo está. Si todos los slots quedan `INACTIVE`, la oferta pasa automáticamente a `INACTIVE`. Si después vuelve a haber un slot `ACTIVE`, la oferta vuelve automáticamente a `ACTIVE` cuando su inactivación se debió a que no había slots activos y seguía habilitada administrativamente. Una inactivación administrativa explícita permanece hasta una nueva activación administrativa.
+El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationTag` obligatorio de `CatalogOffer`. La etiqueta describe la oferta concreta. Cada recurso separa dos conceptos: el `status` (estado administrativo), que decide si se muestra, y la disponibilidad (`isAvailable`), que decide si se puede ordenar. `CatalogEntry` tiene `status` `ACTIVE`, `INACTIVE` o `ARCHIVED`; `CatalogOffer` y `SlotOption` tienen `ACTIVE` o `INACTIVE`; `CompositionSlot` no tiene `status`. Los cuatro recursos tienen `isAvailable` derivado, que nadie asigna a mano y que se recalcula y se recupera solo. Lo `ACTIVE` se muestra; lo que no tiene `isAvailable` aparece deshabilitado y no se puede ordenar. Solo el administrador cambia el `status`; ni los eventos de Inventario ni los cambios de composición lo modifican (BR-MENU-032, BR-MENU-033).
 
 ### Composición y selección
 
 - Cada oferta contiene exactamente una composición, formada por uno o más slots (`CompositionSlot`). Una composición válida contiene al menos un slot.
-- Cada `CompositionSlot` contiene una o más `SlotOption`. Todo slot `ACTIVE` participa en la selección y todo slot `INACTIVE` queda fuera de ella y no genera rondas.
-- `CompositionSlot.quantity` indica cuántas rondas de selección tiene el slot. En cada ronda se resuelve exactamente una opción `ACTIVE` de ese slot; si solo tiene una opción `ACTIVE`, se resuelve directamente en cada ronda. Por ejemplo, un slot de acompañamientos con `quantity` 3 tiene tres rondas, y en cada una se elige una opción `ACTIVE` entre papas, aros de cebolla y nuggets. Si ninguna opción del slot está `ACTIVE`, el slot queda `INACTIVE`. Si todos los slots quedan `INACTIVE`, la oferta pasa a `INACTIVE`; al volver a haber un slot `ACTIVE`, la oferta se reactiva automáticamente si se había inactivado por esa causa y seguía habilitada administrativamente. La inactivación administrativa explícita requiere una nueva activación administrativa.
+- Cada `CompositionSlot` contiene una o más `SlotOption`. Todo slot es obligatorio y participa en la selección. El slot tiene `isAvailable` si al menos una opción `ACTIVE` lo tiene; basta un slot sin disponibilidad para que la oferta no la tenga.
+- `CompositionSlot.quantity` indica cuántas rondas de selección tiene el slot. En cada ronda se resuelve exactamente una opción `ACTIVE` con `isAvailable` de ese slot; si solo tiene una, se resuelve directamente en cada ronda. Por ejemplo, un slot de acompañamientos con `quantity` 3 tiene tres rondas, y en cada una se elige una opción `ACTIVE` con `isAvailable` entre papas, aros de cebolla y nuggets. Si ninguna opción `ACTIVE` está disponible, el slot no está disponible y la oferta no se puede ordenar, sin que cambie su `status`.
 - `course` es opcional; cuando está presente, admite únicamente `entrada`, `plato fuerte`, `postre` o `bebida` y sugiere un tiempo de servicio.
-- Durante la configuración, se puede elegir otra `CatalogOffer` como origen para copiar sus slots y opciones a la composición destino. La copia conserva el estado de las opciones; el estado de cada slot se deriva de las opciones copiadas. Las definiciones quedan locales, independientes y editables. La oferta destino no conserva el ID ni una referencia a la oferta origen, no sincroniza cambios con ella y no copia su precio.
+- Durante la configuración, se puede elegir otra `CatalogOffer` como origen para copiar sus slots y opciones a la composición destino. La copia conserva el `status` de las opciones; la disponibilidad de cada slot se recalcula. Las opciones `RECIPE` copiadas siguen la revisión vigente de su receta. Las definiciones quedan locales, independientes y editables. La oferta destino no conserva el ID ni una referencia a la oferta origen, no sincroniza cambios con ella y no copia su precio.
 
 ### Contenido y recetas
 
 Cada `SlotOption` es una aparición contextual con exactamente un `ComponentSource`: `INVENTORY_ITEM` o `RECIPE`. Varias opciones pueden referir el mismo artículo o la misma definición de receta en apariciones distintas.
 
-Catálogo administra las `RecipeDefinition` en `RecipeLibrary` y sus líneas `ComponentIngredient`. Una receta define nombre, descripción, instrucciones en texto, número de revisión y uno o más ingredientes seleccionados de Inventario, cada uno con su cantidad. Todas las recetas se almacenan en la biblioteca; si esta se comparte entre varios menús o tiene alcance de un solo menú permanece pendiente en OPEN-003. Al configurar un `CompositionSlot`, se puede seleccionar una receta existente únicamente por ID o crear una receta desde ese flujo. Una receta nueva se guarda primero en `RecipeLibrary`. Al asignarla, el sistema resuelve la revisión publicada válida más reciente y la fija internamente de forma atómica en `RecipeSource`, junto con el ID; el cliente no especifica la revisión. La definición asignada no se modifica desde la opción. Una reasignación explícita del ID, incluso si es el mismo, adopta la revisión válida más reciente; omitirlo al editar una opción que ya usa receta conserva su asignación.
+Catálogo administra las `RecipeDefinition` en `RecipeLibrary` y sus líneas `ComponentIngredient`. Una receta define nombre, descripción, instrucciones en texto, número de revisión y uno o más ingredientes seleccionados de Inventario, cada uno con su cantidad. Todas las recetas se almacenan en la biblioteca; si esta se comparte entre varios menús o tiene alcance de un solo menú permanece pendiente en OPEN-003. Al configurar un `CompositionSlot`, se puede seleccionar una receta existente únicamente por ID o crear una receta desde ese flujo. Una receta nueva se guarda primero en `RecipeLibrary`. La opción guarda en `RecipeSource` solo el ID de la receta, sin indicar una revisión, y usa siempre su revisión vigente. La definición asignada no se modifica desde la opción. Al editar una opción que ya usa receta, omitir el ID conserva la receta asignada.
 
-Cada línea `ComponentIngredient` referencia exactamente un `InventoryItem` e indica la cantidad física de ese ingrediente. Al seleccionar, consultar o editar la línea se muestra su unidad de medida autoritativa, suministrada por Inventario; la unidad de la cantidad debe ser compatible con la del artículo. Editar una receta publicada crea una nueva revisión sin cambiar las referencias existentes. Las cantidades físicas de artículos e ingredientes son distintas de `CompositionSlot.quantity`, que expresa rondas de selección del slot.
+Cada línea `ComponentIngredient` referencia exactamente un `InventoryItem` e indica la cantidad física de ese ingrediente. Al seleccionar, consultar o editar la línea se muestra su unidad de medida autoritativa, suministrada por Inventario; la unidad de la cantidad debe ser compatible con la del artículo. Editar una receta crea una nueva revisión, que pasa a ser la vigente y que las opciones vigentes usan de inmediato; las revisiones anteriores se conservan como historial. Las cantidades físicas de artículos e ingredientes son distintas de `CompositionSlot.quantity`, que expresa rondas de selección del slot.
 
 La definición vigente de una receta solo puede eliminarse cuando ninguna `SlotOption` de ninguna oferta vigente la referencia, incluso si la oferta o la opción está inactiva. Si existe una referencia, se rechaza la eliminación sin cambios. Las revisiones históricas publicadas se conservan y permanecen consultables.
 
-`CompositionSnapshot` conserva de forma inmutable los slots publicados y los estados de sus opciones; el estado de cada slot se deriva de las opciones de esa revisión. Pertenece únicamente a `CatalogOfferRevision` y no representa una referencia a la oferta que pudo servir como origen durante la configuración.
+`CompositionSnapshot` conserva de forma inmutable los slots publicados y el `status` de sus opciones; en las opciones `RECIPE`, registra la revisión de receta vigente al publicarse. Pertenece únicamente a `CatalogOfferRevision` y no representa una referencia a la oferta que pudo servir como origen durante la configuración.
 
-Una oferta `INACTIVE` no se presenta como alternativa vigente. La entrada conserva su estado administrativo cuando cambia el estado de una oferta, aunque deje de publicarse al no tener una oferta `ACTIVE` válida. Archivar una entrada desde `ACTIVE` o `INACTIVE` la retira del flujo normal sin modificar los estados de sus ofertas; desarchivarla la deja en `INACTIVE`.
+Una oferta `INACTIVE` no se presenta a quien no administra el catálogo. La entrada conserva su `status` cuando cambian el `status` o la disponibilidad de una oferta; si no tiene ofertas disponibles, aparece deshabilitada. Archivar una entrada desde `ACTIVE` o `INACTIVE` la retira del flujo normal sin modificar los estados de sus ofertas; desarchivarla la deja en `INACTIVE`.
 
-Una `CatalogEntry` solo puede eliminarse cuando está `ARCHIVED`. Una `CatalogOffer` solo puede eliminarse individualmente cuando está `INACTIVE` y su eliminación no deja una entrada `ACTIVE` sin una oferta `ACTIVE` y válida. Usar otra oferta como origen de configuración no crea una referencia vigente entre ofertas ni añade una condición de eliminación. La operación se rechaza íntegramente cuando no se cumplen sus condiciones, sin modificar recursos dependientes ni crear revisiones. Las composiciones, slots y opciones poseídos exclusivamente pueden eliminarse junto con su propietario. Las revisiones históricas publicadas y sus `CompositionSnapshot` permanecen inmutables y consultables por `offerId` y `revision` aunque se elimine la definición vigente.
+Una `CatalogEntry` solo puede eliminarse cuando está `ARCHIVED`. Una `CatalogOffer` solo puede eliminarse individualmente cuando está `INACTIVE` y su eliminación no deja una entrada `ACTIVE` sin una oferta `ACTIVE`. Usar otra oferta como origen de configuración no crea una referencia vigente entre ofertas ni añade una condición de eliminación. La operación se rechaza íntegramente cuando no se cumplen sus condiciones, sin modificar recursos dependientes ni crear revisiones. Las composiciones, slots y opciones poseídos exclusivamente pueden eliminarse junto con su propietario. Las revisiones históricas publicadas y sus `CompositionSnapshot` permanecen inmutables y consultables por `offerId` y `revision` aunque se elimine la definición vigente.
 
 ### Precio declarado por Catálogo
 
@@ -46,33 +46,34 @@ El catálogo declara `basePrice`. La cantidad pedida, las opciones concretas res
 
 | Ámbito | Responsabilidad del dominio |
 | :--- | :--- |
-| Menú/Catálogo | Es propietario de `Menu`, `Category`, `CatalogEntry`, `CatalogOffer`, sus composiciones, slots, opciones y recetas; declara los precios base y publica solo entradas `ACTIVE` con alguna oferta `ACTIVE` válida. |
-| Inventario | Es propietario de la identidad, unidad de medida y existencias de `InventoryItem`. Catálogo lo referencia como concepto externo en opciones y recetas. |
+| Menú/Catálogo | Es propietario de `Menu`, `Category`, `CatalogEntry`, `CatalogOffer`, sus composiciones, slots, opciones y recetas; declara los precios base, rige el `status` administrativo, deriva `isAvailable` y emite eventos de receta para Inventario. |
+| Inventario | Es propietario de la identidad, unidad de medida y existencias de `InventoryItem`. Catálogo lo referencia como concepto externo en opciones y recetas. Mantiene una copia local de las recetas recibida por eventos de Menu, comprueba la factibilidad de las recetas y la disponibilidad de los artículos, y lo comunica a Menu por eventos; el contrato queda pendiente en OPEN-011. |
 | Órdenes | Registra la cantidad pedida y la opción concreta elegida en cada ronda definida por la cantidad de cada slot; determina el precio final de la orden según el modelo transaccional. |
 
-La validez estructural de una composición o receta corresponde a sus definiciones de catálogo. El stock de los artículos referenciados pertenece a Inventario y es independiente de esa validez.
+La validez estructural de una composición o receta corresponde a sus definiciones de catálogo. El stock de los artículos referenciados pertenece a Inventario y es independiente de esa validez. La factibilidad y la disponibilidad comunicadas por Inventario solo determinan `isAvailable`.
 
 ```mermaid
 flowchart LR
     subgraph Catalogo["Bounded context Menú/Catálogo"]
         Menu[Menu] --> Category[Category]
         Menu --> Entry[CatalogEntry]
-        Entry -->|se publica con oferta elegible| Offer[CatalogOffer]
+        Entry -->|contiene| Offer[CatalogOffer]
         Offer -. "publica revisiones" .-> OfferRevision["CatalogOfferRevision<br/>offerId + revision"]
         OfferRevision --> CompositionSnapshot["CompositionSnapshot<br/>composición publicada inmutable"]
         Offer --> Composition[Composition]
-        Composition -->|conjunto de slots| Slot["CompositionSlot<br/>status derivado<br/>quantity de rondas"]
-        Slot --> SlotOption["SlotOption<br/>ACTIVE o INACTIVE"]
+        Composition -->|conjunto de slots| Slot["CompositionSlot<br/>isAvailable derivado<br/>quantity de rondas"]
+        Slot --> SlotOption["SlotOption<br/>status e isAvailable"]
         SlotOption --> Source["Un ComponentSource"]
         Source --> ItemSource[INVENTORY_ITEM]
         Source --> RecipeSource[RECIPE]
         RecipeLibrary[RecipeLibrary] --> RecipeDefinition[RecipeDefinition]
-        RecipeSource -. "selección por recipeId; última revisión válida fijada internamente" .-> RecipeDefinition
+        RecipeSource -. "selección por recipeId; usa la revisión vigente" .-> RecipeDefinition
         RecipeDefinition --> Ingredient[ComponentIngredient]
     end
 
     subgraph Inventory["Inventario"]
         InventoryItem["InventoryItem<br/>identidad y existencias"]
+        InventoryCheck["Copia local de recetas<br/>factibilidad y disponibilidad"]
     end
 
     subgraph Orders["Modelo de órdenes"]
@@ -82,15 +83,17 @@ flowchart LR
 
     ItemSource -. "referencia de identidad" .-> InventoryItem
     Ingredient -. "referencia de identidad" .-> InventoryItem
-    OrderSelection -. "resuelve una opción ACTIVE en cada ronda de cada slot ACTIVE" .-> Composition
+    RecipeDefinition -. "eventos de receta" .-> InventoryCheck
+    InventoryCheck -. "eventos de disponibilidad" .-> SlotOption
+    OrderSelection -. "resuelve una opción ACTIVE disponible en cada ronda de cada slot" .-> Composition
 
     subgraph Configuration["Operación durante la configuración"]
-        SourceOffer["CatalogOffer origen"] --> Copy["Copiar slots y estados de opciones<br/>como definiciones locales editables"]
+        SourceOffer["CatalogOffer origen"] --> Copy["Copiar slots y status de opciones<br/>como definiciones locales editables"]
         Copy --> Composition
     end
 ```
 
-La conexión desde `CatalogOffer origen` representa una operación de configuración: al concluir la copia, la composición destino no mantiene una relación con esa oferta. El slot está `ACTIVE` si al menos una opción está `ACTIVE`; todo slot `ACTIVE` genera sus rondas según `quantity` y los slots `INACTIVE` no generan rondas. Si todos los slots quedan `INACTIVE`, la oferta pasa automáticamente a `INACTIVE`; cuando vuelve a haber un slot `ACTIVE`, se reactiva automáticamente si su inactivación se debió a esa causa y seguía habilitada administrativamente. La inactivación administrativa explícita permanece hasta una nueva activación administrativa. La entrada conserva su estado administrativo y solo se publica si tiene una oferta `ACTIVE` válida. Las revisiones históricas y snapshots describen la oferta destino publicada, de forma independiente.
+La conexión desde `CatalogOffer origen` representa una operación de configuración: al concluir la copia, la composición destino no mantiene una relación con esa oferta. Todo slot genera sus rondas según `quantity`. La disponibilidad del slot y de la oferta se recalcula a partir de las opciones copiadas sin cambiar el `status` de la oferta ni el de la entrada. Las revisiones históricas y snapshots describen la oferta destino publicada, de forma independiente.
 
 ## Lenguaje para describir una oferta
 
@@ -99,29 +102,31 @@ Una oferta se describe desde la identidad de la carta hasta las opciones que pue
 ```mermaid
 flowchart TD
     Offer["CatalogOffer<br/>estado, presentación y basePrice"] --> Composition["Composition<br/>conjunto de slots"]
-    Composition --> Slot["CompositionSlot<br/>ACTIVE si alguna opción está ACTIVE<br/>quantity de rondas"]
-    Slot --> SlotOption["SlotOption<br/>ACTIVE o INACTIVE"]
+    Composition --> Slot["CompositionSlot<br/>disponible si alguna opción ACTIVE lo está<br/>quantity de rondas"]
+    Slot --> SlotOption["SlotOption<br/>status e isAvailable"]
     SlotOption --> Source["Un origen de contenido"]
-    TemplateOffer["Otra CatalogOffer<br/>origen de configuración"] -. "copia slots y estados de opciones; no persiste referencia" .-> Composition
+    TemplateOffer["Otra CatalogOffer<br/>origen de configuración"] -. "copia slots y status de opciones; no persiste referencia" .-> Composition
 ```
 
-Todo slot `ACTIVE` participa en la selección y genera el número de rondas indicado por su `quantity`; los slots `INACTIVE` no generan rondas. En cada ronda se resuelve una opción `ACTIVE`, directamente cuando solo hay una o por elección cuando hay varias. Si todos los slots quedan `INACTIVE`, la oferta se inactiva y se reactiva automáticamente cuando vuelve a haber un slot `ACTIVE`, siempre que se hubiera inactivado por esa causa y siguiera habilitada administrativamente. Una inactivación administrativa explícita requiere una nueva activación administrativa. La vista describe definiciones de catálogo; las elecciones concretas se registran en el modelo de órdenes.
+Todo slot participa en la selección y genera el número de rondas indicado por su `quantity`; en cada ronda se resuelve una opción `ACTIVE` con `isAvailable`, directamente cuando solo hay una o por elección cuando hay varias. Si un slot no está disponible, la oferta aparece deshabilitada y conserva su `status`. La vista describe definiciones de catálogo; las elecciones concretas se registran en el modelo de órdenes.
 
 ## Glosario del dominio
 
+- **`status`:** estado administrativo que decide si un recurso se muestra y que solo cambia el administrador.
+- **`isAvailable`:** booleano derivado que decide si se puede ordenar; se recalcula a partir de los eventos de Inventario y de la composición.
 - **`Menu`:** ámbito propietario de las categorías y entradas comerciales.
 - **`Category`:** clasificación reutilizable del menú que puede relacionarse con varias entradas.
-- **`CatalogEntry`:** identidad comercial de un producto de la carta; conserva `brandName`, categorías, estado administrativo y sus ofertas. Se publica solo si está `ACTIVE` y tiene al menos una oferta `ACTIVE` válida; si no, permanece `ACTIVE` pero no se muestra.
-- **`CatalogOffer`:** oferta concreta de una entrada, seleccionable y vendible individualmente; tiene estado `ACTIVE` o `INACTIVE`, `presentationTag` obligatorio, `basePrice` y exactamente una composición. Solo se publica bajo una entrada `ACTIVE`. Si todos sus slots quedan `INACTIVE`, la oferta se inactiva; vuelve automáticamente a `ACTIVE` al recuperar un slot `ACTIVE` cuando la inactivación se debió a esa causa y la oferta seguía habilitada administrativamente. Una inactivación administrativa explícita permanece hasta nueva activación administrativa.
+- **`CatalogEntry`:** identidad comercial de un producto de la carta; conserva `brandName`, categorías y sus ofertas. Tiene `status` (`ACTIVE`, `INACTIVE` o `ARCHIVED`) e `isAvailable` derivado, que es `true` si tiene al menos una oferta `ACTIVE` disponible.
+- **`CatalogOffer`:** oferta concreta de una entrada, seleccionable y vendible individualmente; tiene `status` `ACTIVE` o `INACTIVE`, `isAvailable` (todos sus slots disponibles), `presentationTag` obligatorio, `basePrice` y exactamente una composición. Se muestra bajo una entrada `ACTIVE`.
 - **`CatalogOfferRevision`:** revisión publicada e inmutable de una oferta, consultable por `offerId` y `revision` aunque ya no exista la definición vigente.
 - **`Composition`:** conjunto de uno o más slots que define la composición de una oferta.
 - **`CompositionSnapshot`:** composición publicada e inmutable que pertenece únicamente a una `CatalogOfferRevision` histórica de la oferta.
-- **`CompositionSlot`:** slot de una composición, con una o más opciones y una `quantity` que indica su número de rondas. Está `ACTIVE` si tiene al menos una opción `ACTIVE`, e `INACTIVE` si no; todos los slots `ACTIVE` participan y los `INACTIVE` no generan rondas.
-- **`SlotOption`:** aparición contextual que contiene un origen único. Las opciones `INACTIVE` no se ofrecen; el estado del slot depende de si tiene al menos una opción `ACTIVE`.
+- **`CompositionSlot`:** slot obligatorio de una composición, con una o más opciones y una `quantity` que indica su número de rondas. No tiene `status`; tiene `isAvailable` si tiene al menos una opción `ACTIVE` disponible.
+- **`SlotOption`:** aparición contextual que contiene un origen único; tiene `status` e `isAvailable`. Las opciones `INACTIVE` no se ofrecen como elegibles.
 - **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INVENTORY_ITEM` o `RECIPE`.
 - **`InventoryItemSource`:** contenido que referencia un artículo externo de Inventario con su cantidad física y unidad.
-- **`RecipeSource`:** referencia interna desde una `SlotOption` a una receta de `RecipeLibrary` mediante `recipeId` y una revisión fijada. Al configurar una opción `RECIPE`, se elige una receta solo por ID o se define una nueva, que se guarda primero en la biblioteca. El sistema fija internamente la revisión publicada válida más reciente al asignarla, sin solicitar un número de revisión al cliente; las ediciones posteriores de la receta no cambian esa referencia ni su historial.
+- **`RecipeSource`:** referencia interna desde una `SlotOption` a una receta de `RecipeLibrary` mediante `recipeId`, sin revisión: la opción usa siempre la revisión vigente. Al configurar una opción `RECIPE`, se elige una receta solo por ID o se define una nueva, que se guarda primero en la biblioteca. Cuando la receta recibe una revisión nueva, la opción la usa de inmediato.
 - **`InventoryItem`:** artículo cuya identidad, unidad de medida y existencias pertenecen a Inventario.
 - **`RecipeLibrary`:** biblioteca administrada por Catálogo que almacena las definiciones de receta; su alcance entre menús permanece pendiente en OPEN-003.
-- **`RecipeDefinition`:** receta con nombre, descripción, instrucciones en texto, revisión y una o más líneas de ingredientes de Inventario.
+- **`RecipeDefinition`:** receta con nombre, descripción, instrucciones en texto, revisión y una o más líneas de ingredientes de Inventario; cada edición crea una revisión nueva, que pasa a ser la vigente, y las anteriores se conservan como historial.
 - **`ComponentIngredient`:** línea de receta que referencia un `InventoryItem`, conserva la cantidad indicada y muestra la unidad autoritativa de Inventario.

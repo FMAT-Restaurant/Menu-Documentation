@@ -20,15 +20,15 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 - **Requisito:** El sistema deberá permitir al administrador crear y editar categorías de un menú, indicando un nombre obligatorio y, opcionalmente, una descripción.
 - **Criterio de aceptación:** El sistema acepta la creación de una categoría sin descripción. Al editar, omitir la descripción conserva el valor vigente y enviar una cadena vacía deja la categoría sin texto descriptivo. La categoría puede clasificarse en más de una entrada del mismo menú.
 
-### REQ-MENU-CAT-002 — Consulta del catálogo publicable
+### REQ-MENU-CAT-002 — Consulta no administrativa del catálogo
 
-- **Requisito:** El sistema deberá presentar las entradas `ACTIVE` que tengan al menos una oferta `ACTIVE` válida, junto con sus ofertas `ACTIVE` publicables. Una oferta solo se presenta cuando su entrada está `ACTIVE` y la oferta es válida. La presentación deberá permitir reconocer cuál es la identidad comercial del producto y cuáles son sus ofertas vendibles.
-- **Criterio de aceptación:** Una entrada incompleta, `INACTIVE` o `ARCHIVED` no se presenta como vigente. Una entrada administrativamente `ACTIVE` sin ofertas `ACTIVE` válidas permanece `ACTIVE`, pero no se presenta en el catálogo; cuando vuelve a tener al menos una oferta `ACTIVE` válida, puede presentarse. Cada oferta presentada está `ACTIVE`, tiene una composición válida y muestra su precio declarado. Las ofertas de una misma entrada se distinguen entre sí. Cambiar el estado administrativo de una entrada no modifica automáticamente el estado de sus ofertas; la inactivación de una oferta tampoco cambia el estado administrativo de la entrada.
+- **Requisito:** El sistema deberá presentar a quien no tiene capacidad de administrar el catálogo las entradas `ACTIVE` y sus ofertas `ACTIVE`, con su `isAvailable` y su composición, de forma que se reconozcan la identidad comercial del producto y sus ofertas vendibles.
+- **Criterio de aceptación:** Una entrada incompleta, `INACTIVE` o `ARCHIVED` y una oferta `INACTIVE` no se presentan. Una entrada u oferta `ACTIVE` sin `isAvailable` se presenta deshabilitada y no se puede ordenar. La composición muestra la disponibilidad de cada slot y el `status` y la disponibilidad de cada opción; las opciones `INACTIVE` no se presentan como elegibles. Cada oferta presentada muestra su precio declarado y se distingue de las demás ofertas de su entrada. Cambiar el `status` de una entrada no cambia el de sus ofertas, ni el `status` de una oferta cambia el de su entrada. Quien administra el catálogo consulta los recursos en cualquier `status` (BR-MENU-033).
 
 ### REQ-MENU-ENTRY-001 — Creación de una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador crear una entrada del catálogo indicando su nombre comercial, descripción, imagen y las categorías que correspondan dentro del mismo menú. Toda entrada nueva deberá iniciar inactiva.
-- **Criterio de aceptación:** La creación requiere `imageId` de una imagen previamente cargada y validada, junto con los metadatos y las categorías seleccionadas. El sistema conserva esos datos y registra la entrada como inactiva, sin publicarla hasta una activación posterior del administrador.
+- **Criterio de aceptación:** La creación requiere `imageId` de una imagen previamente cargada y validada, junto con los metadatos y las categorías seleccionadas. El sistema conserva esos datos y registra la entrada como inactiva, sin mostrarla a quien no administra el catálogo hasta una activación posterior del administrador.
 
 ### REQ-MENU-ENTRY-002 — Edición de una entrada
 
@@ -38,7 +38,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-ENTRY-003 — Estado y archivado de una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador activar o inactivar una entrada y archivarla de manera reversible desde los estados `ACTIVE` o `INACTIVE`. Desarchivar una entrada deberá dejarla en `INACTIVE` para que el administrador decida expresamente si vuelve a activarla. Estos cambios no modificarán automáticamente los estados de sus ofertas.
-- **Criterio de aceptación:** El estado de la entrada es administrativo y no cambia automáticamente por la activación o inactivación de sus ofertas. Una entrada `ACTIVE` se publica solo mientras tenga al menos una oferta `ACTIVE` y válida; si deja de tenerla, permanece `ACTIVE` y se oculta del catálogo hasta que vuelva a tener una oferta elegible. Una entrada archivada no se publica; al desarchivarla queda en `INACTIVE` y requiere una activación explícita posterior. Archivar, desarchivar, activar o inactivar la entrada no cambia el estado de sus ofertas.
+- **Criterio de aceptación:** El `status` de la entrada es administrativo y no cambia por el `status` ni por la disponibilidad de sus ofertas. Una entrada `ACTIVE` se muestra aunque no tenga ofertas disponibles; en ese caso aparece deshabilitada. Una entrada archivada no se muestra; al desarchivarla queda en `INACTIVE` y requiere una activación explícita posterior. Archivar, desarchivar, activar o inactivar la entrada no cambia el estado de sus ofertas.
 
 ### REQ-MENU-ENTRY-004 — Eliminación de una entrada archivada
 
@@ -64,18 +64,18 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-OFFER-004 — Activación de una oferta
 
-- **Requisito:** El sistema deberá permitir al administrador activar o inactivar una oferta. Para activarla, deberá exigir una composición válida que tenga al menos un slot `ACTIVE`.
-- **Criterio de aceptación:** Una oferta `INACTIVE` no se presenta como alternativa vigente. Una oferta sin composición válida o sin al menos un slot `ACTIVE` no puede activarse; una oferta con composición válida y al menos un slot `ACTIVE` puede activarse mediante una acción administrativa, incluso mientras su entrada está `INACTIVE`, pero no se publica hasta que la entrada esté `ACTIVE`. Una oferta solo se publica si tanto ella como su entrada están en estado `ACTIVE`; una entrada `ACTIVE` sin ofertas `ACTIVE` válidas permanece oculta y no cambia su estado administrativo. Si ningún slot permanece `ACTIVE`, el sistema inactiva automáticamente la oferta. Si posteriormente vuelve a haber al menos un slot `ACTIVE`, el sistema reactiva automáticamente la oferta cuando esta quedó `INACTIVE` por no tener slots `ACTIVE` y seguía habilitada administrativamente. Si un administrador la inactivó explícitamente, permanece `INACTIVE` hasta una nueva activación administrativa. Cambiar el estado de la oferta no modifica el estado administrativo de la entrada.
+- **Requisito:** El sistema deberá permitir al administrador activar o inactivar una oferta. Para activarla, deberá exigir una composición estructuralmente válida (al menos un slot y cada slot con al menos una opción), sin exigir disponibilidad.
+- **Criterio de aceptación:** Una oferta `INACTIVE` no se presenta a quien no administra el catálogo. Una oferta sin composición válida no puede activarse; con composición válida puede activarse aunque no tenga `isAvailable` o aunque su entrada esté `INACTIVE`, y solo se muestra cuando su entrada está `ACTIVE`. Una oferta `ACTIVE` sin `isAvailable` aparece deshabilitada y no se puede ordenar; recupera `isAvailable` sin intervención cuando todos sus slots vuelven a estar disponibles. El sistema nunca cambia el `status` de la oferta por disponibilidad: una oferta inactivada por el administrador permanece `INACTIVE` hasta que este la active. Cambiar el `status` de la oferta no modifica el de la entrada.
 
 ### REQ-MENU-OFFER-005 — Copia de composición desde una oferta del catálogo
 
 - **Requisito:** Al configurar una oferta, el sistema deberá permitir seleccionar otra oferta del catálogo para copiar sus slots y opciones a la composición destino.
-- **Criterio de aceptación:** La operación agrega a la composición destino copias locales editables de los slots y opciones configurados en la oferta seleccionada, conserva los slots que ya tuviera la composición destino y copia el estado de las opciones de cada slot. El estado del slot copiado se deriva de las opciones copiadas. No conserva una referencia a la oferta de origen ni copia su precio base. Los cambios posteriores en cualquiera de las ofertas no sincronizan sus composiciones.
+- **Criterio de aceptación:** La operación agrega a la composición destino copias locales editables de los slots y opciones configurados en la oferta seleccionada, conserva los slots que ya tuviera la composición destino y copia el `status` de las opciones de cada slot. El sistema recalcula `isAvailable` de los slots copiados y de la oferta destino. No conserva una referencia a la oferta de origen ni copia su precio base. Los cambios posteriores en cualquiera de las ofertas no sincronizan sus composiciones.
 
 ### REQ-MENU-OFFER-006 — Eliminación de una oferta
 
-- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y su eliminación no deje una entrada activa sin al menos una oferta activa y válida.
-- **Criterio de aceptación:** La eliminación se rechaza si la oferta está activa o es la última oferta activa y válida de una entrada activa. En los demás casos, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
+- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y su eliminación no deje una entrada activa sin al menos una oferta `ACTIVE`.
+- **Criterio de aceptación:** La eliminación se rechaza si la oferta está activa o es la última oferta `ACTIVE` de una entrada `ACTIVE`; la disponibilidad no interviene en esta decisión. En los demás casos, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 
@@ -84,18 +84,18 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-COMP-002 — Participación de slots
 
-- **Requisito:** El sistema deberá conservar todos los slots definidos como miembros estructurales de la composición y determinar su participación en la selección mediante su estado.
-- **Criterio de aceptación:** Todo slot `ACTIVE` participa en la selección. Un slot `INACTIVE` no puede seleccionarse ni genera rondas.
+- **Requisito:** El sistema deberá conservar todos los slots definidos como miembros estructurales y obligatorios de la composición, que participan en la selección.
+- **Criterio de aceptación:** Todo slot participa en la selección y genera sus rondas. Un slot sin `isAvailable` deja a la oferta sin `isAvailable`, y la oferta no se puede ordenar.
 
 ### REQ-MENU-COMP-003 — Opciones por slot
 
 - **Requisito:** El sistema deberá permitir al administrador definir una o más opciones (`SlotOption`) de contenido para cada slot y activar o inactivar cada opción.
-- **Criterio de aceptación:** Cada slot tiene al menos una opción. El estado del slot es derivado: es `ACTIVE` si al menos una de sus opciones está `ACTIVE`, e `INACTIVE` si ninguna lo está. Una opción `INACTIVE` no puede seleccionarse. Si un slot participante tiene una sola opción `ACTIVE`, se utiliza directamente; si tiene varias opciones `ACTIVE`, en cada ronda el cliente elige exactamente una de ellas.
+- **Criterio de aceptación:** Cada slot tiene al menos una opción. El slot tiene `isAvailable` si al menos una de sus opciones `ACTIVE` lo tiene. Una opción `INACTIVE` o sin `isAvailable` no puede seleccionarse. Si el slot tiene una sola opción `ACTIVE` con `isAvailable`, se utiliza directamente; si tiene varias, en cada ronda el cliente elige exactamente una de ellas.
 
 ### REQ-MENU-COMP-004 — Cantidad de rondas por slot
 
 - **Requisito:** El sistema deberá permitir indicar en cada `CompositionSlot` cuántas rondas de selección comprende el slot.
-- **Criterio de aceptación:** La cantidad pertenece al slot y no a sus opciones. Si un slot `ACTIVE` tiene cantidad 3, el cliente realiza tres rondas y en cada una elige exactamente una opción `ACTIVE` de ese slot. Un slot `INACTIVE` no genera rondas.
+- **Criterio de aceptación:** La cantidad pertenece al slot y no a sus opciones. Si un slot tiene cantidad 3, el cliente realiza tres rondas y en cada una elige exactamente una opción `ACTIVE` con `isAvailable` de ese slot.
 
 ### REQ-MENU-COMP-005 — Tiempo sugerido de servicio
 
@@ -105,7 +105,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### Actualización de la composición de una oferta
 
 - **Comportamiento:** El administrador actualiza la composición mediante `PATCH` recursivo. Los campos omitidos en un objeto conservan sus valores vigentes. Un objeto con el identificador de un slot u opción existente actualiza parcialmente ese elemento. Si se omite la lista de slots u opciones, se conserva la lista vigente; si se incluye, reemplaza la lista completa y elimina los elementos vigentes que no aparezcan en ella. Los slots y opciones nuevos se envían sin identificador y el servidor les asigna uno. Un slot nuevo requiere nombre, cantidad y al menos una opción; una opción nueva requiere la tupla `displayName`, `status` y `origin`.
-- **Criterio de aceptación:** La solicitud rechaza listas vacías, identificadores duplicados, desconocidos o pertenecientes a otro recurso. También rechaza un slot nuevo sin nombre, cantidad u opciones, y una opción nueva sin `displayName`, `status` u `origin`. Cualquier rechazo deja íntegra la composición, sin aplicar cambios parciales. El servidor deriva el estado de cada slot a partir de sus opciones y ajusta automáticamente el estado de la oferta según la intención administrativa vigente; estos ajustes no cambian el estado de la entrada. Las revisiones publicadas permanecen intactas.
+- **Criterio de aceptación:** La solicitud rechaza listas vacías, identificadores duplicados, desconocidos o pertenecientes a otro recurso. También rechaza un slot nuevo sin nombre, cantidad u opciones, y una opción nueva sin `displayName`, `status` u `origin`. Cualquier rechazo deja íntegra la composición, sin aplicar cambios parciales. El servidor recalcula `isAvailable` de cada slot, de la oferta y de la entrada, sin cambiar el `status` de la oferta ni el de la entrada. Las revisiones publicadas permanecen intactas.
 - **Control de concurrencia:** La solicitud debe incluir `If-Match` para la versión vigente de la composición. Si falta, el servidor responde `428`; si está desactualizado, responde `412`. Ambos rechazos son atómicos y conservan íntegra la composición.
 
 ## Contenido y recetas
@@ -113,7 +113,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-CONT-001 — Opciones de contenido
 
 - **Requisito:** El sistema deberá permitir definir cada opción de contenido mediante exactamente una de estas formas: artículo de Inventario o receta. Para una receta, el administrador podrá seleccionar una receta existente de la biblioteca o definir una nueva durante la configuración de la opción. El administrador deberá poder activar o inactivar cada opción y asignarle una etiqueta contextual.
-- **Criterio de aceptación:** Cada opción tiene un solo tipo de contenido: `INVENTORY_ITEM` o `RECIPE`. Toda opción de tipo receta se asigna mediante el identificador de una receta de la biblioteca, sin que el administrador especifique una revisión. El sistema resuelve y fija internamente la revisión publicada válida más reciente al asignarla, tanto si se seleccionó una receta existente como si se definió durante la configuración; una receta nueva queda guardada en la biblioteca antes de su asignación. Una opción inactiva no se ofrece como nueva elección. Al inactivar o activar una opción, el sistema recalcula el estado de su slot: `ACTIVE` si queda al menos una opción `ACTIVE`, e `INACTIVE` si no queda ninguna. Si, como consecuencia, ningún slot permanece `ACTIVE`, el sistema inactiva automáticamente la oferta. Si posteriormente vuelve a haber un slot `ACTIVE`, el sistema reactiva automáticamente la oferta cuando quedó `INACTIVE` por no tener slots `ACTIVE` y seguía habilitada administrativamente. Si un administrador la inactivó explícitamente, permanece `INACTIVE` hasta una nueva activación administrativa. La oferta inactivada no altera el estado administrativo de la entrada, que se oculta si ya no tiene otra oferta `ACTIVE` y válida. La etiqueta contextual no cambia la identidad del artículo o receta a la que hace referencia.
+- **Criterio de aceptación:** Cada opción tiene un solo tipo de contenido: `INVENTORY_ITEM` o `RECIPE`. Toda opción de tipo receta se asigna mediante el identificador de una receta de la biblioteca, sin que el administrador indique una revisión, y usa siempre la revisión vigente de esa receta, tanto si se seleccionó una receta existente como si se definió durante la configuración; una receta nueva queda guardada en la biblioteca antes de su asignación. Una opción inactiva no se ofrece como nueva elección. Al inactivar o activar una opción, el sistema recalcula `isAvailable` de su slot, de la oferta y de la entrada, sin cambiar el `status` de ninguno de ellos. La etiqueta contextual no cambia la identidad del artículo o receta a la que hace referencia.
 
 ### REQ-MENU-CONT-002 — Uso directo de un artículo de Inventario
 
@@ -122,8 +122,8 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-CONT-003 — Selección de una receta para un slot
 
-- **Requisito:** Al configurar un `CompositionSlot`, el sistema deberá permitir al administrador asignarle una receta de `RecipeLibrary` mediante una `SlotOption` de tipo `RECIPE`. Podrá seleccionar una receta existente solo por su identificador o crear una receta nueva durante el flujo de configuración; la definición nueva deberá guardarse en la biblioteca antes de quedar asignada. El sistema deberá resolver la revisión publicada válida más reciente en el momento de la asignación y fijarla internamente de forma atómica con la opción.
-- **Criterio de aceptación:** La selección requiere únicamente `recipeId`; no requiere ni permite especificar `recipeRevision` en el contrato de la opción. La opción conserva internamente la revisión resuelta para mantener su definición y su historial. Una receta inexistente o sin una revisión publicada válida se rechaza sin aplicar cambios parciales. Al actualizar una opción que ya usa `RECIPE`, omitir `recipeId` conserva la asignación vigente; enviarlo expresamente, incluso con el mismo identificador, vuelve a asignar la revisión válida más reciente. La definición asignada no se modifica desde la opción; para cambiarla, el administrador edita la receta en la biblioteca.
+- **Requisito:** Al configurar un `CompositionSlot`, el sistema deberá permitir al administrador asignarle una receta de `RecipeLibrary` mediante una `SlotOption` de tipo `RECIPE`. Podrá seleccionar una receta existente solo por su identificador o crear una receta nueva durante el flujo de configuración; la definición nueva deberá guardarse en la biblioteca antes de quedar asignada. La opción deberá usar siempre la revisión vigente de la receta asignada.
+- **Criterio de aceptación:** La selección requiere únicamente `recipeId`; la opción no indica ninguna revisión. Una receta inexistente se rechaza sin aplicar cambios parciales. Al actualizar una opción que ya usa `RECIPE`, omitir `recipeId` conserva la receta asignada. La definición asignada no se modifica desde la opción; para cambiarla, el administrador edita la receta en la biblioteca, y la revisión nueva se aplica a la opción de inmediato (REQ-MENU-REC-003).
 
 ### REQ-MENU-REC-001 — Creación de recetas
 
@@ -137,8 +137,8 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-REC-003 — Edición de recetas por revisión
 
-- **Requisito:** El sistema deberá permitir al administrador modificar una receta creada, incluidos su nombre, descripción, instrucciones y sus ingredientes. La edición de una receta publicada deberá crear una nueva revisión identificable.
-- **Criterio de aceptación:** La receta conserva su número de revisión. Las opciones que fijaron internamente una revisión anterior continúan usando esa definición sin cambios retroactivos, y las revisiones históricas permanecen intactas. Para adoptar la revisión válida más reciente, el administrador reasigna expresamente la receta a la opción mediante su identificador, sin indicar un número de revisión; editar otros campos de la opción sin reasignar la receta conserva la revisión fijada.
+- **Requisito:** El sistema deberá permitir al administrador modificar una receta creada, incluidos su nombre, descripción, instrucciones y sus ingredientes. Cada edición deberá crear una nueva revisión identificable, que pasa a ser la revisión vigente.
+- **Criterio de aceptación:** La receta conserva su número de revisión. Todas las opciones vigentes que referencian la receta usan la revisión nueva de inmediato, sin reasignarla, y su `isAvailable` se recalcula según los eventos de factibilidad de Inventario (BR-MENU-034). Las revisiones anteriores se conservan como historial consultable, y las revisiones publicadas de oferta no cambian: conservan la revisión de receta vigente al publicarse.
 
 ### REQ-MENU-REC-004 — Unidad de medida visible por ingrediente
 
@@ -149,3 +149,17 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 - **Requisito:** El sistema deberá permitir eliminar la definición vigente de una receta si y solo si ninguna opción de ninguna oferta vigente la referencia, cualquiera que sea el estado de la oferta o de la opción.
 - **Criterio de aceptación:** Si una `SlotOption` de cualquier `CatalogOffer` vigente referencia el `recipeId`, la eliminación se rechaza íntegramente y no cambia la oferta, la opción ni la receta. Si no existe ninguna referencia vigente, se elimina la definición de la biblioteca y se conservan sus revisiones históricas publicadas.
+
+## Integración con Inventario
+
+Menu e Inventario intercambian eventos asíncronos conforme a BR-MENU-034; el contrato de esos eventos queda pendiente en [OPEN-011](open.md).
+
+### REQ-MENU-AVAIL-001 — Recepción de eventos de disponibilidad de Inventario
+
+- **Requisito:** El sistema deberá consumir los eventos de Inventario que comunican que una receta deja de poder elaborarse o vuelve a poder elaborarse, o que un artículo deja de estar disponible o vuelve a estarlo. Con cada evento deberá recalcular `isAvailable` de las opciones `RECIPE` e `INVENTORY_ITEM` afectadas y, en cascada, de sus slots, ofertas y entradas.
+- **Criterio de aceptación:** Tras un evento que marca una receta como no factible, toda opción que la referencia queda sin `isAvailable`; si era la única opción `ACTIVE` disponible de su slot, el slot y la oferta quedan sin `isAvailable` y la oferta aparece deshabilitada. Un evento posterior que la marca como factible restaura `isAvailable` sin intervención administrativa, y lo mismo aplica a los artículos de Inventario. Ningún evento cambia el `status`. El formato, la identificación de receta y revisión, la idempotencia, el orden y el valor inicial se rigen por [OPEN-011](open.md).
+
+### REQ-MENU-AVAIL-002 — Emisión de eventos de receta para Inventario
+
+- **Requisito:** El sistema deberá emitir un evento al crear una receta, al crear una nueva revisión y al eliminar su definición vigente, para que Inventario mantenga su copia local.
+- **Criterio de aceptación:** Cada creación, revisión o eliminación aceptada emite un evento que identifica la receta afectada. El contenido y el formato del evento quedan pendientes en [OPEN-011](open.md).
