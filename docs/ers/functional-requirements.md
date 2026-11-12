@@ -4,14 +4,14 @@ Esta sección define las capacidades observables que el servicio Menu debe ofrec
 
 ## Criterio común para imágenes
 
-- Antes de crear una entrada o una oferta, el administrador carga el archivo mediante `POST /api/v1/media/images`. El servidor valida la imagen, genera su UUID y devuelve `data.id`; la creación del recurso requiere ese identificador como `imageId` en un cuerpo JSON, sin reenviar el archivo ni una URL.
+- Antes de crear una entrada o una oferta, el administrador carga la imagen en una operación previa e independiente. El sistema valida la imagen y le asigna un identificador; la creación del recurso requiere ese identificador como `imageId`, sin reenviar el archivo ni una URL.
 - Al editar una entrada o actualizar una oferta, puede reemplazarse la imagen enviando como `imageId` el identificador de otra imagen previamente cargada y validada. Si se omite `imageId`, se conserva la imagen vigente.
 - Solo se admiten JPEG, PNG y WebP, con tamaño máximo de 10 MiB y ancho y alto máximos de 4096 px cada uno. El servicio valida el contenido real del archivo, no solo el tipo declarado.
 - Un archivo inválido o no decodificable, que exceda el tamaño o cualquiera de las dimensiones máximas, se rechaza durante la carga sin crear una imagen utilizable ni modificar recursos existentes.
 - Un `imageId` inexistente, inválido o no accesible al solicitante se rechaza al crear o modificar el recurso. El rechazo es íntegro: no crea el recurso, no aplica cambios parciales y conserva la imagen vigente.
 - La carga de la imagen es una operación independiente de su asociación. Un fallo posterior al crear o modificar el recurso no deshace la carga previa.
 
-El flujo de imágenes queda acordado conforme al [contrato de la API](https://fmat-restaurant.github.io/Menu-Documentation/api/): carga previa del archivo y asociación posterior mediante `imageId` en JSON. La alineación restante del transporte, las operaciones y la representación de datos de la API continúa pendiente de revisar los mockups y se registra en [OPEN-010](open.md).
+El flujo de imágenes queda acordado: carga previa y validada del archivo, con identificador asignado por el sistema, y asociación posterior mediante `imageId`. La alineación restante del contrato de API con la ERS, en operaciones y representación de datos, continúa pendiente de revisar los mockups y se registra en [OPEN-010](open.md).
 
 ## Categorías y entradas del catálogo
 
@@ -43,14 +43,14 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-ENTRY-004 — Eliminación de una entrada archivada
 
 - **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada únicamente cuando se encuentre archivada.
-- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Al eliminar una entrada archivada, se eliminan la entrada y sus definiciones vigentes poseídas.
+- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Al eliminar una entrada archivada, se eliminan la entrada y sus definiciones poseídas.
 
 ## Ofertas y composición
 
 ### REQ-MENU-OFFER-001 — Creación de ofertas para una entrada
 
 - **Requisito:** El sistema deberá permitir al administrador crear una o más ofertas pertenecientes a una entrada del catálogo. Para cada oferta deberá indicar una etiqueta de presentación (`presentationTag`), un precio base y una imagen. Toda oferta nueva deberá iniciar inactiva.
-- **Criterio de aceptación:** La creación de cada oferta requiere `presentationTag` de tipo string, sin admitir `null`, e `imageId` de su imagen previamente cargada y validada. Se rechaza la creación si se omite `presentationTag` o se envía con valor `null`. Una entrada puede tener varias ofertas con precios, etiquetas e imágenes propios. Al crear una oferta, queda inactiva hasta que el administrador la active.
+- **Criterio de aceptación:** La creación de cada oferta requiere `presentationTag`, obligatorio y no nulo, e `imageId` de su imagen previamente cargada y validada. Una oferta no puede crearse sin `presentationTag`: se rechaza la creación si falta o no tiene valor. Una entrada puede tener varias ofertas con precios, etiquetas e imágenes propios. Al crear una oferta, queda inactiva hasta que el administrador la active.
 
 ### REQ-MENU-OFFER-002 — Identidad de entrada y presentación vendible
 
@@ -75,7 +75,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-OFFER-006 — Eliminación de una oferta
 
 - **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva.
-- **Criterio de aceptación:** La eliminación de una oferta `ACTIVE` se rechaza sin cambios; la disponibilidad no interviene en esta decisión. Al eliminar una oferta `INACTIVE`, se eliminan su definición vigente y sus estructuras poseídas.
+- **Criterio de aceptación:** La eliminación de una oferta `ACTIVE` se rechaza sin cambios; la disponibilidad no interviene en esta decisión. Al eliminar una oferta `INACTIVE`, se eliminan la oferta y sus estructuras poseídas.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 
@@ -146,8 +146,8 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-REC-005 — Eliminación de una receta sin uso vigente
 
-- **Requisito:** El sistema deberá permitir eliminar la definición vigente de una receta si y solo si ninguna opción de ninguna oferta vigente la referencia, cualquiera que sea el estado de la oferta o de la opción.
-- **Criterio de aceptación:** Si una `SlotOption` de cualquier `CatalogOffer` vigente referencia el `recipeId`, la eliminación se rechaza íntegramente y no cambia la oferta, la opción ni la receta. Si no existe ninguna referencia vigente, se elimina la definición de la biblioteca y se conserva su historial de revisiones.
+- **Requisito:** El sistema deberá permitir eliminar la definición vigente de una receta si y solo si ninguna opción de ninguna oferta la referencia, cualquiera que sea el estado de la oferta o de la opción.
+- **Criterio de aceptación:** Si una `SlotOption` de cualquier `CatalogOffer` referencia el `recipeId`, la eliminación se rechaza íntegramente y no cambia la oferta, la opción ni la receta. Si no existe ninguna referencia vigente, se elimina la definición de la biblioteca y se conserva su historial de revisiones.
 
 ## Integración con Inventario
 

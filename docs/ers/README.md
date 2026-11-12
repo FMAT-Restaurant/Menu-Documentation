@@ -1,25 +1,25 @@
 # ERS del servicio Menu
 
-Índice de los requisitos, reglas de dominio y criterios de calidad del servicio **Menu** para el catálogo de un restaurante. El modelo conceptual vigente se describe en [`../other/md/domain-model.md`](../other/md/domain-model.md).
+Índice de los requisitos, reglas de dominio y criterios de calidad del servicio **Menu** para el catálogo de un restaurante. La autoridad normativa es esta ERS; el modelo conceptual de referencia, que aporta contexto y no es normativo, se describe en [`../other/md/domain-model.md`](../other/md/domain-model.md).
 
 ## Estado documental
 
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 2.4.0 |
+| Versión | 2.4.1 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
 | Alcance | Menu administra la identidad comercial del catálogo; cada `CatalogEntry` contiene ofertas y cada `CatalogOffer` concreta es vendible y seleccionable individualmente, con su composición. Una `Composition` contiene slots; todos los `CompositionSlot` son estructurales y `CompositionSlot.quantity` determina cuántas veces se eligen opciones de cada slot. Todos los slots son obligatorios y participan en la selección. Cada recurso separa su `status` administrativo, que solo cambia el administrador, de su disponibilidad `isAvailable`, que es derivada: la `SlotOption` según los eventos de Inventario, el `CompositionSlot` si tiene alguna opción `ACTIVE` disponible, la `CatalogOffer` si todos sus slots lo están y la `CatalogEntry` si tiene alguna oferta `ACTIVE` disponible. Lo `ACTIVE` se muestra y lo no disponible aparece deshabilitado y no se puede ordenar; ningún `status` cambia automáticamente. Menu e Inventario intercambian de forma asíncrona eventos de receta y de disponibilidad. Al configurar una composición desde otra oferta del catálogo, sus slots y opciones se copian como definiciones locales editables, conservando el `status` de las opciones, sin vínculo, precio ni sincronización con la oferta de origen. RecipeLibrary administra recetas con datos textuales e ingredientes de Inventario, cantidad por ingrediente y unidad visible; las recetas inician en la revisión 1, que aumenta en 1 con cada edición; las opciones de slot se asignan solo por ID y usan siempre la revisión vigente de la receta, y las revisiones anteriores quedan como historial consultable. Órdenes registra la opción elegida en cada ronda y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
-> **OPEN-005:** se conservan las restricciones de contenido de imágenes y el rechazo íntegro por operación, especificados en los requisitos funcionales y trazados en [`traceability.md`](traceability.md). El flujo está decidido: carga previa mediante `POST /api/v1/media/images`, con identificador generado por el servidor y devuelto como `data.id`, seguida de asociación mediante `imageId` en solicitudes JSON de entradas y ofertas. El [contrato de API existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) define operaciones administrativas; su alineación restante y las operaciones y representaciones faltantes siguen pendientes en OPEN-010 después de revisar los mockups. El transporte de imágenes ya está resuelto. Permanecen pendientes OPEN-001, OPEN-003, OPEN-006, OPEN-009, OPEN-010, OPEN-011 y OPEN-012.
+> **OPEN-005:** se conservan las restricciones de contenido de imágenes y el rechazo íntegro por operación, especificados en los requisitos funcionales y trazados en [`traceability.md`](traceability.md). El flujo está decidido: carga previa del archivo, validada e independiente, en la que el sistema asigna el identificador de la imagen, seguida de la asociación de la entrada u oferta mediante ese identificador (`imageId`). El [contrato de API existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) define operaciones administrativas; su alineación restante y las operaciones y representaciones faltantes siguen pendientes en OPEN-010 después de revisar los mockups. Permanecen pendientes OPEN-001, OPEN-003, OPEN-006, OPEN-009, OPEN-010, OPEN-011 y OPEN-012.
 
 ## Ruta de lectura recomendada
 
 1. [`configuration.md`](configuration.md) para consultar la versión y las reglas documentales de autoridad.
-2. [`../other/md/domain-model.md`](../other/md/domain-model.md) para consultar el modelo conceptual vigente y sus relaciones.
+2. [`../other/md/domain-model.md`](../other/md/domain-model.md) para consultar el modelo conceptual de referencia y sus relaciones, como contexto no normativo; prevalece la ERS.
 3. [`context.md`](context.md) para entender el alcance de Menú/Catálogo, su lenguaje y sus límites con Inventario y Órdenes.
 4. [`architechture.md`](architechture.md) para consultar la vista conceptual del catálogo para Front y la vista técnica del diagrama de clases para Back.
 5. [`functional-requirements.md`](functional-requirements.md) para consultar los 28 requisitos funcionales verificables.
@@ -33,7 +33,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 | Documento | Contenido | Uso principal |
 | :--- | :--- | :--- |
 | [`configuration.md`](configuration.md) | Identificación, versión, autoridad de fuentes y alcance documental. | Resolver la versión y las reglas de prevalencia documentales. |
-| [`../other/md/domain-model.md`](../other/md/domain-model.md) | Modelo conceptual de Menú/Catálogo, composición por slots y opciones, fuentes de contenido, recetas y límites de dominio. | Interpretar las entidades y relaciones vigentes. |
+| [`../other/md/domain-model.md`](../other/md/domain-model.md) | Modelo conceptual de referencia de Menú/Catálogo, composición por slots y opciones, fuentes de contenido, recetas y límites de dominio. | Consultar el contexto conceptual de entidades y relaciones; no es normativo. |
 | [`context.md`](context.md) | Responsabilidad de Menú/Catálogo, ownership, límites entre contextos y glosario. | Entender qué datos y decisiones pertenecen a cada contexto. |
 | [`architechture.md`](architechture.md) | Vista conceptual del catálogo para Front y vista técnica del diagrama de clases para Back, además de límites arquitectónicos. | Entender el modelo del catálogo desde la perspectiva de Front o consultar sus clases de dominio desde la perspectiva de Back. |
 | [`functional-requirements.md`](functional-requirements.md) | 28 requisitos `REQ-MENU-*` para categorías, entradas, ofertas, composiciones de slots y opciones, recetas e integración con Inventario. | Implementar o revisar las capacidades funcionales solicitadas. |
@@ -44,7 +44,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 
 ## Límites de responsabilidad destacados
 
-- **Menú/Catálogo** define la identidad comercial de las entradas, sus ofertas vendibles, composiciones de slots y opciones, y precios declarados. Cada slot es obligatorio y basta uno sin disponibilidad para que la oferta no pueda ordenarse. El administrador decide el `status` de entradas, ofertas y opciones, que nunca cambia por sí solo, mientras `isAvailable` se recalcula y se recupera sin intervención. Quien no administra el catálogo ve lo `ACTIVE`, con lo no disponible deshabilitado, y el administrador ve todo (BR-MENU-032, BR-MENU-033). Al configurar una composición desde otra oferta, incorpora una copia local editable que conserva el `status` de las opciones. RecipeLibrary almacena recetas con instrucciones textuales e ingredientes seleccionados de Inventario; las recetas conservan su número de revisión y las opciones de slot se seleccionan solo por ID; cada edición crea una revisión nueva que las opciones vigentes usan de inmediato, y las revisiones anteriores se conservan como historial.
+- **Menú/Catálogo** define la identidad comercial de las entradas, sus ofertas vendibles, composiciones de slots y opciones, y precios declarados. Cada slot es obligatorio y basta uno sin disponibilidad para que la oferta no pueda ordenarse. El administrador decide el `status` de entradas, ofertas y opciones, que nunca cambia por sí solo, mientras `isAvailable` se recalcula y se recupera sin intervención. Quien no administra el catálogo ve lo `ACTIVE`, con lo no disponible deshabilitado, y el administrador ve todo (BR-MENU-032, BR-MENU-033). Al configurar una composición desde otra oferta, incorpora una copia local editable que conserva el `status` de las opciones. RecipeLibrary almacena recetas con instrucciones textuales e ingredientes seleccionados de Inventario; las recetas inician en la revisión 1, que aumenta en 1 con cada edición; las opciones de slot se seleccionan solo por ID y usan de inmediato cada revisión nueva, y las revisiones anteriores se conservan como historial.
 - **Inventario** es propietario de la identidad y las existencias de `InventoryItem`; Menú/Catálogo mantiene referencias a esos artículos. Inventario además mantiene una copia local de las recetas recibida por eventos de Menu, comprueba la factibilidad de las recetas y la disponibilidad de los artículos, y lo comunica a Menu por eventos, cuyo contrato queda pendiente en OPEN-011.
 - **Órdenes** registra la opción elegida en cada ronda y determina el precio final de acuerdo con las definiciones comerciales del catálogo.
 

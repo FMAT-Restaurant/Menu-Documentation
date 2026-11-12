@@ -28,7 +28,7 @@ Catálogo administra las `RecipeDefinition` en `RecipeLibrary` y sus líneas `Co
 
 Cada línea `ComponentIngredient` referencia exactamente un `InventoryItem` e indica la cantidad física de ese ingrediente. Al seleccionar, consultar o editar la línea se muestra su unidad de medida autoritativa, suministrada por Inventario; la unidad de la cantidad debe ser compatible con la del artículo. Una receta se crea con la revisión 1; editarla crea una nueva revisión, con el número siguiente, que pasa a ser la vigente y que las opciones vigentes usan de inmediato; las revisiones anteriores se conservan como historial consultable. Las cantidades físicas de artículos e ingredientes son distintas de `CompositionSlot.quantity`, que expresa rondas de selección del slot.
 
-La definición vigente de una receta solo puede eliminarse cuando ninguna `SlotOption` de ninguna oferta vigente la referencia, incluso si la oferta o la opción está inactiva. Si existe una referencia, se rechaza la eliminación sin cambios. Su historial de revisiones se conserva y permanece consultable.
+La definición vigente de una receta solo puede eliminarse cuando ninguna `SlotOption` de ninguna oferta la referencia, incluso si la oferta o la opción está inactiva. Si existe una referencia, se rechaza la eliminación sin cambios. Su historial de revisiones se conserva y permanece consultable.
 
 Una oferta `INACTIVE` no se presenta a quien no administra el catálogo. La entrada conserva su `status` cuando cambian el `status` o la disponibilidad de una oferta; si no tiene ofertas disponibles, aparece deshabilitada. Archivar una entrada desde `ACTIVE` o `INACTIVE` la retira del flujo normal sin modificar los estados de sus ofertas; desarchivarla la deja en `INACTIVE`.
 
