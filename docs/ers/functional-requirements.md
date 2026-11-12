@@ -5,10 +5,10 @@ Esta sección define las capacidades observables que el servicio Menu debe ofrec
 ## Criterio común para imágenes
 
 - Antes de crear una entrada o una oferta, el administrador carga el archivo mediante `POST /api/v1/media/images`. El servidor valida la imagen, genera su UUID y devuelve `data.id`; la creación del recurso requiere ese identificador como `imageId` en un cuerpo JSON, sin reenviar el archivo ni una URL.
-- Al editar una entrada, actualizar una oferta o crear una revisión, puede reemplazarse la imagen enviando como `imageId` el identificador de otra imagen previamente cargada y validada. Si se omite `imageId`, se conserva la imagen vigente.
+- Al editar una entrada o actualizar una oferta, puede reemplazarse la imagen enviando como `imageId` el identificador de otra imagen previamente cargada y validada. Si se omite `imageId`, se conserva la imagen vigente.
 - Solo se admiten JPEG, PNG y WebP, con tamaño máximo de 10 MiB y ancho y alto máximos de 4096 px cada uno. El servicio valida el contenido real del archivo, no solo el tipo declarado.
 - Un archivo inválido o no decodificable, que exceda el tamaño o cualquiera de las dimensiones máximas, se rechaza durante la carga sin crear una imagen utilizable ni modificar recursos existentes.
-- Un `imageId` inexistente, inválido o no accesible al solicitante se rechaza al crear o modificar el recurso. El rechazo es íntegro: no crea el recurso ni la revisión, no aplica cambios parciales y conserva la imagen vigente.
+- Un `imageId` inexistente, inválido o no accesible al solicitante se rechaza al crear o modificar el recurso. El rechazo es íntegro: no crea el recurso, no aplica cambios parciales y conserva la imagen vigente.
 - La carga de la imagen es una operación independiente de su asociación. Un fallo posterior al crear o modificar el recurso no deshace la carga previa.
 
 El flujo de imágenes queda acordado conforme al [contrato de la API](https://fmat-restaurant.github.io/Menu-Documentation/api/): carga previa del archivo y asociación posterior mediante `imageId` en JSON. La alineación restante del transporte, las operaciones y la representación de datos de la API continúa pendiente de revisar los mockups y se registra en [OPEN-010](open.md).
@@ -23,7 +23,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-CAT-002 — Consulta no administrativa del catálogo
 
 - **Requisito:** El sistema deberá presentar a quien no tiene capacidad de administrar el catálogo las entradas `ACTIVE` y sus ofertas `ACTIVE`, con su `isAvailable` y su composición, de forma que se reconozcan la identidad comercial del producto y sus ofertas vendibles.
-- **Criterio de aceptación:** Una entrada incompleta, `INACTIVE` o `ARCHIVED` y una oferta `INACTIVE` no se presentan. Una entrada u oferta `ACTIVE` sin `isAvailable` se presenta deshabilitada y no se puede ordenar. La composición muestra la disponibilidad de cada slot y el `status` y la disponibilidad de cada opción; las opciones `INACTIVE` no se presentan como elegibles. Cada oferta presentada muestra su precio declarado y se distingue de las demás ofertas de su entrada. Cambiar el `status` de una entrada no cambia el de sus ofertas, ni el `status` de una oferta cambia el de su entrada. Quien administra el catálogo consulta los recursos en cualquier `status` (BR-MENU-033).
+- **Criterio de aceptación:** Una entrada `INACTIVE` o `ARCHIVED` y una oferta `INACTIVE` no se presentan. Una entrada u oferta `ACTIVE` sin `isAvailable` se presenta deshabilitada y no se puede ordenar. La composición muestra la disponibilidad de cada slot y el `status` y la disponibilidad de cada opción; las opciones `INACTIVE` no se presentan como elegibles. Cada oferta presentada muestra su precio declarado y se distingue de las demás ofertas de su entrada. Cambiar el `status` de una entrada no cambia el de sus ofertas, ni el `status` de una oferta cambia el de su entrada. Quien administra el catálogo consulta los recursos en cualquier `status` (BR-MENU-033).
 
 ### REQ-MENU-ENTRY-001 — Creación de una entrada
 
@@ -43,7 +43,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-ENTRY-004 — Eliminación de una entrada archivada
 
 - **Requisito:** El sistema deberá permitir eliminar definitivamente una entrada únicamente cuando se encuentre archivada.
-- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Al eliminar una entrada archivada, se eliminan la entrada y sus definiciones vigentes poseídas. Las revisiones históricas publicadas permanecen intactas y consultables.
+- **Criterio de aceptación:** La eliminación de una entrada activa o inactiva se rechaza. Al eliminar una entrada archivada, se eliminan la entrada y sus definiciones vigentes poseídas.
 
 ## Ofertas y composición
 
@@ -74,8 +74,8 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-OFFER-006 — Eliminación de una oferta
 
-- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva y su eliminación no deje una entrada activa sin al menos una oferta `ACTIVE`.
-- **Criterio de aceptación:** La eliminación se rechaza si la oferta está activa o es la última oferta `ACTIVE` de una entrada `ACTIVE`; la disponibilidad no interviene en esta decisión. En los demás casos, se elimina la definición vigente de la oferta y sus estructuras poseídas. Sus revisiones históricas publicadas permanecen intactas y consultables.
+- **Requisito:** El sistema deberá permitir eliminar individualmente una oferta únicamente cuando esté inactiva.
+- **Criterio de aceptación:** La eliminación de una oferta `ACTIVE` se rechaza sin cambios; la disponibilidad no interviene en esta decisión. Al eliminar una oferta `INACTIVE`, se eliminan su definición vigente y sus estructuras poseídas.
 
 ### REQ-MENU-COMP-001 — Composición de una oferta
 
@@ -102,11 +102,10 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 - **Requisito:** El sistema deberá permitir configurar opcionalmente en un slot el curso sugerido de servicio, con uno de estos valores: entrada, plato fuerte, postre o bebida.
 - **Criterio de aceptación:** Si se informa el curso, el sistema acepta exactamente entrada, plato fuerte, postre o bebida y rechaza cualquier otro valor. El curso aceptado se muestra asociado al slot como sugerencia de tiempo de servicio y no cambia sus opciones, sus rondas de selección ni el precio.
 
-### Actualización de la composición de una oferta
+### REQ-MENU-COMP-006 — Actualización de la composición de una oferta
 
-- **Comportamiento:** El administrador actualiza la composición mediante `PATCH` recursivo. Los campos omitidos en un objeto conservan sus valores vigentes. Un objeto con el identificador de un slot u opción existente actualiza parcialmente ese elemento. Si se omite la lista de slots u opciones, se conserva la lista vigente; si se incluye, reemplaza la lista completa y elimina los elementos vigentes que no aparezcan en ella. Los slots y opciones nuevos se envían sin identificador y el servidor les asigna uno. Un slot nuevo requiere nombre, cantidad y al menos una opción; una opción nueva requiere la tupla `displayName`, `status` y `origin`.
-- **Criterio de aceptación:** La solicitud rechaza listas vacías, identificadores duplicados, desconocidos o pertenecientes a otro recurso. También rechaza un slot nuevo sin nombre, cantidad u opciones, y una opción nueva sin `displayName`, `status` u `origin`. Cualquier rechazo deja íntegra la composición, sin aplicar cambios parciales. El servidor recalcula `isAvailable` de cada slot, de la oferta y de la entrada, sin cambiar el `status` de la oferta ni el de la entrada. Las revisiones publicadas permanecen intactas.
-- **Control de concurrencia:** La solicitud debe incluir `If-Match` para la versión vigente de la composición. Si falta, el servidor responde `428`; si está desactualizado, responde `412`. Ambos rechazos son atómicos y conservan íntegra la composición.
+- **Requisito:** El sistema deberá permitir al administrador actualizar parcialmente la composición de una oferta. Los datos omitidos de un elemento conservan sus valores vigentes, y un slot u opción indicado con su identificador existente se actualiza parcialmente. Si se omite la lista de slots de la composición o la de opciones de un slot, se conserva la lista vigente; si se incluye, reemplaza la lista completa y elimina los elementos vigentes que no aparezcan en ella. Los slots y opciones nuevos se indican sin identificador y el sistema les asigna uno. Un slot nuevo requiere nombre, cantidad y al menos una opción; una opción nueva requiere `displayName`, `status` y origen de contenido. Cada actualización deberá indicar la versión vigente de la composición sobre la que se realiza.
+- **Criterio de aceptación:** Se rechazan las listas vacías; los identificadores duplicados, desconocidos o pertenecientes a otro recurso; los slots nuevos sin nombre, cantidad u opciones; y las opciones nuevas sin `displayName`, `status` u origen de contenido. También se rechaza la actualización que no indica la versión de la composición o que indica una versión desactualizada. Cualquier rechazo deja íntegra la composición, sin aplicar cambios parciales. Una actualización aceptada recalcula `isAvailable` de cada slot, de la oferta y de la entrada, sin cambiar el `status` de la oferta ni el de la entrada.
 
 ## Contenido y recetas
 
@@ -137,8 +136,8 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 
 ### REQ-MENU-REC-003 — Edición de recetas por revisión
 
-- **Requisito:** El sistema deberá permitir al administrador modificar una receta creada, incluidos su nombre, descripción, instrucciones y sus ingredientes. Cada edición deberá crear una nueva revisión identificable, que pasa a ser la revisión vigente.
-- **Criterio de aceptación:** La receta conserva su número de revisión. Todas las opciones vigentes que referencian la receta usan la revisión nueva de inmediato, sin reasignarla, y su `isAvailable` se recalcula según los eventos de factibilidad de Inventario (BR-MENU-034). Las revisiones anteriores se conservan como historial consultable, y las revisiones publicadas de oferta no cambian: conservan la revisión de receta vigente al publicarse.
+- **Requisito:** El sistema deberá permitir al administrador modificar una receta creada, incluidos su nombre, descripción, instrucciones y sus ingredientes. Cada edición deberá crear una nueva revisión identificable, con el número siguiente al de la vigente, que pasa a ser la revisión vigente.
+- **Criterio de aceptación:** Una receta nueva se crea con la revisión 1 y cada edición aceptada incrementa su número de revisión en 1. Todas las opciones vigentes que referencian la receta usan la revisión nueva de inmediato, sin reasignarla, y su `isAvailable` se recalcula según los eventos de factibilidad de Inventario (BR-MENU-034). Las revisiones anteriores se conservan como historial consultable.
 
 ### REQ-MENU-REC-004 — Unidad de medida visible por ingrediente
 
@@ -148,7 +147,7 @@ El flujo de imágenes queda acordado conforme al [contrato de la API](https://fm
 ### REQ-MENU-REC-005 — Eliminación de una receta sin uso vigente
 
 - **Requisito:** El sistema deberá permitir eliminar la definición vigente de una receta si y solo si ninguna opción de ninguna oferta vigente la referencia, cualquiera que sea el estado de la oferta o de la opción.
-- **Criterio de aceptación:** Si una `SlotOption` de cualquier `CatalogOffer` vigente referencia el `recipeId`, la eliminación se rechaza íntegramente y no cambia la oferta, la opción ni la receta. Si no existe ninguna referencia vigente, se elimina la definición de la biblioteca y se conservan sus revisiones históricas publicadas.
+- **Criterio de aceptación:** Si una `SlotOption` de cualquier `CatalogOffer` vigente referencia el `recipeId`, la eliminación se rechaza íntegramente y no cambia la oferta, la opción ni la receta. Si no existe ninguna referencia vigente, se elimina la definición de la biblioteca y se conserva su historial de revisiones.
 
 ## Integración con Inventario
 
