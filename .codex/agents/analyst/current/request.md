@@ -1,0 +1,1 @@
+Se puede dejar en claro que es un servicio externo? osea no pertenece a menu, pero quiero mantenerlo en los contratos para que mis chambeadores puedan verlo fácilmente el punto es que quede claro que no pertenece a menu.

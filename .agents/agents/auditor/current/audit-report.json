@@ -1,6 +1,6 @@
 {
   "verdict": "PASS",
-  "summary": "Cierre correcto en los ocho documentos autorizados: course? admite exactamente entrada, plato fuerte, postre y bebida; OPEN-007 ya no aparece en docs/ers; permanecen OPEN-001, OPEN-003, OPEN-006, OPEN-008, OPEN-009 y OPEN-010; REQ-MENU-COMP-005 conserva su vínculo con BR-MENU-013; la versión es 2.1.11 y la fecha 2026-10-04.",
+  "summary": "Round ers-2.4.1-domain-terms-and-cleanup satisfies the request against the pre-round 2.4.0 snapshot: only planned files changed (domain-model.md and non-functional-requirements.md unchanged; API README only ERS citation 2.4.0->2.4.1); API transport details removed from docs/ers outside the 2.4.1 changelog with image rules and presentationTag (obligatorio y no nulo) preserved; Regla de Prevalencia makes the ERS normative and domain-model.md context in configuration.md and README.md; offer 'vigente' removed while recipe usages kept; Órdenes/Inventario fixed; five traceability themes match FR titles; README revision sentence corrected; version 2.4.1 with Antes -> Ahora entry above unchanged 2.4.0. lint:ers and lint:mermaid pass.",
   "issues": [],
   "next_action": "NONE"
 }

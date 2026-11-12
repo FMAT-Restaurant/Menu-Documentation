@@ -1,0 +1,17 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": [
+    "docs/ers/README.md"
+  ],
+  "deleted_files": [],
+  "verified_files": [
+    "docs/ers/README.md"
+  ],
+  "blockers": [],
+  "notes": [
+    "docs/ers/README.md: aplicada la sección 3 de editor-task.md (l.3 autoridad normativa de la ERS y domain-model.md como referencia no normativa; versión 2.4.1; blockquote OPEN-005 en términos de dominio y eliminada la oración 'El transporte de imágenes ya está resuelto.'; ruta de lectura ítem 2; fila del mapa de domain-model.md; viñeta Menú/Catálogo con revisión inicial 1 que aumenta en 1 por edición).",
+    "Conteos sin cambios (28 requisitos, 24 reglas, 8 invariantes, 7 cuestiones).",
+    "Verificación por búsqueda: no quedan /api/v1, data.id, UUID, JSON, POST, PATCH, 'servidor', 'transporte', 'de tipo string', 'admitir `null`', 'oferta(s) vigente(s)', 'modelo conceptual vigente', 'relaciones vigentes' ni 'conservan su número de revisión'."
+  ]
+}

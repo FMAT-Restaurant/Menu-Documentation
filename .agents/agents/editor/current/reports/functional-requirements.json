@@ -1,0 +1,13 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": ["docs/ers/functional-requirements.md"],
+  "deleted_files": [],
+  "verified_files": ["docs/ers/functional-requirements.md"],
+  "blockers": [],
+  "notes": [
+    "Sección 1 de editor-task.md aplicada: viñeta 1 de imágenes y párrafo posterior en términos de dominio; REQ-MENU-ENTRY-004, REQ-MENU-OFFER-001 (presentationTag obligatorio y no nulo), REQ-MENU-OFFER-006 y REQ-MENU-REC-005 (requisito y criterio) actualizados.",
+    "Verificación por búsqueda: no quedan /api/v1, data.id, UUID, JSON, POST, PATCH, servidor, transporte, 'de tipo string', 'admitir `null`', 'oferta(s) vigente(s)', '`CatalogOffer` vigente', 'estructuras vigentes', 'vigentes poseídas', 'Orders determina' ni 'Inventory posee'.",
+    "Se conservan las demás reglas de imagen, el título 'sin uso vigente', 'la definición vigente de una receta' y 'Si no existe ninguna referencia vigente'."
+  ]
+}

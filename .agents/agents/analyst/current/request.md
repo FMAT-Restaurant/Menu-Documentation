@@ -1,23 +1,7 @@
-# Solicitud original
+Dale otra revisada
 
-Modificar en [ers](docs/ers/) : \
-\* Quitar lo de que un grupo/slot pueda ser requerido u opcional. Ahora todos son requeridos. \
-\* Refinar y uniformizar el lenguaje oblicuo del dominio, slots es grupos dejad de llamarlos grupos y las "varientes" son las opciones de ese slot. En general dejar de usar tantos términos en el modelo de dominio para referirse a lo mismo porque lo hace confuso.
-
-Reglas:
-
-- No debes documentar cada eliminación/modificación o su por que, porque se vuelve confuso el documento, solo se descarta, se reestrcutura y verifica que todo esté bien.
-- Mantener consistencia
-- propagar lo que afecta para todo el ers
-
-Al finalizar solo dime en este chat que terminos cambiaste
-
-## Corrección posterior del usuario
-
-ME equivoqué un grupo es una composición
-
-Composition: conjunto que contiene slots
-
-## Decisión posterior del usuario
-
-Si una oferta quedó `INACTIVE` automáticamente porque no quedaban slots `ACTIVE`, al volver a tener un `CompositionSlot` `ACTIVE` la oferta debe reactivarse automáticamente por UX. La inactivación explícita por administración debe conservarse; un cambio posterior de opciones no la revierte por sí mismo.
+Decisiones del usuario tras la segunda revisión de la ERS 2.4.0:
+1. Pasar a términos de dominio los detalles de API que quedan en la ERS: flujo de imágenes (`POST /api/v1/media/images`, `data.id`, "UUID", "cuerpo JSON", "POST y PATCH JSON") y presentationTag ("de tipo string, sin admitir null", "consistente con el contrato de API vigente"). Se conservan las reglas: carga previa validada e independiente, el sistema asigna el identificador de la imagen, la entrada/oferta se asocia mediante ese identificador (`imageId`), formatos JPEG/PNG/WebP, 10 MiB, 4096 px, validación del contenido real, rechazo íntegro, un fallo de asociación no deshace la carga, omitir `imageId` al editar conserva la imagen. presentationTag queda "obligatorio y no nulo" (una oferta no puede crearse sin él).
+2. Regla de Prevalencia: domain-model.md pasa de autoridad a fuente de contexto; la ERS (docs/ers/) es la autoridad normativa. domain-model.md NO se modifica.
+3. Limpiezas: (a) quitar "vigente" vestigial aplicado a ofertas (ya no tienen historial): "oferta vigente", "ofertas vigentes", "definición vigente de la oferta", "estructuras vigentes", "definiciones vigentes poseídas" → sin "vigente" (en recetas sí se conserva "definición vigente"/"revisión vigente"); (b) términos en inglés en prosa: "Orders determina" (INV-MENU-007) → "Órdenes determina", "Inventory posee" (architechture.md) → "Inventario posee" (no tocar identificadores de mermaid como `subgraph Orders`); (c) alinear en traceability.md los temas de REQ-MENU-ENTRY-001, ENTRY-002, OFFER-001, OFFER-006 y CONT-001 con los títulos de functional-requirements.md; (d) README límites: "las recetas conservan su número de revisión" → que inician en la revisión 1 y aumenta en 1 con cada edición.
+4. Versión 2.4.1 (corrección), fecha 2026-11-11, con registro de cambios Antes → Ahora en configuration.md.

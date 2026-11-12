@@ -1,0 +1,14 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": ["docs/ers/business-rules.md"],
+  "deleted_files": [],
+  "verified_files": ["docs/ers/business-rules.md"],
+  "blockers": [],
+  "notes": [
+    "BR-MENU-031: 'ninguna oferta vigente' -> 'ninguna oferta'; se conserva 'La definición vigente de una receta'.",
+    "INV-MENU-007: 'Orders determina' -> 'Órdenes determina'.",
+    "INV-MENU-008: 'desde ofertas vigentes.' -> 'desde ofertas.'; se conservan 'opción `RECIPE` vigente', 'revisión vigente' y 'definición vigente'.",
+    "Búsqueda de verificación (a)-(c) sin coincidencias en el archivo."
+  ]
+}

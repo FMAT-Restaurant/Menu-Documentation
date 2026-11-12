@@ -1,0 +1,28 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": [
+    "docs/apis/menu/components/schemas/CatalogOffer.yaml",
+    "docs/apis/menu/paths/offers.yaml",
+    "docs/apis/menu/openapi.yaml",
+    "docs/apis/menu/docs/README.md",
+    "docs/apis/menu/dist/openapi.yaml"
+  ],
+  "deleted_files": [],
+  "verified_files": [
+    "docs/apis/menu/components/schemas/CatalogOffer.yaml",
+    "docs/apis/menu/paths/offers.yaml",
+    "docs/apis/menu/openapi.yaml",
+    "docs/apis/menu/docs/README.md",
+    "docs/apis/menu/dist/openapi.yaml"
+  ],
+  "blockers": [],
+  "notes": [
+    "En CatalogOffer.yaml se modelan RECIPE e INVENTORY_ITEM como variantes oneOf; el body de creación omite IDs generados y status, y PATCH distingue las variantes por sourceType.",
+    "En offers.yaml se muestran ejemplos GET para receta e inventario sin source. El POST omite status del request y usa ejemplos 201 INACTIVE con un schema inline que restringe data.status a INACTIVE. Se documenta que la oferta debe activarse manualmente.",
+    "En openapi.yaml se actualizó info.version a 5.0.1 y la descripción general indica que las ofertas nuevas inician INACTIVE y requieren activación manual, junto a la regla ya descrita para las entradas.",
+    "README.md cita OpenAPI 5.0.1 y conserva ERS 2.1.17.",
+    "El bundle docs/apis/menu/dist/openapi.yaml se regeneró con el Redocly CLI local. Se verificó la versión 5.0.1; el request POST no declara ni ejemplifica status; la respuesta 201 exige data.status INACTIVE mediante allOf/const y ambos ejemplos muestran INACTIVE. GET conserva CatalogOfferResponse y PATCH CatalogOfferPatchResponse como respuestas genéricas.",
+    "git diff --check pasó para los cinco archivos. No se ejecutaron pruebas."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": ["docs/ers/open.md"],
+  "deleted_files": [],
+  "verified_files": ["docs/ers/open.md"],
+  "blockers": [],
+  "notes": [
+    "open.md: OPEN-010 table cell 'Alcance establecido' rewritten in domain terms (carga validada previa con identificador asignado por el sistema y asociación mediante ese identificador (`imageId`)); contract link kept.",
+    "open.md: OPEN-010 section image paragraph (former l.35) replaced verbatim per editor-task section 5.2.",
+    "l.3 ('modelo vigente') and l.33 unchanged.",
+    "Post-edit search: no /api/v1, data.id, UUID, JSON, POST, PATCH, servidor, transporte, 'de tipo string', 'admitir `null`', 'oferta(s) vigente(s)', 'estructuras vigentes', 'vigentes poseídas', 'Orders determina', 'Inventory posee' remain."
+  ]
+}

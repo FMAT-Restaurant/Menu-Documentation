@@ -1,0 +1,13 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": ["docs/ers/traceability.md"],
+  "deleted_files": [],
+  "verified_files": ["docs/ers/traceability.md", "docs/ers/functional-requirements.md"],
+  "blockers": [],
+  "notes": [
+    "traceability.md: temas de REQ-MENU-ENTRY-001, ENTRY-002, OFFER-001, OFFER-006 y CONT-001 actualizados; coinciden con los títulos de functional-requirements.md.",
+    "traceability.md: 'Decisión resuelta' reescrita en términos de dominio (carga previa validada e independiente, el sistema asigna el identificador, imageId); resto del párrafo y párrafo de OPEN-010 sin cambios.",
+    "Verificación: no quedan /api/v1, data.id, UUID, JSON, POST, PATCH, 'servidor', 'de tipo string', 'admitir `null`', 'oferta(s) vigente(s)', 'estructuras vigentes', 'vigentes poseídas', 'Orders determina' ni 'Inventory posee'. Vínculos de matrices intactos."
+  ]
+}

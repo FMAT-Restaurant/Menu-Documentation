@@ -1,0 +1,12 @@
+{
+  "status": "COMPLETED",
+  "created_files": [],
+  "modified_files": ["docs/ers/context.md"],
+  "deleted_files": [],
+  "verified_files": ["docs/ers/context.md"],
+  "blockers": [],
+  "notes": [
+    "context.md l.31: 'ninguna `SlotOption` de ninguna oferta vigente la referencia' -> 'ninguna `SlotOption` de ninguna oferta la referencia'. 'subgraph Orders' y l.35 sin cambios.",
+    "Verificación por búsqueda: no quedan 'oferta(s) vigente(s)', '`CatalogOffer` vigente', 'estructuras vigentes', 'vigentes poseídas', 'Orders determina', 'Inventory posee', /api/v1, data.id, UUID, JSON, POST, PATCH, 'servidor', 'de tipo string' ni 'admitir `null`'."
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "change_id": "menu-inventory-external-contract-2026-10-10",
+  "objective": "Mantener GET /api/v1/inventory/items visible en el contrato que usa el frontend y dejar inequívoco que lo sirve el microservicio externo de Inventario, llamado directamente por el frontend, no el backend de Menu.",
+  "decisions": [
+    {
+      "id": "D1",
+      "decision": "Conservar la operación GET /inventory/items y sus parámetros/respuestas/esquemas existentes; no trasladarla, eliminarla ni agregar endpoints."
+    },
+    {
+      "id": "D2",
+      "decision": "Sobrescribir `servers` en el Path Item inventoryItems (archivo referenciado por openapi.yaml) para darle un origen propio de Inventario. Usar `https://{inventoryHost}/api/v1` con `inventoryHost` predeterminado `inventory.example.invalid`, dominio reservado explícitamente como marcador sin afirmar un host real; documentar que se sustituye con el host desplegado de Inventario."
+    },
+    {
+      "id": "D3",
+      "decision": "Expresar la propiedad y la llamada directa del frontend en la descripción general, la etiqueta Inventario, la operación y la guía humana de base URLs. Mantener el servidor global de Menu para las otras operaciones; no decidir aquí autenticación o despliegue del servicio externo."
+    },
+    {
+      "id": "D4",
+      "decision": "Actualizar versión del contrato de 4.0.1 a 4.0.2 y la referencia en la guía que contiene convenciones de configuración, conforme a AGENTS.md."
+    },
+    {
+      "id": "D5",
+      "decision": "El contrato distribuido en `docs/apis/menu/dist/openapi.yaml` se regenera desde la especificación modular porque el sitio publica ese bundle y `.github/workflows/api-reference.yml` exige que coincida sin diff con la fuente; no se edita a mano ni se sincronizan otras salidas derivadas."
+    }
+  ],
+  "permitted_writes": [
+    "docs/apis/menu/openapi.yaml",
+    "docs/apis/menu/paths/inventory.yaml",
+    "docs/apis/menu/docs/README.md",
+    "docs/apis/menu/dist/openapi.yaml"
+  ],
+  "invariants": [
+    "GET /inventory/items permanece en el contrato y con la misma forma HTTP de consulta, parámetros, respuestas y esquemas.",
+    "El servidor efectivo de esa ruta en OpenAPI es el del microservicio Inventario mediante la sobrescritura a nivel Path Item, no el servidor global de Menu.",
+    "La documentación no asigna a Menu la implementación de /inventory/items ni trata API_BASE_URL de Menu como base de la consulta externa.",
+    "No se introduce un hostname real, cambios de seguridad ni rutas nuevas; solo se regenera el bundle OpenAPI distribuido que consume Scalar."
+  ],
+  "affected_files": [
+    {
+      "path": "docs/apis/menu/openapi.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Conservar el `$ref` de `/inventory/items` hacia `./paths/inventory.yaml#/inventoryItems` y el servidor global `/api/v1` para Menu.",
+        "Ajustar `info.title` o `info.description` para presentar el documento como operaciones de Menu con una consulta externa de Inventario visible para el frontend; indicar que el frontend llama directamente al servicio de Inventario y Menu no atiende `/inventory/items`.",
+        "Cambiar la descripción de la etiqueta `Inventario` para identificar expresamente su propiedad externa y evitar que la etiqueta parezca una operación del backend Menu.",
+        "Actualizar `info.version` de `4.0.1` a `4.0.2`."
+      ],
+      "acceptance": [
+        "La ruta Inventario sigue registrada y las secciones info/tag aclaran que es externa.",
+        "El servidor global sigue siendo `/api/v1` y la versión es 4.0.2."
+      ]
+    },
+    {
+      "path": "docs/apis/menu/paths/inventory.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "En el objeto `inventoryItems`, antes del `get`, añadir `servers` a nivel Path Item: URL `https://{inventoryHost}/api/v1`; variable `inventoryHost` con valor predeterminado `inventory.example.invalid` y descripción inequívoca de marcador reservado que debe reemplazarse por el host real del microservicio de Inventario. Así se sobreescribe el servidor global solo para `/inventory/items` sin mezclar campos hermanos con el `$ref` en openapi.yaml.",
+        "En summary/description del GET, indicar que es consulta del microservicio externo de Inventario, llamada directamente por el frontend, y que Menu solo referencia los IDs de artículos y no sirve la ruta.",
+        "Conservar operationId, parámetros, códigos de respuesta, ETag y esquemas de esta operación."
+      ],
+      "acceptance": [
+        "La ruta tiene un servidor OpenAPI específico con plantilla de host Inventario y marcador `.invalid`.",
+        "El texto de la operación señala al propietario y consumidor; la forma HTTP existente permanece."
+      ]
+    },
+    {
+      "path": "docs/apis/menu/docs/README.md",
+      "operation": "MODIFY",
+      "instructions": [
+        "En introducción y Convenciones, explicar que este conjunto incluye la consulta externa GET `/api/v1/inventory/items` para facilitar al equipo frontend; el frontend la llama al host del servicio Inventario y Menu no la implementa.",
+        "Corregir la oración de `API_BASE_URL`: corresponde a las operaciones de Menu; la ruta de Inventario requiere su propia base URL configurada por despliegue. No inventar nombre de variable de entorno ni host real.",
+        "Actualizar la referencia de versión OpenAPI de `4.0.1` a `4.0.2`; conservar la versión ERS y el contenido no relacionado."
+      ],
+      "acceptance": [
+        "La guía no sugiere que la consulta de Inventario use el host de Menu.",
+        "La versión citada coincide con openapi.yaml."
+      ]
+    },
+    {
+      "path": "docs/apis/menu/openapi.yaml",
+      "operation": "VERIFY",
+      "instructions": [
+        "Leer junto con el Path Item referenciado y confirmar que solo Inventario tiene `servers` propio, que su operación sigue visible y que ninguna instrucción implica implementarla en Menu."
+      ],
+      "acceptance": [
+        "La herencia de servidor se sobreescribe solo para `/inventory/items`."
+      ]
+    },
+    {
+      "path": "docs/apis/menu/docs/README.md",
+      "operation": "VERIFY",
+      "instructions": [
+        "Confirmar que la guía separa ambas bases y la versión 4.0.2."
+      ],
+      "acceptance": [
+        "La guía da a los trabajadores frontend la ruta y responsabilidad correctas."
+      ]
+    },
+    {
+      "path": "docs/apis/menu/dist/openapi.yaml",
+      "operation": "MODIFY",
+      "instructions": [
+        "Regenerar exclusivamente este bundle desde `docs/apis/menu/openapi.yaml` mediante `pnpm api:bundle`, que ejecuta Redocly bundle y escribe `docs/apis/menu/dist/openapi.yaml`; no modificar su YAML a mano.",
+        "Conservar la salida que la herramienta produzca, incluida la versión 4.0.2, las descripciones de servicio externo y `servers` de `/inventory/items` con `https://{inventoryHost}/api/v1` y variable predeterminada `inventory.example.invalid`."
+      ],
+      "acceptance": [
+        "El bundle generado expone GET `/inventory/items` con `servers` propio en el Path Item, separado del `servers: /api/v1` global.",
+        "El bundle coincide con el resultado de regeneración exigido por `.github/workflows/api-reference.yml`."
+      ]
+    },
+    {
+      "path": ".github/workflows/api-reference.yml",
+      "operation": "VERIFY",
+      "instructions": [
+        "Leer el paso de bundling y el `git diff --exit-code` para confirmar que regenerar `docs/apis/menu/dist/openapi.yaml` es obligatorio para este cambio."
+      ],
+      "acceptance": [
+        "El workflow verifica la sincronía de la salida distribuida."
+      ]
+    }
+  ],
+  "blockers": []
+}
