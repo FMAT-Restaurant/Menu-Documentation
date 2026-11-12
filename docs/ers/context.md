@@ -1,78 +1,72 @@
 # Contexto, alcance y lenguaje del dominio
 
-## Responsabilidad del bounded context Menú/Catálogo
+## Responsabilidad del contexto delimitado Menú/Catálogo
 
-El bounded context Menú/Catálogo define la identidad comercial de las entradas de la carta, las ofertas asociadas a cada entrada y la composición de cada oferta. También administra las categorías del menú y las recetas que el catálogo utiliza para describir elaboraciones.
+El contexto delimitado Menú/Catálogo define la identidad comercial de las entradas del catálogo, las ofertas de cada entrada y la composición de cada oferta. También administra las categorías del menú y las recetas que el catálogo utiliza para describir elaboraciones. Los requisitos que precisan estas responsabilidades se enumeran en el [índice de requisitos funcionales](functional-requirements.md); esta sección los resume sin repetir sus criterios.
 
 El modelo organiza esta responsabilidad en tres niveles:
 
-1. **Identidad comercial:** `Menu` contiene categorías y entradas. `CatalogEntry` conserva la identidad de un producto de la carta, sus categorías y sus ofertas.
-2. **Oferta vendible:** cada `CatalogOffer` concreta pertenece a una `CatalogEntry` y se selecciona y vende individualmente. Cada oferta define su precio base y una `Composition`.
-3. **Composición y contenido:** una composición es el conjunto que contiene uno o más slots (`CompositionSlot`). Cada slot contiene una o más opciones (`SlotOption`) que describen el contenido posible.
+1. **Identidad comercial:** el menú contiene categorías y entradas; cada entrada conserva su nombre comercial, sus categorías y sus ofertas ([`requirements/categorias-y-entradas.md`](requirements/categorias-y-entradas.md)).
+2. **Oferta vendible:** cada oferta pertenece a una entrada, se selecciona y se vende individualmente, y declara su precio base y una composición ([`requirements/ofertas.md`](requirements/ofertas.md)).
+3. **Composición y contenido:** la composición reúne uno o más grupos de selección, y cada grupo contiene opciones que describen el contenido posible ([`requirements/composicion.md`](requirements/composicion.md) y [`requirements/opciones.md`](requirements/opciones.md)).
 
-El nombre visible combina el `brandName` de `CatalogEntry` con el `presentationTag` obligatorio de `CatalogOffer`. La etiqueta describe la oferta concreta. Cada recurso separa dos conceptos: el `status` (estado administrativo), que decide si se muestra, y la disponibilidad (`isAvailable`), que decide si se puede ordenar. `CatalogEntry` tiene `status` `ACTIVE`, `INACTIVE` o `ARCHIVED`; `CatalogOffer` y `SlotOption` tienen `ACTIVE` o `INACTIVE`; `CompositionSlot` no tiene `status`. Los cuatro recursos tienen `isAvailable` derivado, que nadie asigna a mano y que se recalcula y se recupera solo. Lo `ACTIVE` se muestra; lo que no tiene `isAvailable` aparece deshabilitado y no se puede ordenar. Solo el administrador cambia el `status`; ni los eventos de Inventario ni los cambios de composición lo modifican (BR-MENU-032, BR-MENU-033).
+El nombre visible de la oferta combina el nombre comercial de la entrada con la etiqueta de presentación de la oferta (RF-CONS-02). Cada recurso separa dos conceptos: el estado administrativo, que decide si se muestra, y la disponibilidad, que decide si se puede ordenar. El estado administrativo solo lo cambia el administrador (RF-GEN-04); la disponibilidad es un valor derivado que el sistema recalcula ([`requirements/disponibilidad.md`](requirements/disponibilidad.md)). Las entradas, ofertas y opciones activas se presentan a quien consulta el catálogo, y las no disponibles aparecen deshabilitadas y no pueden ordenarse (RF-CONS-01). Las imágenes de entradas y ofertas se cargan antes de crear el recurso y se cambian reemplazando su archivo ([`requirements/imagenes.md`](requirements/imagenes.md)).
 
 ### Composición y selección
 
-- Cada oferta contiene exactamente una composición, formada por uno o más slots (`CompositionSlot`). Una composición válida contiene al menos un slot.
-- Cada `CompositionSlot` contiene una o más `SlotOption`. Todo slot es obligatorio y participa en la selección. El slot tiene `isAvailable` si al menos una opción `ACTIVE` lo tiene; basta un slot sin disponibilidad para que la oferta no la tenga.
-- `CompositionSlot.quantity` indica cuántas rondas de selección tiene el slot. En cada ronda se resuelve exactamente una opción `ACTIVE` con `isAvailable` de ese slot; si solo tiene una, se resuelve directamente en cada ronda. Por ejemplo, un slot de acompañamientos con `quantity` 3 tiene tres rondas, y en cada una se elige una opción `ACTIVE` con `isAvailable` entre papas, aros de cebolla y nuggets. Si ninguna opción `ACTIVE` está disponible, el slot no está disponible y la oferta no se puede ordenar, sin que cambie su `status`.
-- `course` es opcional; cuando está presente, admite únicamente `entrada`, `plato fuerte`, `postre` o `bebida` y sugiere un tiempo de servicio.
-- Durante la configuración, se puede elegir otra `CatalogOffer` como origen para copiar sus slots y opciones a la composición destino. La copia conserva el `status` de las opciones; la disponibilidad de cada slot se recalcula. Las opciones `RECIPE` copiadas siguen la revisión vigente de su receta. Las definiciones quedan locales, independientes y editables. La oferta destino no conserva el ID ni una referencia a la oferta origen, no sincroniza cambios con ella y no copia su precio.
+- La validez de la composición se define en RF-COMP-01: es estructural y no depende de la disponibilidad ni de las existencias.
+- Los grupos de selección son obligatorios y participan en la selección (RF-COMP-02); cada uno indica su número de rondas (RF-COMP-03) y, opcionalmente, un tiempo de servicio sugerido (RF-COMP-04).
+- Las opciones elegibles en cada ronda y la opción predeterminada se definen en RF-COMP-05 y RF-COMP-06, y el orden de presentación, en RF-COMP-07. Por ejemplo, un grupo de selección de acompañamientos con tres rondas ofrece en cada ronda una elección entre papas, aros de cebolla y nuggets.
+- La disponibilidad de los grupos de selección y de las ofertas se deriva conforme a RF-DISP-02 y RF-DISP-03.
+- La composición se actualiza parcialmente (RF-COMP-08 a RF-COMP-11) o se completa con copias de los grupos y opciones de otra oferta (RF-COMP-12); la copia no crea una relación persistente con la oferta origen.
 
 ### Contenido y recetas
 
-Cada `SlotOption` es una aparición contextual con exactamente un `ComponentSource`: `INVENTORY_ITEM` o `RECIPE`. Varias opciones pueden referir el mismo artículo o la misma definición de receta en apariciones distintas.
+Cada opción tiene un único origen de contenido: contenido directo de Inventario o receta (RF-OPC-07, RF-OPC-08). Las opciones con receta la asignan por su identificador o la crean durante la configuración, y usan siempre su revisión vigente (RF-OPC-09, RF-OPC-10).
 
-Catálogo administra las `RecipeDefinition` en `RecipeLibrary` y sus líneas `ComponentIngredient`. Una receta define nombre, descripción, instrucciones en texto, número de revisión y uno o más ingredientes seleccionados de Inventario, cada uno con su cantidad. Todas las recetas se almacenan en la biblioteca; si esta se comparte entre varios menús o tiene alcance de un solo menú permanece pendiente en OPEN-003. Al configurar un `CompositionSlot`, se puede seleccionar una receta existente únicamente por ID o crear una receta desde ese flujo. Una receta nueva se guarda primero en `RecipeLibrary`. La opción guarda en `RecipeSource` solo el ID de la receta, sin indicar una revisión, y usa siempre su revisión vigente. La definición asignada no se modifica desde la opción. Al editar una opción que ya usa receta, omitir el ID conserva la receta asignada.
+El catálogo guarda las recetas en la biblioteca de recetas ([`requirements/recetas.md`](requirements/recetas.md)). Una receta reúne nombre, descripción, instrucciones y líneas de ingrediente que referencian artículos de Inventario; cada edición crea una revisión nueva y las anteriores se conservan como historial consultable (RF-REC-04 a RF-REC-06). La eliminación de una receta se rige por RF-REC-07. Si la biblioteca se comparte entre varios menús o tiene alcance de un solo menú queda pendiente en [OPEN-003](open.md#open-003--alcance-de-la-biblioteca-de-recetas).
 
-Cada línea `ComponentIngredient` referencia exactamente un `InventoryItem` e indica la cantidad física de ese ingrediente. Al seleccionar, consultar o editar la línea se muestra su unidad de medida autoritativa, suministrada por Inventario; la unidad de la cantidad debe ser compatible con la del artículo. Una receta se crea con la revisión 1; editarla crea una nueva revisión, con el número siguiente, que pasa a ser la vigente y que las opciones vigentes usan de inmediato; las revisiones anteriores se conservan como historial consultable. Las cantidades físicas de artículos e ingredientes son distintas de `CompositionSlot.quantity`, que expresa rondas de selección del slot.
+La cantidad física de artículos e ingredientes se expresa en la unidad que Inventario establece para el artículo y es distinta del número de rondas de un grupo de selección (RF-COMP-03, RF-INTG-02).
 
-La definición vigente de una receta solo puede eliminarse cuando ninguna `SlotOption` de ninguna oferta la referencia, incluso si la oferta o la opción está inactiva. Si existe una referencia, se rechaza la eliminación sin cambios. Su historial de revisiones se conserva y permanece consultable.
+El ciclo de vida de entradas y ofertas (creación, activación, inactivación, archivado, desarchivado y eliminación) se describe en los requisitos de entradas y de ofertas; los efectos de cada cambio de estado sobre los demás recursos se rigen por RF-GEN-04.
 
-Una oferta `INACTIVE` no se presenta a quien no administra el catálogo. La entrada conserva su `status` cuando cambian el `status` o la disponibilidad de una oferta; si no tiene ofertas disponibles, aparece deshabilitada. Archivar una entrada desde `ACTIVE` o `INACTIVE` la retira del flujo normal sin modificar los estados de sus ofertas; desarchivarla la deja en `INACTIVE`.
+### Precio declarado por el catálogo
 
-Una `CatalogEntry` solo puede eliminarse cuando está `ARCHIVED`. Una `CatalogOffer` solo puede eliminarse individualmente cuando está `INACTIVE`; la disponibilidad no interviene. Usar otra oferta como origen de configuración no crea una referencia vigente entre ofertas ni añade una condición de eliminación. La operación se rechaza íntegramente cuando no se cumplen sus condiciones, sin modificar recursos dependientes. Las composiciones, slots y opciones poseídos exclusivamente pueden eliminarse junto con su propietario.
+El catálogo declara el precio base de cada oferta, que no se deriva de su composición ni se toma de la oferta origen de una copia (RF-OFE-03, RF-COMP-12). La cantidad pedida, las opciones elegidas en cada ronda y el cálculo del precio final pertenecen a Órdenes.
 
-### Precio declarado por Catálogo
-
-`CatalogOffer.basePrice` es fijo para la oferta, independientemente de los slots y opciones de su composición. Los slots, sus opciones y la oferta seleccionada como origen de una copia no aportan cargos automáticos ni trasladan precios al precio base.
-
-El catálogo declara `basePrice`. La cantidad pedida, las opciones concretas resueltas en cada ronda según la cantidad de cada slot y el cálculo del precio final pertenecen al modelo de órdenes.
-
-## Ownership y límites de contexto
+## Propiedad de los datos y límites de contexto
 
 | Ámbito | Responsabilidad del dominio |
 | :--- | :--- |
-| Menú/Catálogo | Es propietario de `Menu`, `Category`, `CatalogEntry`, `CatalogOffer`, sus composiciones, slots, opciones y recetas; declara los precios base, rige el `status` administrativo, deriva `isAvailable` y emite eventos de receta para Inventario. |
-| Inventario | Es propietario de la identidad, unidad de medida y existencias de `InventoryItem`. Catálogo lo referencia como concepto externo en opciones y recetas. Mantiene una copia local de las recetas recibida por eventos de Menu, comprueba la factibilidad de las recetas y la disponibilidad de los artículos, y lo comunica a Menu por eventos; el contrato queda pendiente en OPEN-011. |
-| Órdenes | Registra la cantidad pedida y la opción concreta elegida en cada ronda definida por la cantidad de cada slot; determina el precio final de la orden según el modelo transaccional. |
+| Menú/Catálogo | Es propietario del menú, las categorías, las entradas, las ofertas, sus composiciones, grupos de selección y opciones, y las recetas; declara los precios base, rige el estado administrativo, deriva la disponibilidad y emite eventos de receta para Inventario (RF-INTG-05). |
+| Inventario | Es propietario de la identidad, la unidad de medida y las existencias de cada artículo de Inventario (RF-INTG-02). Valida de forma síncrona los artículos que Menu referencia (RF-INTG-01). Como dependencia externa, mantiene una copia local de las recetas recibida por eventos de Menu, comprueba la factibilidad de las recetas y la disponibilidad de los artículos, y lo comunica a Menu por eventos (RF-INTG-03, RF-INTG-04); el contrato queda pendiente en [OPEN-011](open.md#open-011--contrato-de-eventos-con-inventario). |
+| Órdenes | Registra la cantidad pedida y la opción elegida en cada ronda de cada grupo de selección; comprueba las elecciones de la orden (RF-CONS-05.CA2), determina el precio final y conserva su propia copia de los datos de la oferta al aceptar la orden. |
 
-La validez estructural de una composición o receta corresponde a sus definiciones de catálogo. El stock de los artículos referenciados pertenece a Inventario y es independiente de esa validez. La factibilidad y la disponibilidad comunicadas por Inventario solo determinan `isAvailable`.
+La validez estructural de una composición o de una receta corresponde a sus definiciones en el catálogo (RF-COMP-01). Las existencias de los artículos referenciados pertenecen a Inventario y son independientes de esa validez; la factibilidad y la disponibilidad que comunica Inventario solo determinan la disponibilidad (RF-DISP-01).
 
 ```mermaid
 flowchart LR
-    subgraph Catalogo["Bounded context Menú/Catálogo"]
-        Menu[Menu] --> Category[Category]
-        Menu --> Entry[CatalogEntry]
-        Entry -->|contiene| Offer[CatalogOffer]
-        Offer --> Composition[Composition]
-        Composition -->|conjunto de slots| Slot["CompositionSlot<br/>isAvailable derivado<br/>quantity de rondas"]
-        Slot --> SlotOption["SlotOption<br/>status e isAvailable"]
-        SlotOption --> Source["Un ComponentSource"]
-        Source --> ItemSource[INVENTORY_ITEM]
-        Source --> RecipeSource[RECIPE]
-        RecipeLibrary[RecipeLibrary] --> RecipeDefinition[RecipeDefinition]
-        RecipeSource -. "selección por recipeId; usa la revisión vigente" .-> RecipeDefinition
-        RecipeDefinition --> Ingredient[ComponentIngredient]
+    subgraph Catalogo["Contexto delimitado Menú/Catálogo"]
+        Menu[Menú] --> Category[Categoría]
+        Menu --> Entry["Entrada del catálogo"]
+        Entry -->|contiene| Offer[Oferta]
+        Offer --> Composition[Composición]
+        Composition -->|conjunto de grupos de selección| Slot["Grupo de selección<br/>disponibilidad derivada<br/>número de rondas"]
+        Slot --> SlotOption["Opción<br/>estado administrativo y disponibilidad"]
+        SlotOption --> Source["Un origen de contenido"]
+        Source --> ItemSource["Contenido directo de Inventario"]
+        Source --> RecipeSource["Referencia a receta"]
+        RecipeLibrary["Biblioteca de recetas"] --> RecipeDefinition["Definición de receta"]
+        RecipeSource -. "selección por identificador de la receta; usa la revisión vigente" .-> RecipeDefinition
+        RecipeDefinition --> Ingredient["Línea de ingrediente"]
     end
 
     subgraph Inventory["Inventario"]
-        InventoryItem["InventoryItem<br/>identidad y existencias"]
+        InventoryItem["Artículo de Inventario<br/>identidad y existencias"]
         InventoryCheck["Copia local de recetas<br/>factibilidad y disponibilidad"]
     end
 
-    subgraph Orders["Modelo de órdenes"]
+    subgraph Orders["Órdenes"]
         OrderSelection["Cantidad y opción elegida por ronda"]
         FinalPrice["Precio final de la orden"]
     end
@@ -81,46 +75,109 @@ flowchart LR
     Ingredient -. "referencia de identidad" .-> InventoryItem
     RecipeDefinition -. "eventos de receta" .-> InventoryCheck
     InventoryCheck -. "eventos de disponibilidad" .-> SlotOption
-    OrderSelection -. "resuelve una opción ACTIVE disponible en cada ronda de cada slot" .-> Composition
+    OrderSelection -. "resuelve una opción activa y disponible en cada ronda de cada grupo" .-> Composition
 
     subgraph Configuration["Operación durante la configuración"]
-        SourceOffer["CatalogOffer origen"] --> Copy["Copiar slots y status de opciones<br/>como definiciones locales editables"]
+        SourceOffer["Oferta origen"] --> Copy["Copiar grupos y estado de las opciones<br/>como definiciones locales editables"]
         Copy --> Composition
     end
 ```
 
-La conexión desde `CatalogOffer origen` representa una operación de configuración: al concluir la copia, la composición destino no mantiene una relación con esa oferta. Todo slot genera sus rondas según `quantity`. La disponibilidad del slot y de la oferta se recalcula a partir de las opciones copiadas sin cambiar el `status` de la oferta ni el de la entrada.
+La conexión desde la oferta origen representa una operación de configuración: al concluir la copia, la composición destino no mantiene una relación con esa oferta (RF-COMP-12). La disponibilidad de los grupos de selección, de la oferta y de su entrada se recalcula a partir de las opciones copiadas, sin cambiar el estado administrativo de la oferta ni el de la entrada.
 
 ## Lenguaje para describir una oferta
 
-Una oferta se describe desde la identidad de la carta hasta las opciones que pueden ocupar cada slot:
+Una oferta se describe desde la identidad de la carta hasta las opciones que pueden elegirse en cada grupo de selección:
 
 ```mermaid
 flowchart TD
-    Offer["CatalogOffer<br/>estado, presentación y basePrice"] --> Composition["Composition<br/>conjunto de slots"]
-    Composition --> Slot["CompositionSlot<br/>disponible si alguna opción ACTIVE lo está<br/>quantity de rondas"]
-    Slot --> SlotOption["SlotOption<br/>status e isAvailable"]
+    Offer["Oferta<br/>estado administrativo, etiqueta de presentación y precio base"] --> Composition["Composición<br/>conjunto de grupos de selección"]
+    Composition --> Slot["Grupo de selección<br/>disponible si alguna opción activa lo está<br/>número de rondas"]
+    Slot --> SlotOption["Opción<br/>estado administrativo y disponibilidad"]
     SlotOption --> Source["Un origen de contenido"]
-    TemplateOffer["Otra CatalogOffer<br/>origen de configuración"] -. "copia slots y status de opciones; no persiste referencia" .-> Composition
+    TemplateOffer["Otra oferta<br/>origen de configuración"] -. "copia grupos y estado de las opciones; no conserva referencia" .-> Composition
 ```
 
-Todo slot participa en la selección y genera el número de rondas indicado por su `quantity`; en cada ronda se resuelve una opción `ACTIVE` con `isAvailable`, directamente cuando solo hay una o por elección cuando hay varias. Si un slot no está disponible, la oferta aparece deshabilitada y conserva su `status`. La vista describe definiciones de catálogo; las elecciones concretas se registran en el modelo de órdenes.
+Todo grupo de selección participa en la selección y genera el número de rondas que indica; en cada ronda se elige una opción activa y disponible, directamente cuando es la única elegible (RF-COMP-02, RF-COMP-05, RF-COMP-06). Si un grupo no está disponible, la oferta se presenta deshabilitada y conserva su estado administrativo. Esta vista describe definiciones del catálogo; las elecciones concretas se registran en Órdenes.
+
+## Exclusiones de alcance
+
+- Menu no administra menús: opera un menú por sucursal, según el alcance operativo de [`configuration.md`](configuration.md).
+- Menu no registra auditoría de los cambios administrativos (autor, fecha, valores anteriores); Órdenes conserva su propia copia de los datos de la oferta al aceptar la orden. El historial de revisiones de recetas (RF-REC-05) no es una auditoría.
+- Menu no emite eventos de cambios del catálogo a sus consumidores, que obtienen los datos mediante consulta bajo demanda conforme a RF-CONS-05.CA1.
+- Las longitudes máximas y los formatos de los textos, la idempotencia de los reintentos y la paginación de las consultas pertenecen al contrato de API.
+- La autenticación de quien solicita y la asignación de capacidades corresponden a un servicio externo, conforme a RF-GEN-01.CA4.
 
 ## Glosario del dominio
 
-- **`status`:** estado administrativo que decide si un recurso se muestra y que solo cambia el administrador.
-- **`isAvailable`:** booleano derivado que decide si se puede ordenar; se recalcula a partir de los eventos de Inventario y de la composición.
-- **`Menu`:** ámbito propietario de las categorías y entradas comerciales.
-- **`Category`:** clasificación reutilizable del menú que puede relacionarse con varias entradas.
-- **`CatalogEntry`:** identidad comercial de un producto de la carta; conserva `brandName`, categorías y sus ofertas. Tiene `status` (`ACTIVE`, `INACTIVE` o `ARCHIVED`) e `isAvailable` derivado, que es `true` si tiene al menos una oferta `ACTIVE` disponible.
-- **`CatalogOffer`:** oferta concreta de una entrada, seleccionable y vendible individualmente; tiene `status` `ACTIVE` o `INACTIVE`, `isAvailable` (todos sus slots disponibles), `presentationTag` obligatorio, `basePrice` y exactamente una composición. Se muestra bajo una entrada `ACTIVE`.
-- **`Composition`:** conjunto de uno o más slots que define la composición de una oferta.
-- **`CompositionSlot`:** slot obligatorio de una composición, con una o más opciones y una `quantity` que indica su número de rondas. No tiene `status`; tiene `isAvailable` si tiene al menos una opción `ACTIVE` disponible.
-- **`SlotOption`:** aparición contextual que contiene un origen único; tiene `status` e `isAvailable`. Las opciones `INACTIVE` no se ofrecen como elegibles.
-- **`ComponentSource`:** tipo conceptual que identifica el origen único de una opción: `INVENTORY_ITEM` o `RECIPE`.
-- **`InventoryItemSource`:** contenido que referencia un artículo externo de Inventario con su cantidad física y unidad.
-- **`RecipeSource`:** referencia interna desde una `SlotOption` a una receta de `RecipeLibrary` mediante `recipeId`, sin revisión: la opción usa siempre la revisión vigente. Al configurar una opción `RECIPE`, se elige una receta solo por ID o se define una nueva, que se guarda primero en la biblioteca. Cuando la receta recibe una revisión nueva, la opción la usa de inmediato.
-- **`InventoryItem`:** artículo cuya identidad, unidad de medida y existencias pertenecen a Inventario.
-- **`RecipeLibrary`:** biblioteca administrada por Catálogo que almacena las definiciones de receta; su alcance entre menús permanece pendiente en OPEN-003.
-- **`RecipeDefinition`:** receta con nombre, descripción, instrucciones en texto, revisión y una o más líneas de ingredientes de Inventario; se crea con la revisión 1 y cada edición crea una revisión nueva con el número siguiente, que pasa a ser la vigente; las anteriores se conservan como historial consultable.
-- **`ComponentIngredient`:** línea de receta que referencia un `InventoryItem`, conserva la cantidad indicada y muestra la unidad autoritativa de Inventario.
+Cada término remite al requisito que lo regula; la norma se enuncia solo en ese requisito.
+
+- **Estado administrativo:** estado de una entrada, una oferta o una opción que decide si se presenta y que solo cambia el administrador (RF-GEN-04).
+- **Disponibilidad:** valor derivado que decide si un recurso se puede ordenar o elegir; el sistema la recalcula a partir de los eventos de Inventario y de la composición (RF-DISP-01 a RF-DISP-06).
+- **Ordenable:** condición de una oferta que puede pedirse en una orden (RF-DISP-05).
+- **Menú:** ámbito propietario de las categorías y de las entradas del catálogo (RF-CAT-01, RF-ENT-01).
+- **Categoría:** clasificación del menú que puede agrupar varias entradas (RF-CAT-01 a RF-CAT-04).
+- **Agrupación «sin categoría»:** agrupación en la que figuran las entradas que no tienen categorías (RF-CAT-04).
+- **Entrada (entrada del catálogo):** identidad comercial de un producto de la carta, con su nombre comercial, descripción, imagen, categorías y ofertas (RF-ENT-01).
+- **Nombre comercial:** identidad comercial autoritativa de una entrada (RF-ENT-01).
+- **Oferta:** producto vendible de una entrada, seleccionable individualmente, con su etiqueta de presentación, precio base, imagen y composición (RF-OFE-01).
+- **Etiqueta de presentación:** texto que describe la presentación concreta de una oferta (RF-CONS-02).
+- **Nombre visible de la oferta:** nombre que resulta del nombre comercial de la entrada y de la etiqueta de presentación de la oferta (RF-CONS-02).
+- **Precio base:** precio que el administrador declara para la oferta completa (RF-OFE-03).
+- **Composición:** conjunto de grupos de selección de una oferta (RF-COMP-01).
+- **Composición válida:** composición que cumple las condiciones estructurales de RF-COMP-01.
+- **Grupo de selección:** miembro obligatorio de una composición que contiene opciones y genera rondas (RF-COMP-02).
+- **Número de rondas:** cantidad de rondas que genera un grupo de selección, distinta de la cantidad física de un artículo o ingrediente (RF-COMP-03).
+- **Ronda:** cada una de las elecciones de una opción dentro de un grupo de selección (RF-COMP-05).
+- **Tiempo de servicio:** momento sugerido de servicio de un grupo de selección; sus valores admitidos se definen en RF-COMP-04.
+- **Opción:** aparición contextual de un contenido dentro de un grupo de selección (RF-OPC-06).
+- **Nombre mostrado:** nombre de una opción en su contexto (RF-OPC-06).
+- **Opción elegible:** opción que puede elegirse en una ronda (RF-COMP-05).
+- **Opción predeterminada:** opción que se usa directamente en un grupo de selección en los casos de RF-COMP-06.
+- **Origen de contenido:** contenido único de una opción, que es contenido directo de Inventario o receta (RF-OPC-07).
+- **Contenido directo de Inventario:** origen de contenido que referencia un artículo de Inventario con su cantidad (RF-OPC-08).
+- **Receta (definición de receta):** elaboración de la biblioteca de recetas con nombre, descripción, instrucciones y líneas de ingrediente; «definición de receta» la distingue de sus revisiones (RF-REC-01).
+- **Revisión (revisión vigente):** cada estado numerado de una receta; la revisión vigente es la que usan las opciones (RF-REC-04, RF-OPC-09).
+- **Historial de revisiones:** conjunto de las revisiones anteriores de una receta (RF-REC-05, RF-REC-06).
+- **Biblioteca de recetas:** lugar donde el catálogo guarda las recetas; su alcance entre menús queda pendiente en [OPEN-003](open.md#open-003--alcance-de-la-biblioteca-de-recetas) (RF-REC-01).
+- **Línea de ingrediente:** línea de una receta que referencia un artículo de Inventario con su cantidad (RF-REC-02).
+- **Artículo de Inventario:** artículo cuya identidad, unidad de medida y existencias pertenecen a Inventario (RF-INTG-02).
+- **Existencias:** cantidad física de un artículo que administra Inventario y no Menu (RF-INTG-02).
+- **Imagen (identificador de la imagen):** archivo cargado de forma previa que se asocia a una entrada o a una oferta mediante su identificador (RF-IMG-01, RF-IMG-03).
+- **Reemplazo del archivo de una imagen:** operación que sustituye el archivo de una imagen existente; el identificador de la imagen no cambia (RF-IMG-05).
+- **Capacidad de administrar y capacidad de consultar:** permisos que distinguen al administrador de quien consulta el catálogo (RF-GEN-01).
+- **Versión del recurso:** dato que identifica el estado vigente de un recurso y que se indica en cada modificación o eliminación (RF-GEN-02).
+
+## Tabla de correspondencia técnica
+
+Esta tabla y la vista técnica de [`architechture.md`](architechture.md) son los únicos lugares de la ERS con nombres de código. La unidad de medida es solo la del artículo de Inventario: la línea de ingrediente y el contenido directo de Inventario no tienen una unidad propia (RF-OPC-08, RF-REC-02).
+
+| Término formal | Nombre técnico |
+| :--- | :--- |
+| menú | `Menu` |
+| categoría | `Category` |
+| entrada del catálogo | `CatalogEntry` |
+| nombre comercial | `brandName` |
+| oferta | `CatalogOffer` |
+| etiqueta de presentación | `presentationTag` |
+| precio base | `basePrice` |
+| composición | `Composition` |
+| grupo de selección | `CompositionSlot` |
+| número de rondas (del grupo de selección) | `quantity` |
+| tiempo de servicio | `course` |
+| opción | `SlotOption` |
+| nombre mostrado | `displayName` |
+| origen de contenido | `ComponentSource` |
+| tipo de origen artículo de Inventario | `INVENTORY_ITEM` |
+| contenido directo de Inventario | `InventoryItemSource` |
+| tipo de origen receta | `RECIPE` |
+| referencia a receta | `RecipeSource` |
+| identificador de la receta | `recipeId` |
+| biblioteca de recetas | `RecipeLibrary` |
+| receta (definición de receta) | `RecipeDefinition` |
+| línea de ingrediente | `ComponentIngredient` |
+| artículo de Inventario | `InventoryItem` |
+| identificador de la imagen | `imageId` |
+| estado administrativo | `status` |
+| activo, inactivo, archivado | `ACTIVE`, `INACTIVE`, `ARCHIVED` |
+| disponibilidad | `isAvailable` |

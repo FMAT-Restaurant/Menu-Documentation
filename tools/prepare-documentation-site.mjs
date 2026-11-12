@@ -21,10 +21,19 @@ const ersSidebarPositions = new Map([
   ['ers/context.md', 3],
   ['ers/architechture.md', 4],
   ['ers/functional-requirements.md', 5],
-  ['ers/non-functional-requirements.md', 6],
-  ['ers/business-rules.md', 7],
+  ['ers/non-functional-requirements.md', 7],
   ['ers/open.md', 8],
   ['ers/traceability.md', 9],
+  ['ers/requirements/transversales.md', 1],
+  ['ers/requirements/imagenes.md', 2],
+  ['ers/requirements/categorias-y-entradas.md', 3],
+  ['ers/requirements/ofertas.md', 4],
+  ['ers/requirements/composicion.md', 5],
+  ['ers/requirements/opciones.md', 6],
+  ['ers/requirements/recetas.md', 7],
+  ['ers/requirements/disponibilidad.md', 8],
+  ['ers/requirements/integracion-con-inventario.md', 9],
+  ['ers/requirements/consulta-del-catalogo.md', 10],
 ]);
 
 const renderedOtherMarkdown = new Set([
@@ -379,6 +388,17 @@ for (const sourceFile of markdownFiles) {
   if (normalizedSourcePath === 'ers/README.md') frontmatterValues.slug = '/specification/';
   if (Object.keys(frontmatterValues).length) content = mergeFrontmatter(content, frontmatterValues);
   fs.writeFileSync(target, content, 'utf8');
+}
+
+const sourceRequirementsRoot = path.join(sourceDocsRoot, 'ers', 'requirements');
+if (fs.existsSync(sourceRequirementsRoot) && fs.statSync(sourceRequirementsRoot).isDirectory()) {
+  const stagedRequirementsRoot = path.join(stagedDocsRoot, 'specification', 'requirements');
+  fs.mkdirSync(stagedRequirementsRoot, { recursive: true });
+  fs.writeFileSync(
+    path.join(stagedRequirementsRoot, '_category_.json'),
+    JSON.stringify({ label: 'Requisitos por área', position: 6 }, null, 2) + '\n',
+    'utf8',
+  );
 }
 
 const sourceAssets = path.join(sourceDocsRoot, 'assets');

@@ -1,43 +1,55 @@
 # Cuestiones abiertas del modelo de catálogo
 
-Esta sección registra decisiones de requisitos que no quedan determinadas por el modelo vigente. No asigna respuestas por inferencia.
+Esta sección registra las decisiones de requisitos que no quedan determinadas por la especificación vigente. No asigna respuestas por inferencia; cada cuestión indica lo que ya está establecido y lo que queda pendiente.
 
-| Identificador | Cuestión | Alcance establecido | Decisión pendiente |
-| :--- | :--- | :--- | :--- |
-| OPEN-001 | Importes de precios | Cada oferta tiene un precio base propio. El precio final de la orden se determina fuera del catálogo. | Moneda aplicable, precisión, redondeo y rangos admisibles de `CatalogOffer.basePrice`. |
-| OPEN-003 | Alcance de la biblioteca de recetas | Toda receta se almacena en una `RecipeLibrary`; puede seleccionarse por el ID de una receta existente o crearse durante la configuración de una `SlotOption`. | Si una biblioteca puede compartirse entre varios menús o si su alcance corresponde a un solo menú. |
-| OPEN-006 | Cantidades y unidades | Todos los `CompositionSlot` participan en la selección y cada uno genera el número de rondas expresado por su `quantity`. En cada ronda se elige una opción `ACTIVE` con `isAvailable`; si el slot tiene una sola, esta se toma por defecto. Cada ingrediente de receta referencia un artículo de Inventario, conserva su cantidad y muestra la unidad de medida autoritativa de ese artículo. | Rangos, precisión y valor predeterminado de `CompositionSlot.quantity`; rangos, precisión y valores fraccionarios de cantidades de contenido directo de Inventario y de ingredientes de receta; y si se admiten unidades compatibles distintas de la unidad base de Inventario y sus conversiones. |
-| OPEN-009 | Distribución de carga del perfil nominal | El perfil establece concurrencia, tasa sostenida, duración y clases de operación del catálogo y validación de selecciones. | Proporción de solicitudes entre las clases y la distribución representativa que se usará en la evaluación. |
-| OPEN-010 | Contrato externo de la API | El [contrato modular existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) expone operaciones administrativas. El flujo de imágenes está decidido: carga validada previa con identificador asignado por el sistema y asociación mediante ese identificador (`imageId`). | Alineación integral del contrato con la ERS y operaciones y representaciones faltantes para la consulta no administrativa del catálogo, historial de revisiones de recetas, copia de composición y actualización de ingredientes de recetas, y la representación de `status` administrativo e `isAvailable`, y la visibilidad según capacidad administrativa. |
-| OPEN-011 | Contrato de eventos con Inventario | Menu emite eventos al crear, revisar o eliminar recetas, e Inventario emite eventos de factibilidad de recetas y de disponibilidad de artículos, que Menu usa para recalcular `isAvailable` (BR-MENU-034). | Envelope y payload de cada evento, datos de receta que recibe Inventario, identificación de receta y revisión, idempotencia y duplicados, orden y consistencia eventual, y valor de `isAvailable` antes del primer evento. |
-| OPEN-012 | Notificación y revisión ante cambios de disponibilidad | Los cambios de `isAvailable` no modifican el `status`; el administrador decide el `status`. | Si se notifica al administrador cuando cambia la disponibilidad y cómo; y si esos cambios generan revisiones o un flujo para revisar las ofertas afectadas y decidir su `status`. |
+| ID | Cuestión | Alcance establecido | Decisión pendiente |
+| :-- | :-- | :-- | :-- |
+| OPEN-001 | Moneda e importes | Cada oferta tiene un precio base propio; el precio final lo determina Órdenes (RF-OFE-03). | Moneda aplicable y su origen (quién fija la moneda del menú; por ejemplo, la configuración de la sucursal); precisión, redondeo y rangos admisibles del precio base. |
+| OPEN-003 | Alcance de la biblioteca de recetas | Toda receta pertenece a la biblioteca; se asigna por su identificador o se crea desde una opción (RF-REC-01, RF-OPC-09, RF-OPC-10). | Si la biblioteca se comparte entre varios menús o corresponde a uno solo. |
+| OPEN-006 | Cantidades y unidades | Número de rondas por grupo de selección (RF-COMP-03); cantidades positivas del contenido directo de Inventario y de las líneas de ingrediente, expresadas en la unidad que Inventario establece para el artículo, sin unidad propia (RF-OPC-08, RF-REC-02); unidad de medida visible (RF-REC-03). | Rangos, precisión y valor predeterminado del número de rondas; rangos, precisión y valores fraccionarios de las cantidades. |
+| OPEN-009 | Distribución de carga del perfil nominal | Clases de operación de RNF-REND-02: consulta del catálogo, búsqueda por texto y filtrado por categoría. La validación de selecciones no forma parte de la mezcla. | Proporción entre la consulta, la búsqueda y el filtrado, y datos representativos para la evaluación. |
+| OPEN-010 | Contrato externo de la API | El contrato modular expone operaciones administrativas; el flujo de imágenes está decidido (RF-IMG-01..05). Las longitudes máximas, la idempotencia de los reintentos y la paginación pertenecen al contrato. | Alineación integral del contrato con la ERS 3.0.0 y operaciones o representaciones faltantes (véase la sección de esta cuestión). |
+| OPEN-011 | Contrato de eventos con Inventario | Menu emite eventos de receta e Inventario emite eventos de factibilidad y de disponibilidad (RF-INTG-03..05); la validación de artículos es síncrona (RF-INTG-01). | Estructura y contenido de cada evento, identificación, duplicados, orden, consistencia eventual, disponibilidad inicial, retiro de artículos, ámbito por sucursal y reconciliación (véase la sección de esta cuestión). |
+| OPEN-012 | Notificación al administrador ante cambios de disponibilidad | La disponibilidad no cambia el estado administrativo; Menu no emite eventos de catálogo a sus consumidores (RF-CONS-05.CA1). | Si se notifica al administrador y por qué medio; si esos cambios abren una revisión de las ofertas afectadas. |
+| OPEN-013 | Capacidades más finas | Dos capacidades: administrar el catálogo y consultarlo; la autenticación y la asignación de capacidades son externas (RF-GEN-01). | Si existen capacidades más finas que «administrar el catálogo» y qué operaciones cubre cada una. |
+| OPEN-014 | Retención de imágenes nunca asociadas | Cada imagen pertenece a un solo recurso; su archivo anterior se elimina al reemplazarlo y la imagen se elimina con su recurso (RF-IMG-04, RF-IMG-05). | Cuánto tiempo se conservan, y si se eliminan, las imágenes cargadas que nunca se asocian a una entrada u oferta. |
 
 ## OPEN-001 — Importes de precios
 
-Definir las reglas de moneda, precisión, redondeo y rangos admisibles de `CatalogOffer.basePrice`.
+Cada oferta tiene un precio base propio, y el precio final de la orden lo determina Órdenes (RF-OFE-03). Queda por definir la moneda aplicable y su origen, es decir, quién fija la moneda del menú (por ejemplo, la configuración de la sucursal), así como las reglas de precisión, redondeo y rangos admisibles del precio base de la oferta.
 
 ## OPEN-003 — Alcance de la biblioteca de recetas
 
-Determinar si `RecipeLibrary` es compartida por varios menús o tiene alcance de un solo menú.
+Toda receta pertenece a la biblioteca de recetas; una opción la asigna únicamente por su identificador o la crea durante su configuración (RF-REC-01, RF-OPC-09, RF-OPC-10). Queda por determinar si la biblioteca de recetas se comparte entre varios menús o corresponde a un solo menú.
 
 ## OPEN-006 — Cantidades y unidades
 
-Fijar los rangos, la precisión y el valor predeterminado de `CompositionSlot.quantity`, que expresa el número de rondas de selección del slot, y los rangos, la precisión y los valores fraccionarios de las cantidades de contenido directo de Inventario y de ingredientes de receta. También determinar si se admiten unidades compatibles distintas de la unidad base de Inventario y, en tal caso, cómo se convierten. La unidad de medida del artículo seleccionado se muestra y no constituye una decisión pendiente.
+Cada grupo de selección genera el número de rondas que indica su configuración (RF-COMP-03). Las cantidades del contenido directo de Inventario y de las líneas de ingrediente son positivas y se expresan en la unidad que Inventario establece para el artículo, sin unidad propia (RF-OPC-08, RF-REC-02); la unidad de medida del artículo se muestra (RF-REC-03) y no constituye una decisión pendiente. Quedan por fijar los rangos, la precisión y el valor predeterminado del número de rondas de cada grupo de selección, y los rangos, la precisión y los valores fraccionarios de las cantidades.
 
 ## OPEN-009 — Distribución de carga del perfil nominal
 
-Definir la proporción de solicitudes entre consulta del catálogo y validación de selecciones, además de los datos representativos con los que se ejecutará la evaluación de carga nominal.
+El perfil nominal de RNF-REND-02 comprende tres clases de operación: consulta del catálogo, búsqueda por texto y filtrado por categoría; la validación de selecciones no forma parte de la mezcla. Queda por definir la proporción de solicitudes entre esas tres clases y los datos representativos con los que se ejecutará la evaluación de carga nominal.
 
 ## OPEN-010 — Contrato externo de la API
 
-El [contrato modular existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) ya define rutas, métodos y representaciones para operaciones administrativas. Sigue pendiente su alineación integral con la ERS y la definición de las operaciones y representaciones faltantes para la consulta no administrativa del catálogo, el historial de revisiones de recetas, la copia de composición y la actualización de ingredientes de recetas. La API también debe alinearse con la separación entre `status` e `isAvailable` y con la visibilidad según la capacidad administrativa (BR-MENU-032, BR-MENU-033). La revisión de los mockups orientará esas decisiones.
+El [contrato modular existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) ya define rutas, métodos y representaciones para operaciones administrativas, y el flujo de imágenes está decidido en RF-IMG-01..05. Las longitudes máximas de los textos, la idempotencia de los reintentos y la paginación pertenecen al contrato y no a esta especificación.
 
-El flujo de imágenes está decidido: el archivo se valida en una carga previa, en la que el sistema asigna el identificador de la imagen; después, la creación o la actualización de entradas y ofertas se asocia a ella mediante ese identificador (`imageId`). La carga y la asociación son operaciones independientes; este flujo no constituye una decisión pendiente de OPEN-010.
+Sigue pendiente la alineación integral del contrato con la ERS 3.0.0 y la definición de las operaciones o representaciones faltantes: la consulta no administrativa del catálogo, la búsqueda y el filtrado, la consulta administrativa, el historial de revisiones de recetas, la copia de composición, la actualización de líneas de ingrediente, la eliminación de categorías, el orden de presentación, el reemplazo del archivo de una imagen con identificador fijo, la representación del estado administrativo y de la disponibilidad, y la visibilidad según la capacidad. La revisión de las maquetas de pantalla orientará esas decisiones.
 
 ## OPEN-011 — Contrato de eventos con Inventario
 
-La comunicación asíncrona entre Menu e Inventario está decidida (BR-MENU-034), pero su contrato se definirá posteriormente, como ocurrió con el contrato de la API. Falta precisar la estructura y el contenido de los eventos que intercambian ambos servicios, qué datos de receta necesita Inventario para su copia local, cómo se identifican la receta y su revisión, cómo se tratan los eventos duplicados o fuera de orden, qué grado de consistencia eventual se acepta y qué `isAvailable` tiene un recurso mientras no ha llegado ningún evento.
+La comunicación entre Menu e Inventario está decidida: la validación de artículos es síncrona (RF-INTG-01), Menu emite eventos de receta e Inventario emite eventos de factibilidad de recetas y de disponibilidad de artículos (RF-INTG-03..05). Su contrato se definirá posteriormente, como ocurrió con el contrato de la API.
+
+Falta precisar la estructura y el contenido de cada evento; qué datos de receta recibe Inventario; cómo se identifican la receta y su revisión; cómo se tratan los eventos duplicados o fuera de orden y qué grado de consistencia eventual se acepta; qué disponibilidad tiene un recurso mientras no ha llegado ningún evento, también en el caso de las opciones creadas por copia; el evento de retiro (eliminación o baja) de un artículo; el ámbito por sucursal de los eventos; y la reconciliación de la copia local de recetas que mantiene Inventario.
 
 ## OPEN-012 — Notificación y revisión ante cambios de disponibilidad
 
-Como la disponibilidad nunca altera el `status`, queda por decidir cómo se entera el administrador de que una oferta ha dejado de poder ordenarse o ha vuelto a poder hacerlo. Debe determinarse si existe una notificación, por qué medio se entrega y si esos cambios abren una revisión o un flujo de trabajo para examinar las ofertas afectadas antes de que el administrador resuelva su `status`.
+La disponibilidad nunca altera el estado administrativo, y Menu no emite eventos de catálogo a sus consumidores (RF-CONS-05.CA1). Queda por decidir si se notifica al administrador que una oferta ha dejado de poder ordenarse o ha vuelto a poder hacerlo y por qué medio se entrega esa notificación, así como si esos cambios abren una revisión de las ofertas afectadas, entendida como su examen por el administrador antes de que resuelva su estado administrativo.
+
+## OPEN-013 — Capacidades más finas
+
+El catálogo distingue dos capacidades, administrarlo y consultarlo; la autenticación y la asignación de capacidades son externas a Menu (RF-GEN-01). Queda por determinar si existen capacidades más finas que «administrar el catálogo», por ejemplo una que solo permita cambiar el estado administrativo de las opciones, y qué operaciones cubre cada una.
+
+## OPEN-014 — Retención de imágenes nunca asociadas
+
+Cada imagen pertenece a un solo recurso; su archivo anterior se elimina al reemplazarlo y la imagen se elimina junto con su recurso (RF-IMG-04, RF-IMG-05). Queda por determinar cuánto tiempo se conservan, y si se eliminan, las imágenes cargadas que nunca se asocian a una entrada u oferta.
