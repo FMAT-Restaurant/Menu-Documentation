@@ -176,13 +176,14 @@ InventoryItemResponse:
       unit: g
 
 InventoryItemListResponse:
-  type: object
-  description: Página de insumos de inventario que coincide con la consulta.
-  required: [data, meta]
-  properties:
-    data:
-      type: array
-      items:
-        $ref: '#/InventoryItem'
-    meta:
-      $ref: '#/PageMeta'
+  type: array
+  description: >-
+    Lista plana, sin paginación, de insumos de Inventario que coinciden con la
+    búsqueda `q`. Cada elemento puede traer campos adicionales no documentados
+    que se ignoran; solo interesan `id`, `name` y `unit`.
+  items:
+    $ref: '#/InventoryItem'
+  example:
+    - id: CARNE-150G
+      name: Carne Molida Res 80/20
+      unit: g

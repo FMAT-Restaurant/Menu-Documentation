@@ -1,12 +1,14 @@
 inventoryItems:
   servers:
-    - url: https://{inventoryHost}/api/v1
+    - url: https://{inventoryHost}
       variables:
         inventoryHost:
           default: inventory.example.invalid
           description: >-
-            Dominio reservado como marcador; reemplazarlo por el host de
-            despliegue del microservicio de Inventario.
+            Dominio reservado como marcador del host del microservicio de
+            Inventario; reemplazarlo por el host de despliegue. La URL base y
+            el prefijo de ruta reales de Inventario no están definidos y pueden
+            cambiar.
   get:
     tags: [Inventario]
     operationId: searchInventoryItems
@@ -16,14 +18,17 @@ inventoryItems:
       por el frontend para buscar artículos por texto y seleccionar insumos en
       recetas u opciones de composición. El backend de Menu no implementa esta
       ruta; Menu solo conserva referencias de solo lectura a los artículos.
+      La búsqueda se hace con el parámetro q. La operación reutiliza un
+      endpoint ya existente de Inventario y devuelve una lista plana, sin
+      paginación. Cada artículo puede incluir otros campos del servicio de
+      Inventario no documentados; el contrato solo documenta id, name y unit,
+      y el resto se ignora.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/SearchQuery
-      - $ref: ../openapi.yaml#/components/parameters/Page
-      - $ref: ../openapi.yaml#/components/parameters/PageSize
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
     responses:
       '200':
-        description: Página de artículos coincidentes.
+        description: Lista plana de artículos coincidentes, sin paginación.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -35,15 +40,9 @@ inventoryItems:
               articulosEncontrados:
                 summary: Artículo de inventario encontrado
                 value:
-                  data:
-                    - id: CARNE-150G
-                      name: Carne Molida Res 80/20
-                      unit: g
-                  meta:
-                    page: 1
-                    pageSize: 12
-                    total: 1
-                    totalPages: 1
+                  - id: CARNE-150G
+                    name: Carne Molida Res 80/20
+                    unit: g
       '304':
         $ref: ../openapi.yaml#/components/responses/NotModified
       '401':
@@ -55,13 +54,15 @@ inventoryItems:
 
 inventoryItemById:
   servers:
-    - url: https://{inventoryHost}/api/v1
+    - url: https://{inventoryHost}
       variables:
         inventoryHost:
           default: inventory.example.invalid
           description: >-
-            Dominio reservado como marcador; reemplazarlo por el host de
-            despliegue del microservicio de Inventario.
+            Dominio reservado como marcador del host del microservicio de
+            Inventario; reemplazarlo por el host de despliegue. La URL base y
+            el prefijo de ruta reales de Inventario no están definidos y pueden
+            cambiar.
   parameters:
     - name: id
       in: path

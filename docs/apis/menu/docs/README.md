@@ -1,6 +1,6 @@
 # Contrato OpenAPI de administración
 
-Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /api/v1/inventory/items` y `GET /api/v1/inventory/items/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 7.0.1; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.19.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /items` y `GET /items/{id}`, incluidas para que los trabajadores frontend puedan consultar artículos. Estas operaciones pertenecen al servicio externo de Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 7.0.3; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 2.1.19.
 
 ## Índice
 
@@ -20,7 +20,7 @@ El comando escribe el bundle en `docs/apis/menu/dist/openapi.yaml`.
 
 ## Convenciones
 
-API_BASE_URL identifica el host de las rutas de Menu y termina en /api/v1. `GET /api/v1/inventory/items` y `GET /api/v1/inventory/items/{id}` se incluyen como referencias para consulta de los trabajadores frontend, pero pertenecen al servicio externo de Inventario y el frontend las llama directamente en el host propio de Inventario. Ese host se configura para cada despliegue; no forma parte de API_BASE_URL. Menu no implementa esas rutas y solo conserva referencias a artículos. Las respuestas JSON exitosas usan el campo data; las listas agregan meta. Las solicitudes requieren Bearer; PATCH y DELETE requieren If-Match. Las consultas aceptan If-None-Match.
+API_BASE_URL identifica el host de las rutas de Menu y termina en /api/v1. `GET /items` y `GET /items/{id}` se incluyen como referencias para consulta de los trabajadores frontend, pero pertenecen al servicio externo de Inventario y el frontend las llama directamente en el host propio de Inventario. Ese host se configura para cada despliegue; no forma parte de API_BASE_URL. Las rutas de Inventario son relativas al host de Inventario; su URL base y su prefijo de ruta reales no están definidos y pueden cambiar. Menu no implementa esas rutas y solo conserva referencias a artículos. Las respuestas JSON exitosas usan el campo data; las listas agregan meta. Como excepción, la búsqueda `GET /items` del servicio externo de Inventario devuelve una lista plana sin data ni meta. Las solicitudes requieren Bearer; PATCH y DELETE requieren If-Match. Las consultas aceptan If-None-Match.
 
 Para asociar una imagen, primero se carga el archivo mediante `POST /api/v1/media/images`, con `multipart/form-data` y el campo `file`. El servicio valida JPEG, PNG o WebP, hasta 10 MiB y 4096 px de ancho y alto cada uno, incluido el contenido real y su decodificación. Tras validar la carga, el servidor genera el identificador y lo devuelve como `data.id`.
 
@@ -143,7 +143,9 @@ La descripción de categoría es opcional.
 
 `InventoryItem.id` e `inventoryItemId` son strings opacos sin requisito de formato UUID, por ejemplo `CARNE-150G`. Se mantiene la validación de existencia del artículo en Inventario.
 
-`GET /api/v1/inventory/items/{id}` consulta el detalle mediante un `id` de tipo string genérico y devuelve `data` con `id`, `name` y `unit`. Si el artículo no existe, devuelve `404`.
+`GET /items` busca artículos mediante `q` y devuelve una lista JSON plana, sin paginación; cada artículo documenta `id`, `name` y `unit`, y cualquier otro campo que traiga Inventario se ignora.
+
+`GET /items/{id}` consulta el detalle mediante un `id` de tipo string genérico y devuelve `data` con `id`, `name` y `unit`. Si el artículo no existe, devuelve `404`.
 
 En POST y PATCH de ofertas y recetas, si falla una consulta a Inventario necesaria para validar artículos o insumos, Menu devuelve `502` sin crear o modificar el recurso ni aplicar cambios parciales. Una referencia a un artículo inexistente o inválido devuelve `422`.
 
