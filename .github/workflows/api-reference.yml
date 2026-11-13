@@ -26,3 +26,6 @@ jobs:
 
       - name: Lint OpenAPI reference source
         run: npx --yes @redocly/cli@2.54.2 lint --config redocly.yaml docs/apis/menu/openapi.yaml
+
+      - name: Validate AsyncAPI event contract
+        run: npx --yes @asyncapi/cli@3.4.2 validate docs/apis/menu/asyncapi.yaml

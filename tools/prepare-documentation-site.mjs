@@ -411,6 +411,12 @@ const bundleTarget = path.join(stagedStaticRoot, 'api', 'openapi.yaml');
 fs.mkdirSync(path.dirname(bundleTarget), { recursive: true });
 fs.copyFileSync(bundleSource, bundleTarget);
 
+const asyncApiSource = path.join(sourceDocsRoot, 'apis', 'menu', 'asyncapi.yaml');
+if (!fs.existsSync(asyncApiSource)) throw new Error(`Missing AsyncAPI event contract: ${asyncApiSource}`);
+const asyncApiTarget = path.join(stagedStaticRoot, 'api', 'asyncapi.yaml');
+fs.mkdirSync(path.dirname(asyncApiTarget), { recursive: true });
+fs.copyFileSync(asyncApiSource, asyncApiTarget);
+
 const legacyLinks = missingLinks.filter(({ group }) => group === 'other');
 if (legacyLinks.length) {
   console.warn(`Preserving ${legacyLinks.length} unresolved historical reference link(s) from docs/other/.`);
@@ -420,4 +426,4 @@ if (legacyLinks.length) {
 console.log(`Prepared ${markdownFiles.length} Markdown documents in ${stagingRoot}.`);
 console.log(`Copied ${archivedOtherMarkdown.size} historical Markdown source file(s) as static .md.txt assets.`);
 console.log('Routes: /specification/, /reference/, and /api/.');
-console.log('OpenAPI bundle: static/api/openapi.yaml.');
+console.log('OpenAPI bundle: static/api/openapi.yaml. AsyncAPI contract: static/api/asyncapi.yaml.');

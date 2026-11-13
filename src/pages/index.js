@@ -24,9 +24,8 @@ const destinations = [
   {
     title: 'Eventos',
     to: '/events/',
-    description: 'La definición de eventos permanece pendiente.',
-    action: 'Consultar el estado',
-    status: 'Pendiente',
+    description: 'Contrato AsyncAPI de los eventos entre Menu e Inventario: orígenes de contenido y su disponibilidad.',
+    action: 'Consultar los eventos',
   },
 ];
 

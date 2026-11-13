@@ -1,6 +1,6 @@
 # Trazabilidad de requisitos
 
-Este documento relaciona los requisitos de la ERS 3.2.0 del servicio Menu entre sí y con su versión anterior. Contiene tres matrices: la de requisitos funcionales, con el número de criterios de aceptación de cada requisito y sus requisitos no funcionales y cuestiones abiertas relacionados; la de requisitos no funcionales, con los requisitos funcionales que miden; y la de cuestiones abiertas, con los requisitos que cada una afecta. Se completa con la tabla de reglas transversales, que indica el criterio dueño de cada regla y los criterios que la citan, y con la tabla de correspondencia, que asigna a cada identificador de la versión 2.4.1 los requisitos y criterios que lo sustituyen. Los requisitos funcionales se definen en los archivos enlazados desde [`functional-requirements.md`](functional-requirements.md); los no funcionales, en [`non-functional-requirements.md`](non-functional-requirements.md); y las cuestiones abiertas, en [`open.md`](open.md). Las cuestiones abiertas no se tratan como decisiones adoptadas.
+Este documento relaciona los requisitos de la ERS 3.3.0 del servicio Menu entre sí y con su versión anterior. Contiene tres matrices: la de requisitos funcionales, con el número de criterios de aceptación de cada requisito y sus requisitos no funcionales y cuestiones abiertas relacionados; la de requisitos no funcionales, con los requisitos funcionales que miden; y la de cuestiones abiertas, con los requisitos que cada una afecta. Se completa con la tabla de reglas transversales, que indica el criterio dueño de cada regla y los criterios que la citan, y con la tabla de correspondencia, que asigna a cada identificador de la versión 2.4.1 los requisitos y criterios que lo sustituyen. Los requisitos funcionales se definen en los archivos enlazados desde [`functional-requirements.md`](functional-requirements.md); los no funcionales, en [`non-functional-requirements.md`](non-functional-requirements.md); y las cuestiones abiertas, en [`open.md`](open.md). Las cuestiones abiertas no se tratan como decisiones adoptadas.
 
 ## Matriz de requisitos funcionales
 
@@ -70,9 +70,9 @@ Este documento relaciona los requisitos de la ERS 3.2.0 del servicio Menu entre 
 | RF-DISP-06 | Recálculo y recuperación de la disponibilidad | [`disponibilidad.md`](requirements/disponibilidad.md) | 5 | — | OPEN-011, OPEN-012 |
 | RF-INTG-01 | Validación síncrona de artículos de Inventario | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 3 | — | — |
 | RF-INTG-02 | Autoridad de Inventario sobre sus artículos | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 4 | — | — |
-| RF-INTG-03 | Recepción de eventos de factibilidad de recetas | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 5 | — | OPEN-011 |
-| RF-INTG-04 | Recepción de eventos de disponibilidad de artículos | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 4 | — | OPEN-011 |
-| RF-INTG-05 | Emisión de eventos de receta | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 3 | — | OPEN-011 |
+| RF-INTG-03 | Recepción de la disponibilidad de los orígenes de contenido | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 6 | — | OPEN-011 |
+| RF-INTG-04 | Opción de contenido directo como origen publicado | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 4 | — | — |
+| RF-INTG-05 | Emisión de eventos de orígenes de contenido | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 6 | — | OPEN-011 |
 | RF-CONS-01 | Consulta del catálogo para quien no lo administra | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 5 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | — |
 | RF-CONS-02 | Presentación de las ofertas vendibles | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 5 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | — |
 | RF-CONS-03 | Búsqueda y filtrado de entradas | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | OPEN-009 |
@@ -82,7 +82,7 @@ Este documento relaciona los requisitos de la ERS 3.2.0 del servicio Menu entre 
 | RF-CONS-07 | Contenido de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | OPEN-001 |
 | RF-CONS-08 | Organización de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | — |
 
-Total: 75 requisitos funcionales y 291 criterios de aceptación.
+Total: 75 requisitos funcionales y 295 criterios de aceptación.
 
 ## Matriz de requisitos no funcionales
 
@@ -102,7 +102,7 @@ Los tres requisitos no funcionales miden solo la consulta, la búsqueda y el fil
 | [OPEN-003](open.md#open-003--alcance-de-la-biblioteca-de-recetas) | Alcance de la biblioteca de recetas | RF-REC-01 |
 | [OPEN-006](open.md#open-006--cantidades-y-unidades) | Cantidades y unidades | RF-COMP-03, RF-OPC-08, RF-REC-02, RF-REC-03 |
 | [OPEN-009](open.md#open-009--distribución-de-carga-del-perfil-nominal) | Distribución de carga del perfil nominal | RF-CONS-03, RNF-REND-02, RNF-REND-03 |
-| [OPEN-011](open.md#open-011--contrato-de-eventos-con-inventario) | Contrato de eventos con Inventario | RF-COMP-12, RF-REC-04, RF-DISP-01, RF-DISP-06, RF-INTG-03, RF-INTG-04, RF-INTG-05 |
+| [OPEN-011](open.md#open-011--garantías-de-entrega-de-los-eventos-con-inventario) | Garantías de entrega de los eventos con Inventario | RF-COMP-12, RF-REC-04, RF-DISP-01, RF-DISP-06, RF-INTG-03, RF-INTG-05 |
 | [OPEN-012](open.md#open-012--notificación-y-revisión-ante-cambios-de-disponibilidad) | Notificación y revisión ante cambios de disponibilidad | RF-GEN-04, RF-OFE-04, RF-DISP-06, RF-CONS-05 |
 | [OPEN-014](open.md#open-014--retención-de-imágenes-nunca-asociadas) | Retención de imágenes nunca asociadas | RF-IMG-04 |
 
@@ -116,10 +116,10 @@ Cada regla transversal tiene un único criterio dueño, o un conjunto de criteri
 | Datos obligatorios y textos no vacíos | RF-GEN-03.CA1 | RF-GEN-03.CA2: RF-CAT-01.CA2; RF-GEN-03.CA3: RF-ENT-01.CA2; RF-GEN-03.CA4: RF-OFE-01.CA3; RF-GEN-03.CA5: RF-COMP-01.CA2, RF-COMP-09.CA2; RF-GEN-03.CA6: RF-COMP-01.CA2, RF-OPC-01.CA3; RF-GEN-03.CA7: RF-REC-01.CA2 |
 | Versión vigente del recurso | RF-GEN-02.CA1, RF-GEN-02.CA2 | RF-GEN-02.CA1: RF-CAT-02.CA4, RF-IMG-05.CA5, RF-OFE-02.CA4, RF-REC-04.CA6, RF-REC-07.CA4; RF-GEN-02.CA4: RF-COMP-08.CA4, RF-COMP-12.CA8 |
 | Atomicidad de las operaciones | RF-GEN-05.CA1 | RF-GEN-05.CA1: RF-GEN-03.CA1, RF-IMG-03.CA3, RF-IMG-05.CA4, RF-ENT-07.CA1, RF-OFE-06.CA1, RF-COMP-08.CA5, RF-COMP-12.CA8, RF-OPC-09.CA3, RF-REC-07.CA2, RF-INTG-01.CA2, RF-INTG-01.CA3; RF-GEN-05.CA3: RF-IMG-01.CA2, RF-OPC-10.CA3 |
-| Estado administrativo | RF-GEN-04.CA4, RF-GEN-04.CA5, RF-GEN-04.CA6 | RF-GEN-04.CA4: RF-COMP-08.CA6, RF-OPC-04.CA2, RF-OPC-05.CA2, RF-DISP-05.CA1, RF-DISP-06.CA5, RF-INTG-03.CA5; RF-GEN-04.CA5: RF-ENT-03.CA3, RF-ENT-04.CA2, RF-ENT-05.CA2, RF-ENT-06.CA2; RF-GEN-04.CA7: RF-OFE-05.CA2 |
+| Estado administrativo | RF-GEN-04.CA4, RF-GEN-04.CA5, RF-GEN-04.CA6 | RF-GEN-04.CA4: RF-COMP-08.CA6, RF-OPC-04.CA2, RF-OPC-05.CA2, RF-DISP-05.CA1, RF-DISP-06.CA5, RF-INTG-03.CA6; RF-GEN-04.CA5: RF-ENT-03.CA3, RF-ENT-04.CA2, RF-ENT-05.CA2, RF-ENT-06.CA2; RF-GEN-04.CA7: RF-OFE-05.CA2 |
 | Visibilidad para quien consulta el catálogo | RF-CONS-01.CA1, RF-CONS-01.CA2 | RF-CONS-01: RF-GEN-01.CA5, RF-CONS-03.CA4; RF-CONS-01.CA1: RF-ENT-04.CA1, RF-OFE-05.CA1, RF-OPC-04.CA1, RF-OPC-05.CA1; RF-CONS-01.CA2: RF-COMP-01.CA3, RF-INTG-03.CA3 |
 | Composición válida | RF-COMP-01.CA2, RF-COMP-01.CA4 | RF-COMP-01.CA2: RF-OFE-04.CA1; RF-COMP-01.CA4: RF-OFE-01.CA4 |
-| Recálculo de la disponibilidad | RF-DISP-06.CA3 | RF-DISP-06.CA3: RF-OFE-04.CA5, RF-OFE-05.CA3, RF-OFE-06.CA5, RF-COMP-08.CA6, RF-COMP-12.CA9, RF-OPC-04.CA2, RF-OPC-05.CA2; RF-DISP-06.CA2: RF-INTG-03.CA3, RF-INTG-04.CA2; RF-DISP-06.CA4: RF-INTG-03.CA4, RF-INTG-04.CA3 |
+| Recálculo de la disponibilidad | RF-DISP-06.CA3 | RF-DISP-06.CA3: RF-OFE-04.CA5, RF-OFE-05.CA3, RF-OFE-06.CA5, RF-COMP-08.CA6, RF-COMP-12.CA9, RF-OPC-04.CA2, RF-OPC-05.CA2; RF-DISP-06.CA2: RF-INTG-03.CA3; RF-DISP-06.CA4: RF-INTG-03.CA4 |
 | Imagen de entradas y ofertas | RF-IMG-03.CA1, RF-IMG-03.CA2, RF-IMG-04.CA2 | RF-IMG-03.CA1: RF-ENT-01.CA2, RF-OFE-01.CA3; RF-IMG-03.CA2: RF-ENT-02.CA2, RF-OFE-02.CA3; RF-IMG-04.CA2: RF-IMG-05.CA3; RF-IMG-04.CA3: RF-ENT-07.CA3, RF-OFE-06.CA5 |
 | Unidad de medida de Inventario | RF-INTG-02.CA3 | RF-INTG-02.CA3: RF-REC-03.CA2 |
 | Estado administrativo inicial de las opciones | RF-OPC-01.CA2 | RF-OPC-01.CA2: RF-GEN-03.CA6, RF-COMP-12.CA4 |
@@ -160,7 +160,7 @@ Esta tabla es el único lugar de la ERS, junto con el registro de cambios de [`c
 | REQ-MENU-REC-003 | RF-REC-04 (CA1, CA4, CA5), RF-REC-01.CA4, RF-REC-05.CA1 |
 | REQ-MENU-REC-004 | RF-REC-03 |
 | REQ-MENU-REC-005 | RF-REC-07 (CA1–CA3), RF-REC-05.CA2 |
-| REQ-MENU-AVAIL-001 | RF-INTG-03, RF-INTG-04 (CA1–CA3), RF-DISP-01, RF-DISP-06 (CA2–CA4) |
+| REQ-MENU-AVAIL-001 | RF-INTG-03, RF-DISP-01, RF-DISP-06 (CA2–CA4) |
 | REQ-MENU-AVAIL-002 | RF-INTG-05 |
 
 ### Requisitos no funcionales de la versión 2.4.1
@@ -191,7 +191,7 @@ Esta tabla es el único lugar de la ERS, junto con el registro de cambios de [`c
 | BR-MENU-015 | RF-OPC-06 (CA1, CA2), RF-COMP-12 (CA2, CA4–CA6, CA9) |
 | BR-MENU-016 | RF-GEN-04 (CA2, CA4), RF-GEN-01.CA2, RF-DISP-01, RF-CONS-01 (CA1, CA2), RF-DISP-06.CA3 |
 | BR-MENU-017 | RF-OPC-07.CA1 |
-| BR-MENU-018 | RF-INTG-02, RF-OPC-08.CA2, RF-INTG-03.CA1, RF-INTG-04.CA4, RF-COMP-01.CA3; la «unidad compatible con el artículo» queda sustituida por RF-OPC-08.CA3 (cantidad en la unidad de Inventario, sin unidad propia) |
+| BR-MENU-018 | RF-INTG-02, RF-OPC-08.CA2, RF-INTG-03.CA1, RF-INTG-03.CA5, RF-COMP-01.CA3; la «unidad compatible con el artículo» queda sustituida por RF-OPC-08.CA3 (cantidad en la unidad de Inventario, sin unidad propia) |
 | BR-MENU-019 | RF-REC-02 (CA1, CA2), RF-REC-03.CA1; la «unidad compatible» queda sustituida por RF-REC-02.CA4 |
 | BR-MENU-020 | RF-REC-01 (CA1, CA2, CA4), RF-OPC-09 (CA1, CA2, CA4), RF-OPC-10.CA2, RF-REC-04 (CA1, CA4), RF-REC-05.CA1 |
 | BR-MENU-030 | RF-OFE-06 (CA1–CA3) |

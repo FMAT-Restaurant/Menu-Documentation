@@ -44,9 +44,9 @@ Este documento reúne los requisitos sobre la biblioteca de recetas: creación, 
   - **RF-REC-04.CA2:** La edición aplica las mismas validaciones que la creación, conforme a RF-REC-01.CA3 y RF-REC-02.
   - **RF-REC-04.CA3:** Una edición sin cambios no crea una revisión nueva.
   - **RF-REC-04.CA4:** Todas las opciones que referencian la receta usan la revisión nueva de inmediato, sin necesidad de reasignar la receta.
-  - **RF-REC-04.CA5:** La disponibilidad de esas opciones se actualiza con los eventos de factibilidad que Inventario emita después, conforme a RF-INTG-03; el valor de la disponibilidad mientras no llega el evento queda pendiente en OPEN-011.
+  - **RF-REC-04.CA5:** La disponibilidad de esas opciones se actualiza con los eventos de disponibilidad que Inventario emita después sobre la receta, conforme a RF-INTG-03; el valor de la disponibilidad mientras no llega el evento queda pendiente en OPEN-011.
   - **RF-REC-04.CA6:** La edición exige la versión vigente de la receta, conforme a RF-GEN-02.CA1.
-- **Relacionados:** [OPEN-011](../open.md#open-011--contrato-de-eventos-con-inventario).
+- **Relacionados:** [OPEN-011](../open.md#open-011--garantías-de-entrega-de-los-eventos-con-inventario).
 
 ### RF-REC-05 — Conservación del historial de revisiones
 

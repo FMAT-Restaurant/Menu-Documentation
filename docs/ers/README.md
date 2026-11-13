@@ -7,10 +7,10 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 3.2.0 |
+| Versión | 3.3.0 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
-| Alcance | Menu administra la identidad comercial del catálogo de un restaurante: categorías, entradas, ofertas vendibles con su composición de grupos de selección y opciones, imágenes y la biblioteca de recetas. Cada recurso distingue el estado administrativo, que solo decide el administrador, de la disponibilidad, que se deriva de la información recibida de Inventario. Menu valida con Inventario los artículos que referencia e intercambia con él eventos de receta, de factibilidad y de disponibilidad. Cada operación exige un permiso, que llega en la credencial emitida por un servicio externo. El administrador genera bajo demanda una carta imprimible con las entradas y ofertas activas para entregarla a los comensales. Órdenes consulta el catálogo bajo demanda, registra la opción elegida en cada ronda y determina el precio final. |
+| Alcance | Menu administra la identidad comercial del catálogo de un restaurante: categorías, entradas, ofertas vendibles con su composición de grupos de selección y opciones, imágenes y la biblioteca de recetas. Cada recurso distingue el estado administrativo, que solo decide el administrador, de la disponibilidad, que se deriva de la información recibida de Inventario. Menu valida con Inventario los artículos que referencia, le comunica por eventos el alta, la modificación y la eliminación de sus orígenes de contenido (las recetas y las opciones con contenido directo de Inventario) y recibe de él la disponibilidad de cada origen. Cada operación exige un permiso, que llega en la credencial emitida por un servicio externo. El administrador genera bajo demanda una carta imprimible con las entradas y ofertas activas para entregarla a los comensales. Órdenes consulta el catálogo bajo demanda, registra la opción elegida en cada ronda y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
@@ -55,7 +55,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 ## Límites de responsabilidad destacados
 
 - **Menú/Catálogo** define la identidad comercial de las entradas, sus ofertas vendibles, su composición, sus opciones, los precios base declarados y las recetas de la biblioteca de recetas.
-- **Inventario** es propietario de los artículos de Inventario y de sus existencias; valida los artículos que Menu referencia y le comunica por eventos la factibilidad de las recetas y la disponibilidad de los artículos.
+- **Inventario** es propietario de los artículos de Inventario y de sus existencias; valida los artículos que Menu referencia y le comunica por eventos la disponibilidad de cada origen de contenido.
 - **Órdenes** registra la opción elegida en cada ronda y determina el precio final.
 
 El detalle de la propiedad de los datos, los límites entre contextos y las exclusiones de alcance se encuentra en [`context.md`](context.md).

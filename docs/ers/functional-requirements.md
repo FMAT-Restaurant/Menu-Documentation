@@ -1,6 +1,6 @@
 # Requisitos funcionales del servicio Menu
 
-La ERS 3.2.0 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
+La ERS 3.3.0 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
 
 ## Convenciones
 
@@ -144,9 +144,9 @@ Cada regla transversal tiene un único criterio dueño. Los demás requisitos qu
 | RF-DISP-06 | Recálculo y recuperación de la disponibilidad | [disponibilidad.md](requirements/disponibilidad.md) |
 | RF-INTG-01 | Validación síncrona de artículos de Inventario | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
 | RF-INTG-02 | Autoridad de Inventario sobre sus artículos | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
-| RF-INTG-03 | Recepción de eventos de factibilidad de recetas | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
-| RF-INTG-04 | Recepción de eventos de disponibilidad de artículos | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
-| RF-INTG-05 | Emisión de eventos de receta | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
+| RF-INTG-03 | Recepción de la disponibilidad de los orígenes de contenido | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
+| RF-INTG-04 | Opción de contenido directo como origen publicado | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
+| RF-INTG-05 | Emisión de eventos de orígenes de contenido | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) |
 | RF-CONS-01 | Consulta del catálogo para quien no lo administra | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
 | RF-CONS-02 | Presentación de las ofertas vendibles | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
 | RF-CONS-03 | Búsqueda y filtrado de entradas | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |

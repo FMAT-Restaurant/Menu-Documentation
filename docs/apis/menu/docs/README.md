@@ -1,10 +1,13 @@
 # Contrato OpenAPI del servicio Menu
 
-Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /items` y `GET /items/{id}` del servicio externo de Inventario. Estas dos operaciones pertenecen a Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa, aunque Menu consulta Inventario de forma síncrona para validar los artículos que se referencian. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 8.0.0; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 3.2.0, con la que el contrato está alineado.
+Esta carpeta contiene la especificación modular de las operaciones de Menu y las referencias `GET /items` y `GET /items/{id}` del servicio externo de Inventario. Estas dos operaciones pertenecen a Inventario: el frontend las llama directamente en el host propio de ese servicio y el backend de Menu no las implementa, aunque Menu consulta Inventario de forma síncrona para validar los artículos que se referencian. La fuente canónica del contrato es [openapi.yaml](../openapi.yaml), versión 8.0.1; la fuente de requisitos y dominio es la [ERS del servicio Menu](../../../ers/README.md), versión 3.3.0, con la que el contrato está alineado. Los eventos asíncronos con Inventario se definen en [asyncapi.yaml](../asyncapi.yaml) y se resumen en [events.md](events.md).
 
 ## Índice
 
 - [Especificación principal](../openapi.yaml): servidor, seguridad, rutas y registro de componentes.
+- [Contrato de eventos](../asyncapi.yaml): AsyncAPI 3.1.0, versión 1.0.0, con los eventos que Menu publica y consume.
+- [Resumen de eventos](events.md): cuándo se emite cada evento y sus payloads.
+- [Vista renderizada de eventos](https://fmat-restaurant.github.io/Menu-Documentation/events/): el contrato AsyncAPI presentado en el sitio de documentación.
 - [Bundle compilado](../dist/openapi.yaml): documento autocontenido para herramientas que no resuelven referencias a archivos externos.
 - [Rutas](../paths/): operaciones agrupadas por catálogo, categorías, entradas, ofertas, recetas, inventario e imágenes.
 - [Esquemas](../components/schemas/): modelos, solicitudes y respuestas JSON.
@@ -57,9 +60,9 @@ Las rutas de Inventario se autorizan según el contrato de Inventario (`x-requir
 
 ## Estados y disponibilidad
 
-`status` es el estado administrativo y solo lo cambia el administrador: `ACTIVE`, `INACTIVE` o `ARCHIVED` en entradas, y `ACTIVE` o `INACTIVE` en ofertas y opciones; los grupos de selección no tienen estado. `isAvailable` es la disponibilidad derivada, de solo lectura, que el servidor recalcula en entradas, ofertas, grupos de selección y opciones a partir de los eventos de Inventario y de la composición:
+`status` es el estado administrativo y solo lo cambia el administrador: `ACTIVE`, `INACTIVE` o `ARCHIVED` en entradas, y `ACTIVE` o `INACTIVE` en ofertas y opciones; los grupos de selección no tienen estado. `isAvailable` es la disponibilidad derivada, de solo lectura, que el servidor recalcula en entradas, ofertas, grupos de selección y opciones a partir de los eventos de disponibilidad de orígenes de Inventario (`inventory.source.availability.updated`) y de la composición:
 
-- una opción está disponible según el último estado comunicado por Inventario sobre su contenido;
+- una opción está disponible según el último estado comunicado por Inventario sobre su origen de contenido: la receta que usa o, en una opción `INVENTORY_ITEM`, la propia opción;
 - un grupo de selección está disponible si y solo si al menos una de sus opciones `ACTIVE` está disponible;
 - una oferta está disponible si y solo si todos sus grupos de selección están disponibles;
 - una entrada está disponible si y solo si al menos una de sus ofertas `ACTIVE` está disponible.
@@ -284,4 +287,4 @@ Los códigos de idempotencia (`INVALID_IDEMPOTENCY_KEY`, `IDEMPOTENCY_KEY_REUSED
 ## Límites de la fuente
 
 - `pageSize` es un entero positivo y su valor predeterminado es `12`; no se limita a una lista cerrada de tamaños.
-- Las longitudes máximas de los textos, la idempotencia y la paginación pertenecen a este contrato. El contrato de eventos con Inventario queda fuera de este documento y pendiente en [OPEN-011](../../../ers/open.md#open-011--contrato-de-eventos-con-inventario).
+- Las longitudes máximas de los textos, la idempotencia y la paginación pertenecen a este contrato. Los eventos con Inventario se definen en [asyncapi.yaml](../asyncapi.yaml) y se resumen en [events.md](events.md); sus garantías de entrega quedan pendientes en [OPEN-011](../../../ers/open.md#open-011--garantías-de-entrega-de-los-eventos-con-inventario).

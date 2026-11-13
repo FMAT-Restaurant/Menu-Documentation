@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 3.2.0 (Consolidada Vigente) |
+| Versión | 3.3.0 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-11-13 |
 
@@ -12,7 +12,7 @@
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **3.2.0** (fecha 2026-11-13) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos para la disponibilidad y las recetas; el contrato de esos eventos queda pendiente en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
+La versión **3.3.0** (fecha 2026-11-13) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos de orígenes de contenido: emite el alta, la modificación y la eliminación de cada receta y de cada opción con contenido directo de Inventario, y recibe la disponibilidad de cada origen; las garantías de entrega de esos eventos quedan pendientes en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
 
 ## Alcance operativo vigente
 
@@ -39,13 +39,20 @@ Las fuentes siguientes registran el análisis y las decisiones del proyecto. El 
 
 La especificación vigente se aplica con este orden de autoridad:
 
-- Los documentos normativos de esta ERS en `docs/ers/` son la autoridad normativa del dominio del catálogo y de sus requisitos: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md) (índice y archivos por área en `requirements/`), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos y sus criterios de aceptación vigentes rigen la especificación; OPEN-005 está resuelta en RF-IMG-01..05. El [contrato de API](https://fmat-restaurant.github.io/Menu-Documentation/api/), en su versión 8.0.0, está alineado con esta ERS; OPEN-010 se cerró en la versión 3.2.0.
+- Los documentos normativos de esta ERS en `docs/ers/` son la autoridad normativa del dominio del catálogo y de sus requisitos: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md) (índice y archivos por área en `requirements/`), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos y sus criterios de aceptación vigentes rigen la especificación; OPEN-005 está resuelta en RF-IMG-01..05. El [contrato de API](https://fmat-restaurant.github.io/Menu-Documentation/api/), en su versión 8.0.1, está alineado con esta ERS; OPEN-010 se cerró en la versión 3.2.0. El [contrato de eventos](https://fmat-restaurant.github.io/Menu-Documentation/events/), en AsyncAPI y en su versión 1.0.0, define los eventos de RF-INTG-03..05.
 - El [modelo conceptual de referencia](../other/md/domain-model.md) aporta el contexto del dominio que sirvió de base a esta ERS: entidades, relaciones, reglas de composición, contenido, recetas, precios declarados y límites con otros contextos. No es normativo; donde difiera de los documentos de la ERS, prevalece la ERS.
 - Las fuentes históricas enumeradas arriba aportan contexto sobre la evolución y las decisiones del proyecto; no constituyen norma vigente ni prevalecen sobre los documentos normativos de la ERS.
 
 ## Registro de cambios
 
 Cada versión registra brevemente lo que cambia: lo que había antes y lo que hay ahora.
+
+### 3.3.0 (2026-11-13)
+
+- **Eventos con Inventario:** Antes: Inventario comunicaba la factibilidad de las recetas y la disponibilidad de los artículos, con un evento de retiro de artículos aún sin definir, y Menu emitía solo eventos de receta; el contrato quedaba pendiente en OPEN-011. → Ahora: cada receta y cada opción con contenido directo de Inventario es un origen de contenido; Menu emite el alta, la modificación y la eliminación de cada origen (RF-INTG-04, RF-INTG-05) e Inventario comunica la disponibilidad de cada origen (RF-INTG-03); un artículo retirado se comunica como no disponible, sin un evento de retiro.
+- **Contratos:** Antes: contrato de la API 8.0.0 y ningún contrato de eventos. → Ahora: contrato de eventos en AsyncAPI, versión 1.0.0, y contrato de la API 8.0.1, con cambios solo descriptivos.
+- **Requisitos:** Antes: 75 requisitos funcionales y 291 criterios de aceptación. → Ahora: 75 requisitos funcionales y 295 criterios; RF-INTG-03 pasa a 6 criterios, RF-INTG-04 a 4 y RF-INTG-05 a 6.
+- **Cuestiones abiertas:** Antes: OPEN-011, «Contrato de eventos con Inventario», incluía la estructura y el contenido de los eventos, la identificación, los datos de receta y el retiro de artículos. → Ahora: OPEN-011, «Garantías de entrega de los eventos con Inventario», conserva solo los duplicados, el orden, la consistencia eventual, la disponibilidad inicial, el ámbito por sucursal y la reconciliación; siguen 7 cuestiones abiertas.
 
 ### 3.2.0 (2026-11-13)
 

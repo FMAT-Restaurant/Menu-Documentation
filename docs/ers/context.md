@@ -38,11 +38,11 @@ El catálogo declara el precio base de cada oferta, que no se deriva de su compo
 
 | Ámbito | Responsabilidad del dominio |
 | :--- | :--- |
-| Menú/Catálogo | Es propietario del menú, las categorías, las entradas, las ofertas, sus composiciones, grupos de selección y opciones, y las recetas; declara los precios base, rige el estado administrativo, deriva la disponibilidad y emite eventos de receta para Inventario (RF-INTG-05). |
-| Inventario | Es propietario de la identidad, la unidad de medida y las existencias de cada artículo de Inventario (RF-INTG-02). Valida de forma síncrona los artículos que Menu referencia (RF-INTG-01). Como dependencia externa, mantiene una copia local de las recetas recibida por eventos de Menu, comprueba la factibilidad de las recetas y la disponibilidad de los artículos, y lo comunica a Menu por eventos (RF-INTG-03, RF-INTG-04); el contrato queda pendiente en [OPEN-011](open.md#open-011--contrato-de-eventos-con-inventario). |
+| Menú/Catálogo | Es propietario del menú, las categorías, las entradas, las ofertas, sus composiciones, grupos de selección y opciones, y las recetas; declara los precios base, rige el estado administrativo, deriva la disponibilidad y comunica a Inventario el alta, la modificación y la eliminación de sus orígenes de contenido, que son las recetas y las opciones con contenido directo de Inventario (RF-INTG-04, RF-INTG-05). |
+| Inventario | Es propietario de la identidad, la unidad de medida y las existencias de cada artículo de Inventario (RF-INTG-02). Valida de forma síncrona los artículos que Menu referencia (RF-INTG-01). Como dependencia externa, conserva los orígenes de contenido que recibe por eventos de Menu, evalúa la disponibilidad de cada uno de forma independiente y la comunica a Menu por eventos (RF-INTG-03, RF-INTG-04); los eventos se definen en el [contrato de eventos](https://fmat-restaurant.github.io/Menu-Documentation/events/) y sus garantías de entrega quedan pendientes en [OPEN-011](open.md#open-011--garantías-de-entrega-de-los-eventos-con-inventario). |
 | Órdenes | Registra la cantidad pedida y la opción elegida en cada ronda de cada grupo de selección; comprueba las elecciones de la orden (RF-CONS-05.CA2), determina el precio final y conserva su propia copia de los datos de la oferta al aceptar la orden. |
 
-La validez estructural de una composición o de una receta corresponde a sus definiciones en el catálogo (RF-COMP-01). Las existencias de los artículos referenciados pertenecen a Inventario y son independientes de esa validez; la factibilidad y la disponibilidad que comunica Inventario solo determinan la disponibilidad (RF-DISP-01).
+La validez estructural de una composición o de una receta corresponde a sus definiciones en el catálogo (RF-COMP-01). Las existencias de los artículos referenciados pertenecen a Inventario y son independientes de esa validez; la disponibilidad de los orígenes de contenido que comunica Inventario solo determina la disponibilidad (RF-DISP-01).
 
 ```mermaid
 flowchart LR
@@ -63,7 +63,7 @@ flowchart LR
 
     subgraph Inventory["Inventario"]
         InventoryItem["Artículo de Inventario<br/>identidad y existencias"]
-        InventoryCheck["Copia local de recetas<br/>factibilidad y disponibilidad"]
+        InventoryCheck["Orígenes de contenido publicados<br/>disponibilidad de cada origen"]
     end
 
     subgraph Orders["Órdenes"]
@@ -73,8 +73,9 @@ flowchart LR
 
     ItemSource -. "referencia de identidad" .-> InventoryItem
     Ingredient -. "referencia de identidad" .-> InventoryItem
-    RecipeDefinition -. "eventos de receta" .-> InventoryCheck
-    InventoryCheck -. "eventos de disponibilidad" .-> SlotOption
+    RecipeDefinition -. "eventos de orígenes de contenido" .-> InventoryCheck
+    ItemSource -. "eventos de orígenes de contenido" .-> InventoryCheck
+    InventoryCheck -. "eventos de disponibilidad de orígenes" .-> SlotOption
     OrderSelection -. "resuelve una opción activa y disponible en cada ronda de cada grupo" .-> Composition
 
     subgraph Configuration["Operación durante la configuración"]
@@ -113,7 +114,7 @@ Todo grupo de selección participa en la selección y genera el número de ronda
 Cada término remite al requisito que lo regula; la norma se enuncia solo en ese requisito.
 
 - **Estado administrativo:** estado de una entrada, una oferta o una opción que decide si se presenta y que solo cambia el administrador (RF-GEN-04).
-- **Disponibilidad:** valor derivado que decide si un recurso se puede ordenar o elegir; el sistema la recalcula a partir de los eventos de Inventario y de la composición (RF-DISP-01 a RF-DISP-06).
+- **Disponibilidad:** valor derivado que decide si un recurso se puede ordenar o elegir; el sistema la recalcula a partir de los eventos de disponibilidad de los orígenes de contenido que emite Inventario y de la composición (RF-DISP-01 a RF-DISP-06).
 - **Ordenable:** condición de una oferta que puede pedirse en una orden (RF-DISP-05).
 - **Menú:** ámbito propietario de las categorías y de las entradas del catálogo (RF-CAT-01, RF-ENT-01).
 - **Categoría:** clasificación del menú que puede agrupar varias entradas (RF-CAT-01 a RF-CAT-04).
@@ -135,7 +136,7 @@ Cada término remite al requisito que lo regula; la norma se enuncia solo en ese
 - **Nombre mostrado:** nombre de una opción en su contexto (RF-OPC-06).
 - **Opción elegible:** opción que puede elegirse en una ronda (RF-COMP-05).
 - **Opción predeterminada:** opción que se usa directamente en un grupo de selección en los casos de RF-COMP-06.
-- **Origen de contenido:** contenido único de una opción, que es contenido directo de Inventario o receta (RF-OPC-07).
+- **Origen de contenido:** contenido único de una opción, que es contenido directo de Inventario o receta (RF-OPC-07); ante Inventario, cada receta y cada opción con contenido directo de Inventario es un origen de contenido cuya disponibilidad Inventario evalúa (RF-INTG-03, RF-INTG-04).
 - **Contenido directo de Inventario:** origen de contenido que referencia un artículo de Inventario con su cantidad (RF-OPC-08).
 - **Receta (definición de receta):** elaboración de la biblioteca de recetas con nombre, descripción, instrucciones y líneas de ingrediente; «definición de receta» la distingue de sus revisiones (RF-REC-01).
 - **Revisión (revisión vigente):** cada estado numerado de una receta; la revisión vigente es la que usan las opciones (RF-REC-04, RF-OPC-09).
@@ -183,6 +184,12 @@ Estas tablas y la vista técnica de [`architechture.md`](architechture.md) son l
 | activo, inactivo, archivado | `ACTIVE`, `INACTIVE`, `ARCHIVED` |
 | disponibilidad | `isAvailable` |
 | permiso | `permissions` (lista de la credencial) |
+| identificador del origen de contenido ante Inventario | `sourceId` (identificador de la receta, o de la opción con contenido directo de Inventario) |
+| evento de alta de un origen de contenido | `menu.source.created` |
+| evento de modificación de un origen de contenido | `menu.source.updated` |
+| evento de eliminación de un origen de contenido | `menu.source.deleted` |
+| evento de disponibilidad de un origen de contenido | `inventory.source.availability.updated` |
+| contrato de eventos | `docs/apis/menu/asyncapi.yaml` (AsyncAPI 3.1.0) |
 
 La tabla siguiente relaciona cada permiso de RF-GEN-01.CA5 con su nombre técnico y con las operaciones de la API que protege, solo como correspondencia; las operaciones se definen en el contrato de la API.
 

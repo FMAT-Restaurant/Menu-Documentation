@@ -117,4 +117,4 @@ Este documento reúne los requisitos de la composición de una oferta: su valide
   - **RF-COMP-12.CA7:** La copia no incorpora el precio base, la etiqueta de presentación ni la imagen de la oferta origen.
   - **RF-COMP-12.CA8:** Cuando la copia se envía en una actualización de la composición, exige la versión vigente de la composición destino conforme a RF-GEN-02.CA4; en todos los casos es íntegra conforme a RF-GEN-05.CA1.
   - **RF-COMP-12.CA9:** La copia recalcula la disponibilidad de las opciones copiadas, de los grupos, de la oferta destino y de su entrada conforme a RF-DISP-06.CA3, como toda actualización de la composición según RF-COMP-08.CA6.
-- **Relacionados:** [OPEN-011](../open.md#open-011--contrato-de-eventos-con-inventario) (disponibilidad inicial de opciones copiadas).
+- **Relacionados:** [OPEN-011](../open.md#open-011--garantías-de-entrega-de-los-eventos-con-inventario) (disponibilidad inicial de opciones copiadas).

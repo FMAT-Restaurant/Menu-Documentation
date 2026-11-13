@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 8.0.0
+  version: 8.0.1
   description: >-
-    Contrato HTTP del servicio Menu, alineado con la ERS 3.2.0, con referencias a las
+    Contrato HTTP del servicio Menu, alineado con la ERS 3.3.0, con referencias a las
     consultas externas de Inventario. Las operaciones de Menu se organizan por recurso
     bajo el prefijo /menu y sus rutas son relativas a una URL base que termina en /api/v1;
     el contrato no define el host de despliegue. El frontend llama directamente al
@@ -24,8 +24,8 @@ info:
     administrador: ACTIVE, INACTIVE o ARCHIVED en entradas, y ACTIVE o INACTIVE en ofertas y
     opciones; los grupos de selección no tienen estado. isAvailable es la disponibilidad
     derivada, de solo lectura, que el servidor recalcula en entradas, ofertas, grupos de
-    selección y opciones a partir de los eventos de Inventario y de la composición. Una oferta
-    es ordenable si ella y su entrada están ACTIVE y ambas tienen isAvailable true. Ningún
+    selección y opciones a partir de los eventos de disponibilidad de orígenes que emite
+    Inventario y de la composición. Una oferta es ordenable si ella y su entrada están ACTIVE y ambas tienen isAvailable true. Ningún
     cambio de disponibilidad modifica status. Las entradas y las ofertas nuevas inician
     INACTIVE.
 
@@ -45,7 +45,8 @@ info:
     propia: el cliente consulta la oferta origen y envía sus grupos y opciones sin
     identificadores, con su status, en el POST de la oferta nueva o en el PATCH de la oferta
     destino; las opciones copiadas conservan así su estado. Un solo ETag de la oferta protege
-    la oferta y su composición.
+    la oferta y su composición. El optionId de una opción INVENTORY_ITEM es también el
+    sourceId con el que Menu la publica a Inventario como origen de contenido.
 
 
     Concurrencia y eliminación. Hay DELETE en categorías, entradas, ofertas y recetas, con las
@@ -75,8 +76,11 @@ info:
     una receta, devuelve 502 sin aplicar cambios.
 
 
-    Eventos. Los eventos entre Menu e Inventario no forman parte de este contrato HTTP; su
-    contrato queda pendiente en OPEN-011 de la ERS.
+    Eventos. Los eventos asíncronos entre Menu e Inventario no forman parte de este contrato
+    HTTP: se definen en el contrato AsyncAPI docs/apis/menu/asyncapi.yaml (versión 1.0.0).
+    Menu publica menu.source.created, menu.source.updated y menu.source.deleted para cada
+    receta y cada opción INVENTORY_ITEM, y consume inventory.source.availability.updated para
+    recalcular isAvailable. Las garantías de entrega quedan pendientes en OPEN-011 de la ERS.
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
