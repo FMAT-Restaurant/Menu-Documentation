@@ -1,6 +1,6 @@
 # Requisitos funcionales del servicio Menu
 
-La ERS 3.0.0 organiza 72 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
+La ERS 3.1.0 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
 
 ## Convenciones
 
@@ -73,8 +73,8 @@ Cada regla transversal tiene un único criterio dueño. Los demás requisitos qu
 | 7 | [recetas.md](requirements/recetas.md) | Recetas | RF-REC-01..07 | 7 |
 | 8 | [disponibilidad.md](requirements/disponibilidad.md) | Disponibilidad derivada | RF-DISP-01..06 | 6 |
 | 9 | [integracion-con-inventario.md](requirements/integracion-con-inventario.md) | Integración con Inventario | RF-INTG-01..05 | 5 |
-| 10 | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) | Consulta del catálogo | RF-CONS-01..05 | 5 |
-| | | **Total** | | **72** |
+| 10 | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) | Consulta del catálogo | RF-CONS-01..08 | 8 |
+| | | **Total** | | **75** |
 
 ## Índice de requisitos
 
@@ -152,3 +152,6 @@ Cada regla transversal tiene un único criterio dueño. Los demás requisitos qu
 | RF-CONS-03 | Búsqueda y filtrado de entradas | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
 | RF-CONS-04 | Consulta administrativa del catálogo | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
 | RF-CONS-05 | Consumo del catálogo bajo demanda | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
+| RF-CONS-06 | Generación de la carta imprimible | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
+| RF-CONS-07 | Contenido de la carta imprimible | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |
+| RF-CONS-08 | Organización de la carta imprimible | [consulta-del-catalogo.md](requirements/consulta-del-catalogo.md) |

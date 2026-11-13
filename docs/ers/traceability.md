@@ -1,6 +1,6 @@
 # Trazabilidad de requisitos
 
-Este documento relaciona los requisitos de la ERS 3.0.0 del servicio Menu entre sí y con su versión anterior. Contiene tres matrices: la de requisitos funcionales, con el número de criterios de aceptación de cada requisito y sus requisitos no funcionales y cuestiones abiertas relacionados; la de requisitos no funcionales, con los requisitos funcionales que miden; y la de cuestiones abiertas, con los requisitos que cada una afecta. Se completa con la tabla de reglas transversales, que indica el criterio dueño de cada regla y los criterios que la citan, y con la tabla de correspondencia, que asigna a cada identificador de la versión 2.4.1 los requisitos y criterios que lo sustituyen. Los requisitos funcionales se definen en los archivos enlazados desde [`functional-requirements.md`](functional-requirements.md); los no funcionales, en [`non-functional-requirements.md`](non-functional-requirements.md); y las cuestiones abiertas, en [`open.md`](open.md). Las cuestiones abiertas no se tratan como decisiones adoptadas.
+Este documento relaciona los requisitos de la ERS 3.1.0 del servicio Menu entre sí y con su versión anterior. Contiene tres matrices: la de requisitos funcionales, con el número de criterios de aceptación de cada requisito y sus requisitos no funcionales y cuestiones abiertas relacionados; la de requisitos no funcionales, con los requisitos funcionales que miden; y la de cuestiones abiertas, con los requisitos que cada una afecta. Se completa con la tabla de reglas transversales, que indica el criterio dueño de cada regla y los criterios que la citan, y con la tabla de correspondencia, que asigna a cada identificador de la versión 2.4.1 los requisitos y criterios que lo sustituyen. Los requisitos funcionales se definen en los archivos enlazados desde [`functional-requirements.md`](functional-requirements.md); los no funcionales, en [`non-functional-requirements.md`](non-functional-requirements.md); y las cuestiones abiertas, en [`open.md`](open.md). Las cuestiones abiertas no se tratan como decisiones adoptadas.
 
 ## Matriz de requisitos funcionales
 
@@ -78,8 +78,11 @@ Este documento relaciona los requisitos de la ERS 3.0.0 del servicio Menu entre 
 | RF-CONS-03 | Búsqueda y filtrado de entradas | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | OPEN-009, OPEN-010 |
 | RF-CONS-04 | Consulta administrativa del catálogo | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | — | OPEN-010 |
 | RF-CONS-05 | Consumo del catálogo bajo demanda | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 2 | — | OPEN-012 |
+| RF-CONS-06 | Generación de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | — | OPEN-010 |
+| RF-CONS-07 | Contenido de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | OPEN-001 |
+| RF-CONS-08 | Organización de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | — |
 
-Total: 72 requisitos funcionales y 271 criterios de aceptación.
+Total: 75 requisitos funcionales y 287 criterios de aceptación.
 
 ## Matriz de requisitos no funcionales
 
@@ -95,11 +98,11 @@ Los tres requisitos no funcionales miden solo la consulta, la búsqueda y el fil
 
 | OPEN | Tema | RF/RNF afectados |
 | :--- | :--- | :--- |
-| [OPEN-001](open.md#open-001--importes-de-precios) | Importes de precios | RF-OFE-01, RF-OFE-02, RF-OFE-03 |
+| [OPEN-001](open.md#open-001--importes-de-precios) | Importes de precios | RF-OFE-01, RF-OFE-02, RF-OFE-03, RF-CONS-07 |
 | [OPEN-003](open.md#open-003--alcance-de-la-biblioteca-de-recetas) | Alcance de la biblioteca de recetas | RF-REC-01 |
 | [OPEN-006](open.md#open-006--cantidades-y-unidades) | Cantidades y unidades | RF-COMP-03, RF-OPC-08, RF-REC-02, RF-REC-03 |
 | [OPEN-009](open.md#open-009--distribución-de-carga-del-perfil-nominal) | Distribución de carga del perfil nominal | RF-CONS-03, RNF-REND-02, RNF-REND-03 |
-| [OPEN-010](open.md#open-010--contrato-externo-de-la-api) | Contrato externo de la API | RF-IMG-01, RF-IMG-05, RF-REC-06, RF-CONS-01, RF-CONS-03, RF-CONS-04 |
+| [OPEN-010](open.md#open-010--contrato-externo-de-la-api) | Contrato externo de la API | RF-IMG-01, RF-IMG-05, RF-REC-06, RF-CONS-01, RF-CONS-03, RF-CONS-04, RF-CONS-06 |
 | [OPEN-011](open.md#open-011--contrato-de-eventos-con-inventario) | Contrato de eventos con Inventario | RF-COMP-12, RF-REC-04, RF-DISP-01, RF-DISP-06, RF-INTG-03, RF-INTG-04, RF-INTG-05 |
 | [OPEN-012](open.md#open-012--notificación-y-revisión-ante-cambios-de-disponibilidad) | Notificación y revisión ante cambios de disponibilidad | RF-GEN-04, RF-OFE-04, RF-DISP-06, RF-CONS-05 |
 | [OPEN-013](open.md#open-013--capacidades-más-finas) | Capacidades más finas | RF-GEN-01 |

@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 3.0.0 (Consolidada Vigente) |
+| Versión | 3.1.0 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-11-12 |
 
@@ -12,7 +12,7 @@
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **3.0.0** (fecha 2026-11-12) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 72 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos para la disponibilidad y las recetas; el contrato de esos eventos queda pendiente en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
+La versión **3.1.0** (fecha 2026-11-12) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos para la disponibilidad y las recetas; el contrato de esos eventos queda pendiente en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
 
 ## Alcance operativo vigente
 
@@ -46,6 +46,12 @@ La especificación vigente se aplica con este orden de autoridad:
 ## Registro de cambios
 
 Cada versión registra brevemente lo que cambia: lo que había antes y lo que hay ahora.
+
+### 3.1.0 (2026-11-12)
+
+- **Carta imprimible:** Antes: el catálogo solo se consultaba y no existía un documento para entregar a los comensales. → Ahora: el administrador genera bajo demanda una carta imprimible en PDF con el catálogo del momento, que no se guarda en Menu (RF-CONS-06); incluye las entradas activas con al menos una oferta activa y esas ofertas, con nombre comercial, descripción, imagen, etiqueta de presentación y precio base, sin disponibilidad ni composición, y un encabezado con el nombre del menú, la fecha de generación y la moneda (RF-CONS-07); se organiza por categoría en orden alfabético, con la sección «sin categoría» al final (RF-CONS-08).
+- **Requisitos:** Antes: 72 requisitos funcionales y 271 criterios de aceptación. → Ahora: 75 requisitos funcionales y 287 criterios; RF-GEN-01.CA2 incluye la generación de la carta imprimible entre las operaciones administrativas.
+- **Cuestiones abiertas:** Antes: OPEN-001 no mencionaba la carta imprimible y OPEN-010 no incluía su generación. → Ahora: OPEN-001 cubre también la moneda del encabezado de la carta imprimible y OPEN-010 incluye la operación de generación de la carta en el contrato de la API.
 
 ### 3.0.0 (2026-11-12)
 

@@ -7,10 +7,10 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 3.0.0 |
+| Versión | 3.1.0 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
-| Alcance | Menu administra la identidad comercial del catálogo de un restaurante: categorías, entradas, ofertas vendibles con su composición de grupos de selección y opciones, imágenes y la biblioteca de recetas. Cada recurso distingue el estado administrativo, que solo decide el administrador, de la disponibilidad, que se deriva de la información recibida de Inventario. Menu valida con Inventario los artículos que referencia e intercambia con él eventos de receta, de factibilidad y de disponibilidad. Órdenes consulta el catálogo bajo demanda, registra la opción elegida en cada ronda y determina el precio final. |
+| Alcance | Menu administra la identidad comercial del catálogo de un restaurante: categorías, entradas, ofertas vendibles con su composición de grupos de selección y opciones, imágenes y la biblioteca de recetas. Cada recurso distingue el estado administrativo, que solo decide el administrador, de la disponibilidad, que se deriva de la información recibida de Inventario. Menu valida con Inventario los artículos que referencia e intercambia con él eventos de receta, de factibilidad y de disponibilidad. El administrador genera bajo demanda una carta imprimible con las entradas y ofertas activas para entregarla a los comensales. Órdenes consulta el catálogo bajo demanda, registra la opción elegida en cada ronda y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
@@ -22,7 +22,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 2. [`../other/md/domain-model.md`](../other/md/domain-model.md) para consultar el modelo conceptual de referencia y sus relaciones, como contexto no normativo; prevalece la ERS.
 3. [`context.md`](context.md) para entender el alcance de Menú/Catálogo, su lenguaje y sus límites con Inventario y Órdenes.
 4. [`architechture.md`](architechture.md) para consultar la vista conceptual del catálogo y la vista técnica del diagrama de clases.
-5. [`functional-requirements.md`](functional-requirements.md) para consultar las convenciones y el índice de los 72 requisitos funcionales.
+5. [`functional-requirements.md`](functional-requirements.md) para consultar las convenciones y el índice de los 75 requisitos funcionales.
 6. Los archivos de requisitos por área, en este orden:
    1. [`requirements/transversales.md`](requirements/transversales.md): reglas generales del catálogo.
    2. [`requirements/imagenes.md`](requirements/imagenes.md): imágenes de entradas y ofertas.
@@ -33,7 +33,7 @@ La especificación establece capacidades observables, restricciones del dominio,
    7. [`requirements/recetas.md`](requirements/recetas.md): recetas.
    8. [`requirements/disponibilidad.md`](requirements/disponibilidad.md): disponibilidad derivada.
    9. [`requirements/integracion-con-inventario.md`](requirements/integracion-con-inventario.md): integración con Inventario.
-   10. [`requirements/consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md): consulta del catálogo.
+   10. [`requirements/consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md): consulta del catálogo y carta imprimible.
 7. [`non-functional-requirements.md`](non-functional-requirements.md) para consultar los criterios de rendimiento.
 8. [`open.md`](open.md) para identificar las 9 cuestiones de requisitos aún pendientes.
 9. [`traceability.md`](traceability.md) para consultar las relaciones entre requisitos funcionales, requisitos no funcionales y cuestiones abiertas, y la correspondencia con los identificadores anteriores.
@@ -46,7 +46,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 | [`../other/md/domain-model.md`](../other/md/domain-model.md) | Modelo conceptual de referencia de Menú/Catálogo, composición por grupos de selección y opciones, orígenes de contenido, recetas y límites de dominio. | Consultar el contexto conceptual de entidades y relaciones; no es normativo. |
 | [`context.md`](context.md) | Responsabilidad de Menú/Catálogo, propiedad de los datos, límites entre contextos, exclusiones de alcance y glosario. | Entender qué datos y decisiones pertenecen a cada contexto. |
 | [`architechture.md`](architechture.md) | Vista conceptual del catálogo y vista técnica del diagrama de clases, además de límites arquitectónicos. | Entender el modelo del catálogo o consultar sus clases de dominio. |
-| [`functional-requirements.md`](functional-requirements.md) | Índice de los 72 requisitos funcionales organizados en 11 áreas, con las convenciones de identificación y el formato de la ficha. | Localizar un requisito y el archivo que lo contiene. |
+| [`functional-requirements.md`](functional-requirements.md) | Índice de los 75 requisitos funcionales organizados en 11 áreas, con las convenciones de identificación y el formato de la ficha. | Localizar un requisito y el archivo que lo contiene. |
 | `requirements/` | 10 archivos con las fichas de los requisitos funcionales por área y sus criterios de aceptación; la lista y el orden figuran en el índice de requisitos funcionales. | Implementar o revisar las capacidades funcionales solicitadas. |
 | [`non-functional-requirements.md`](non-functional-requirements.md) | 3 requisitos `RNF-REND-*` de rendimiento de la consulta, la búsqueda y el filtrado del catálogo. | Evaluar los objetivos de calidad definidos para el servicio. |
 | [`open.md`](open.md) | 9 cuestiones de requisitos que requieren una decisión explícita. | Evitar fijar valores o comportamientos que aún no están determinados. |

@@ -123,6 +123,7 @@ Cada término remite al requisito que lo regula; la norma se enuncia solo en ese
 - **Oferta:** producto vendible de una entrada, seleccionable individualmente, con su etiqueta de presentación, precio base, imagen y composición (RF-OFE-01).
 - **Etiqueta de presentación:** texto que describe la presentación concreta de una oferta (RF-CONS-02).
 - **Nombre visible de la oferta:** nombre que resulta del nombre comercial de la entrada y de la etiqueta de presentación de la oferta (RF-CONS-02).
+- **Carta imprimible:** documento PDF que el administrador genera bajo demanda con las entradas activas y sus ofertas activas, organizadas por categoría, para entregarlo a los comensales (RF-CONS-06 a RF-CONS-08).
 - **Precio base:** precio que el administrador declara para la oferta completa (RF-OFE-03).
 - **Composición:** conjunto de grupos de selección de una oferta (RF-COMP-01).
 - **Composición válida:** composición que cumple las condiciones estructurales de RF-COMP-01.

@@ -7,7 +7,7 @@ Este documento reúne los requisitos que se aplican a todo el catálogo: capacid
 - **Requisito:** El sistema deberá distinguir la capacidad de administrar el catálogo de la capacidad de consultarlo y permitir las operaciones administrativas solo a quien tenga la primera.
 - **Criterios de aceptación:**
   - **RF-GEN-01.CA1:** Existen dos capacidades: la capacidad de administrar el catálogo y la capacidad de consultarlo.
-  - **RF-GEN-01.CA2:** Toda operación administrativa (crear, editar, cambiar el estado administrativo, actualizar o copiar una composición, eliminar, cargar una imagen, reemplazar el archivo de una imagen, consultar con visibilidad administrativa o consultar el historial de recetas) se rechaza sin cambios cuando quien la solicita no tiene la capacidad de administrar el catálogo.
+  - **RF-GEN-01.CA2:** Toda operación administrativa (crear, editar, cambiar el estado administrativo, actualizar o copiar una composición, eliminar, cargar una imagen, reemplazar el archivo de una imagen, consultar con visibilidad administrativa, consultar el historial de recetas o generar la carta imprimible) se rechaza sin cambios cuando quien la solicita no tiene la capacidad de administrar el catálogo.
   - **RF-GEN-01.CA3:** Quien solo tiene la capacidad de consultar accede a la consulta del catálogo con la visibilidad de RF-CONS-01 y a la búsqueda de RF-CONS-03.
   - **RF-GEN-01.CA4:** La autenticación de quien solicita una operación y la asignación de capacidades corresponden a un servicio externo; Menu no autentica ni asigna capacidades.
 - **Relacionados:** [OPEN-013](../open.md#open-013--capacidades-más-finas).
