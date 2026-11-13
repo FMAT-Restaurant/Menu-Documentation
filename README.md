@@ -1,6 +1,6 @@
 # Documentación de Restaurant Platform
 
-Índice del sitio de documentación del servicio Menu/Catálogo: requisitos, modelo de dominio y referencias.
+Índice del sitio de documentación del servicio Menu/Catálogo: requisitos, API, eventos y referencias.
 
 [Inicio del sitio de documentación](https://fmat-restaurant.github.io/Menu-Documentation/)
 
@@ -15,11 +15,7 @@
 7. [Cuestiones abiertas del modelo de catálogo](https://fmat-restaurant.github.io/Menu-Documentation/specification/open/)
 8. [Trazabilidad de requisitos](https://fmat-restaurant.github.io/Menu-Documentation/specification/traceability/)
 
-## Modelo conceptual
-
-[Modelo conceptual](https://fmat-restaurant.github.io/Menu-Documentation/reference/md/domain-model/)
-
 ## Referencias
 
-- [Referencia interactiva de API (Scalar; contenido pendiente de mockups)](https://fmat-restaurant.github.io/Menu-Documentation/api/)
-- [Eventos — Pendiente](https://fmat-restaurant.github.io/Menu-Documentation/events/)
+- [Referencia interactiva de API (Scalar)](https://fmat-restaurant.github.io/Menu-Documentation/api/)
+- [Eventos (AsyncAPI)](https://fmat-restaurant.github.io/Menu-Documentation/events/)

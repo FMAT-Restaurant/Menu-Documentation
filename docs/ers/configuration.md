@@ -4,7 +4,7 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 3.3.0 (Consolidada Vigente) |
+| Versión | 3.3.1 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
 | Fecha | 2026-11-13 |
 
@@ -12,7 +12,7 @@
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **3.3.0** (fecha 2026-11-13) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos de orígenes de contenido: emite el alta, la modificación y la eliminación de cada receta y de cada opción con contenido directo de Inventario, y recibe la disponibilidad de cada origen; las garantías de entrega de esos eventos quedan pendientes en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
+La versión **3.3.1** (fecha 2026-11-13) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos de orígenes de contenido: emite el alta, la modificación y la eliminación de cada receta y de cada opción con contenido directo de Inventario, y recibe la disponibilidad de cada origen; las garantías de entrega de esos eventos quedan pendientes en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
 
 ## Alcance operativo vigente
 
@@ -33,19 +33,22 @@ Las fuentes siguientes registran el análisis y las decisiones del proyecto. El 
 9. [**`Auditoria-3.md`**](../other/md/Auditoria-3.md) (revisión del modelo de dominio y las reglas comerciales).
 10. [**`Auditoria-4.md`**](../other/md/Auditoria-4.md) (revisión de responsabilidades y límites entre servicios).
 11. [**`Consultoria-3.md`**](../other/md/Consultoria-3.md) (revisión del ciclo de vida y responsabilidades operativas).
-12. [**`domain-model.md`**](../other/md/domain-model.md) (modelo conceptual de referencia que sirvió de base a la ERS: entidades, relaciones, composición, recetas y límites del catálogo; aporta contexto y no es normativo).
+12. [**`domain-model.md`**](../other/md/domain-model.md) (modelo conceptual inicial usado para definir el dominio; desactualizado y no normativo).
 
 ### Regla de Prevalencia
 
 La especificación vigente se aplica con este orden de autoridad:
 
 - Los documentos normativos de esta ERS en `docs/ers/` son la autoridad normativa del dominio del catálogo y de sus requisitos: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md) (índice y archivos por área en `requirements/`), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos y sus criterios de aceptación vigentes rigen la especificación; OPEN-005 está resuelta en RF-IMG-01..05. El [contrato de API](https://fmat-restaurant.github.io/Menu-Documentation/api/), en su versión 8.0.1, está alineado con esta ERS; OPEN-010 se cerró en la versión 3.2.0. El [contrato de eventos](https://fmat-restaurant.github.io/Menu-Documentation/events/), en AsyncAPI y en su versión 1.0.0, define los eventos de RF-INTG-03..05.
-- El [modelo conceptual de referencia](../other/md/domain-model.md) aporta el contexto del dominio que sirvió de base a esta ERS: entidades, relaciones, reglas de composición, contenido, recetas, precios declarados y límites con otros contextos. No es normativo; donde difiera de los documentos de la ERS, prevalece la ERS.
 - Las fuentes históricas enumeradas arriba aportan contexto sobre la evolución y las decisiones del proyecto; no constituyen norma vigente ni prevalecen sobre los documentos normativos de la ERS.
 
 ## Registro de cambios
 
 Cada versión registra brevemente lo que cambia: lo que había antes y lo que hay ahora.
+
+### 3.3.1 (2026-11-13)
+
+- **Modelo conceptual:** Antes: `domain-model.md` se presentaba como el modelo conceptual de referencia de la ERS, con lugar propio en la ruta de lectura, en el mapa de documentos y en la regla de prevalencia. → Ahora: es una fuente histórica archivada, desactualizada y no normativa, que solo figura en la lista de fuentes; la ERS es la única fuente de verdad del dominio.
 
 ### 3.3.0 (2026-11-13)
 

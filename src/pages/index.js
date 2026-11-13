@@ -10,15 +10,9 @@ const destinations = [
     action: 'Leer la especificación',
   },
   {
-    title: 'Modelo conceptual',
-    to: '/reference/md/domain-model/',
-    description: 'Entidades, relaciones y reglas estructurales del catálogo.',
-    action: 'Consultar el modelo',
-  },
-  {
     title: 'API',
     to: '/api/',
-    description: 'La página de referencia se mantiene; las operaciones y los datos se definirán tras revisar los mockups.',
+    description: 'Referencia OpenAPI 8.0.1 del servicio Menu: endpoints, esquemas, errores y permisos.',
     action: 'Consultar la referencia API',
   },
   {
@@ -42,7 +36,7 @@ export default function HomePage() {
             Restaurant Platform
           </h1>
           <p className={styles.intro}>
-            Consulta los requisitos, el modelo conceptual y el estado de las referencias del servicio Menu/Catálogo.
+            Consulta los requisitos, la referencia de la API y el contrato de eventos del servicio Menu/Catálogo.
           </p>
         </section>
 

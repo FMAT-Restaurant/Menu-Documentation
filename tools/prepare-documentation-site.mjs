@@ -39,7 +39,6 @@ const ersSidebarPositions = new Map([
 const renderedOtherMarkdown = new Set([
   'other/stack.md',
   'other/how-to-create-technical-documents-from-prds.md',
-  'other/md/domain-model.md',
 ]);
 
 const archivedOtherMarkdown = new Set([
@@ -54,6 +53,7 @@ const archivedOtherMarkdown = new Set([
   'other/md/Auditoria-3.md',
   'other/md/Auditoria-4.md',
   'other/md/Consultoria-3.md',
+  'other/md/domain-model.md',
   'other/templates/template-technical-implementation-plan.md',
 ]);
 

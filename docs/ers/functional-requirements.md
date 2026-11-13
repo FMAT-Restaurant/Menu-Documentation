@@ -1,6 +1,6 @@
 # Requisitos funcionales del servicio Menu
 
-La ERS 3.3.0 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
+La ERS 3.3.1 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
 
 ## Convenciones
 
