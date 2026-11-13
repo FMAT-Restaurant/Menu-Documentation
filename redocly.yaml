@@ -2,9 +2,9 @@ extends:
   - recommended
 
 rules:
-  # Temporary for the empty reference; re-enable when OPEN-010 defines the API server.
-  no-empty-servers: off
-  security-defined: off
+  # OPEN-010 cerrada (contrato 8.0.0): el contrato define servidores y seguridad global.
+  no-empty-servers: error
+  security-defined: error
   no-unresolved-refs: error
   operation-operationId: error
   operation-operationId-unique: error

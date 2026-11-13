@@ -1,18 +1,20 @@
-RecipeSupply:
+RecipeIngredientLine:
   type: object
-  description: Insumo y cantidad que forman parte de una receta.
+  description: 'Línea de ingrediente de una receta: un artículo de Inventario con su cantidad.'
   required: [inventoryItemId, quantity, inventoryItem]
   properties:
     inventoryItemId:
       type: string
-      description: Identificador opaco del insumo utilizado, sin formato impuesto.
+      description: Identificador opaco del artículo de Inventario, sin formato impuesto.
       example: CARNE-150G
     quantity:
       type: number
-      description: Cantidad del insumo expresada en la unidad de inventario.
+      exclusiveMinimum: 0
+      description: Cantidad positiva expresada en la unidad que Inventario establece para el artículo; la línea no tiene unidad propia.
       example: 200
     inventoryItem:
       $ref: 'Common.yaml#/InventoryItem'
+      description: Datos del artículo que Menu lee de Inventario al responder y no guarda; si Inventario no responde, la consulta devuelve 502.
   example:
     inventoryItemId: CARNE-150G
     quantity: 200
@@ -21,18 +23,21 @@ RecipeSupply:
       name: Carne Molida Res 80/20
       unit: g
 
-RecipeSupplyInput:
+RecipeIngredientLineInput:
   type: object
-  description: Insumo y cantidad que se envían al crear o actualizar una receta.
+  additionalProperties: false
+  description: Línea de ingrediente que se envía al crear o editar una receta.
   required: [inventoryItemId, quantity]
   properties:
     inventoryItemId:
       type: string
-      description: Identificador opaco del insumo utilizado, sin formato impuesto.
+      minLength: 1
+      description: Identificador opaco del artículo de Inventario, sin formato impuesto.
       example: CARNE-150G
     quantity:
       type: number
-      description: Cantidad del insumo expresada en la unidad de inventario.
+      exclusiveMinimum: 0
+      description: Cantidad positiva expresada en la unidad que Inventario establece para el artículo; la línea no tiene unidad propia.
       example: 200
   example:
     inventoryItemId: CARNE-150G
@@ -40,14 +45,20 @@ RecipeSupplyInput:
 
 RecipeSummary:
   type: object
-  description: Datos de identificación de una receta y sus insumos.
-  required: [id, name, description, supplies]
+  description: Datos de identificación de una receta y sus líneas de ingrediente.
+  required: [id, revision, name, description, ingredients]
   properties:
     id:
       type: string
       format: uuid
       description: Identificador UUID de la receta.
-      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+      example: c4813f65-00b4-4921-874e-03c555796401
+    revision:
+      type: integer
+      minimum: 1
+      readOnly: true
+      description: Número de la revisión vigente; la creación produce la revisión 1 y cada edición con cambios la incrementa en 1.
+      example: 1
     name:
       type: string
       description: Nombre de la receta.
@@ -56,16 +67,17 @@ RecipeSummary:
       type: string
       description: Descripción de la receta.
       example: Preparación de hamburguesa con piña asada y queso.
-    supplies:
+    ingredients:
       type: array
-      description: Insumos y cantidades que componen la receta.
+      description: Líneas de ingrediente en el orden indicado por el administrador.
       items:
-        $ref: '#/RecipeSupply'
+        $ref: '#/RecipeIngredientLine'
   example:
-    id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    id: c4813f65-00b4-4921-874e-03c555796401
+    revision: 1
     name: Hamburguesa Hawaiana
     description: Preparación de hamburguesa con piña asada y queso.
-    supplies:
+    ingredients:
       - inventoryItemId: CARNE-150G
         quantity: 200
         inventoryItem:
@@ -75,14 +87,20 @@ RecipeSummary:
 
 RecipeDetail:
   type: object
-  description: Datos completos de una receta, incluidos sus pasos de preparación e insumos.
-  required: [id, name, description, instructions, supplies]
+  description: Datos completos de una receta, incluidos sus pasos de preparación y sus líneas de ingrediente.
+  required: [id, revision, name, description, instructions, ingredients]
   properties:
     id:
       type: string
       format: uuid
       description: Identificador UUID de la receta.
-      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+      example: c4813f65-00b4-4921-874e-03c555796401
+    revision:
+      type: integer
+      minimum: 1
+      readOnly: true
+      description: Número de la revisión vigente; la creación produce la revisión 1 y cada edición con cambios la incrementa en 1.
+      example: 1
     name:
       type: string
       description: Nombre de la receta.
@@ -95,17 +113,18 @@ RecipeDetail:
       type: string
       description: Instrucciones para preparar la receta.
       example: Cocina la carne, asa la piña y sirve con queso en el pan.
-    supplies:
+    ingredients:
       type: array
-      description: Insumos y cantidades que componen la receta.
+      description: Líneas de ingrediente en el orden indicado por el administrador.
       items:
-        $ref: '#/RecipeSupply'
+        $ref: '#/RecipeIngredientLine'
   example:
-    id: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    id: c4813f65-00b4-4921-874e-03c555796401
+    revision: 1
     name: Hamburguesa Hawaiana
     description: Preparación de hamburguesa con piña asada y queso.
     instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
-    supplies:
+    ingredients:
       - inventoryItemId: CARNE-150G
         quantity: 200
         inventoryItem:
@@ -115,55 +134,111 @@ RecipeDetail:
 
 RecipeCreateRequest:
   type: object
+  additionalProperties: false
   description: Datos requeridos para crear una receta.
-  required: [name, description, instructions, supplies]
+  required: [name, description, instructions, ingredients]
   properties:
     name:
       type: string
+      minLength: 1
       description: Nombre de la nueva receta.
       example: Hamburguesa Hawaiana
     description:
       type: string
+      minLength: 1
       description: Descripción de la nueva receta.
       example: Preparación de hamburguesa con piña asada y queso.
     instructions:
       type: string
+      minLength: 1
       description: Instrucciones para preparar la receta.
       example: Cocina la carne, asa la piña y sirve con queso en el pan.
-    supplies:
+    ingredients:
       type: array
-      description: Insumos y cantidades utilizados por la receta.
+      minItems: 1
+      description: Una o más líneas de ingrediente, en el orden de presentación; un artículo repetido devuelve 422 DUPLICATE_INVENTORY_ITEM.
       items:
-        $ref: '#/RecipeSupplyInput'
+        $ref: '#/RecipeIngredientLineInput'
   example:
     name: Hamburguesa Hawaiana
     description: Preparación de hamburguesa con piña asada y queso.
     instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
-    supplies:
+    ingredients:
       - inventoryItemId: CARNE-150G
         quantity: 200
 
 RecipePatchRequest:
   type: object
-  description: Campos de una receta que se desean actualizar.
+  additionalProperties: false
+  description: Campos de la receta que se desean cambiar; los omitidos se conservan. Una edición con cambios crea una revisión nueva; una edición sin cambios no la crea.
   properties:
     name:
       type: string
+      minLength: 1
       description: Nuevo nombre de la receta, si se desea cambiar.
       example: Hamburguesa Hawaiana Especial
     description:
       type: string
+      minLength: 1
       description: Nueva descripción de la receta, si se desea cambiar.
       example: Preparación de hamburguesa con piña, queso y salsa de la casa.
     instructions:
       type: string
+      minLength: 1
       description: Nuevas instrucciones de preparación, si se desean cambiar.
       example: Cocina la carne, asa la piña y sirve con queso y salsa en el pan.
-    supplies:
+    ingredients:
       type: array
-      description: Insumos y cantidades enviados para actualizar la receta.
+      minItems: 1
+      description: Reemplaza la lista completa de líneas de ingrediente; un artículo repetido devuelve 422 DUPLICATE_INVENTORY_ITEM.
       items:
-        $ref: '#/RecipeSupplyInput'
+        $ref: '#/RecipeIngredientLineInput'
+
+RecipeRevision:
+  type: object
+  description: Revisión numerada e inmutable de una receta, tal como quedó al crearse o editarse.
+  required: [recipeId, revision, name, description, instructions, ingredients]
+  properties:
+    recipeId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la receta.
+      example: c4813f65-00b4-4921-874e-03c555796401
+    revision:
+      type: integer
+      minimum: 1
+      description: Número de la revisión.
+      example: 1
+    name:
+      type: string
+      description: Nombre de la receta en esta revisión.
+      example: Hamburguesa Hawaiana
+    description:
+      type: string
+      description: Descripción de la receta en esta revisión.
+      example: Preparación de hamburguesa con piña asada y queso.
+    instructions:
+      type: string
+      description: Instrucciones de preparación en esta revisión.
+      example: Cocina la carne, asa la piña y sirve con queso en el pan.
+    ingredients:
+      type: array
+      description: Líneas de ingrediente de esta revisión, en el orden indicado por el administrador.
+      items:
+        $ref: '#/RecipeIngredientLine'
+  example:
+    recipeId: c4813f65-00b4-4921-874e-03c555796401
+    revision: 1
+    name: Hamburguesa Hawaiana
+    description: Preparación de hamburguesa con piña asada y queso.
+    instructions: Cocina la carne, asa la piña y sirve con queso en el pan.
+    ingredients:
+      - inventoryItemId: CARNE-150G
+        quantity: 200
+        inventoryItem:
+          id: CARNE-150G
+          name: Carne Molida Res 80/20
+          unit: g
 
 RecipeListResponse:
   type: object
@@ -184,3 +259,23 @@ RecipeResponse:
   properties:
     data:
       $ref: '#/RecipeDetail'
+
+RecipeRevisionListResponse:
+  type: object
+  description: Página de revisiones de una receta.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/RecipeRevision'
+    meta:
+      $ref: 'Common.yaml#/PageMeta'
+
+RecipeRevisionResponse:
+  type: object
+  description: Respuesta que contiene una revisión de una receta.
+  required: [data]
+  properties:
+    data:
+      $ref: '#/RecipeRevision'

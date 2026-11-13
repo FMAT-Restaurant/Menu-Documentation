@@ -10,7 +10,8 @@ Este documento reúne los requisitos sobre la consulta del catálogo: la visibil
   - **RF-CONS-01.CA2:** Toda entrada, oferta, grupo de selección u opción presentada que no está disponible se presenta deshabilitada y no se puede ordenar ni elegir; la entrada activa sin ofertas disponibles se trata conforme a RF-DISP-04.CA1.
   - **RF-CONS-01.CA3:** La composición de cada oferta presentada muestra el tiempo de servicio de cada grupo de selección.
   - **RF-CONS-01.CA4:** Se presentan todas las categorías del menú, también las que no clasifican entradas, y la agrupación «sin categoría».
-- **Relacionados:** [RNF-REND-01](../non-functional-requirements.md); [RNF-REND-02](../non-functional-requirements.md); [RNF-REND-03](../non-functional-requirements.md); [OPEN-010](../open.md#open-010--contrato-externo-de-la-api).
+  - **RF-CONS-01.CA5:** La consulta del catálogo con la visibilidad de este requisito requiere el permiso «Ver catálogo», conforme a RF-GEN-01.CA5.
+- **Relacionados:** [RNF-REND-01](../non-functional-requirements.md); [RNF-REND-02](../non-functional-requirements.md); [RNF-REND-03](../non-functional-requirements.md) (rendimiento de la consulta del catálogo).
 
 ### RF-CONS-02 — Presentación de las ofertas vendibles
 
@@ -25,13 +26,13 @@ Este documento reúne los requisitos sobre la consulta del catálogo: la visibil
 
 ### RF-CONS-03 — Búsqueda y filtrado de entradas
 
-- **Requisito:** El sistema deberá permitir buscar entradas por texto y filtrarlas por categoría, con la visibilidad que corresponde a cada capacidad.
+- **Requisito:** El sistema deberá permitir buscar entradas por texto y filtrarlas por categoría, con la visibilidad que corresponde al permiso con que se consulta.
 - **Criterios de aceptación:**
   - **RF-CONS-03.CA1:** La búsqueda por texto considera el nombre comercial, la descripción y los nombres de las categorías de la entrada.
   - **RF-CONS-03.CA2:** El filtro por categoría admite cualquier categoría del menú y la agrupación «sin categoría».
-  - **RF-CONS-03.CA3:** El administrador puede filtrar, además, por estado administrativo.
-  - **RF-CONS-03.CA4:** Los resultados respetan la visibilidad de RF-CONS-01 para quien consulta el catálogo y la de RF-CONS-04 para el administrador.
-- **Relacionados:** [RNF-REND-01](../non-functional-requirements.md); [RNF-REND-02](../non-functional-requirements.md); [RNF-REND-03](../non-functional-requirements.md); [OPEN-009](../open.md#open-009--distribución-de-carga-del-perfil-nominal); [OPEN-010](../open.md#open-010--contrato-externo-de-la-api).
+  - **RF-CONS-03.CA3:** Quien consulta con el permiso «Ver entradas» puede filtrar, además, por estado administrativo.
+  - **RF-CONS-03.CA4:** Los resultados respetan la visibilidad de RF-CONS-01 para quien consulta con el permiso «Ver catálogo» y la de RF-CONS-04 para quien consulta con el permiso «Ver entradas».
+- **Relacionados:** [RNF-REND-01](../non-functional-requirements.md); [RNF-REND-02](../non-functional-requirements.md); [RNF-REND-03](../non-functional-requirements.md); [OPEN-009](../open.md#open-009--distribución-de-carga-del-perfil-nominal).
 
 ### RF-CONS-04 — Consulta administrativa del catálogo
 
@@ -41,7 +42,8 @@ Este documento reúne los requisitos sobre la consulta del catálogo: la visibil
   - **RF-CONS-04.CA2:** Las entradas archivadas se presentan siempre al administrador, sin necesidad de filtro.
   - **RF-CONS-04.CA3:** La consulta incluye las ofertas de todo el catálogo, para elegir el origen de una copia conforme a RF-COMP-12, y las recetas de la biblioteca, para asignarlas por identificador conforme a RF-OPC-09.
   - **RF-CONS-04.CA4:** La consulta de entradas admite los filtros de RF-CONS-03.
-- **Relacionados:** [OPEN-010](../open.md#open-010--contrato-externo-de-la-api).
+  - **RF-CONS-04.CA5:** La consulta de ofertas permite excluir una oferta indicada y las ofertas de entradas archivadas; al elegir el origen de una copia conforme a RF-COMP-12, se excluyen la propia oferta destino y las ofertas de entradas archivadas, que no sirven de origen.
+  - **RF-CONS-04.CA6:** La consulta administrativa de categorías, entradas, ofertas y recetas requiere, respectivamente, los permisos «Ver categorías», «Ver entradas», «Ver ofertas» y «Ver recetas», conforme a RF-GEN-01.CA5.
 
 ### RF-CONS-05 — Consumo del catálogo bajo demanda
 
@@ -55,11 +57,10 @@ Este documento reúne los requisitos sobre la consulta del catálogo: la visibil
 
 - **Requisito:** El sistema deberá permitir al administrador generar bajo demanda la carta imprimible del menú, un documento PDF con el catálogo destinado a los comensales.
 - **Criterios de aceptación:**
-  - **RF-CONS-06.CA1:** La generación de la carta imprimible requiere la capacidad de administrar el catálogo, conforme a RF-GEN-01.CA2.
+  - **RF-CONS-06.CA1:** La generación de la carta imprimible requiere el permiso «Imprimir carta», conforme a RF-GEN-01.CA5.
   - **RF-CONS-06.CA2:** La carta imprimible se genera con el estado del catálogo en el momento de la solicitud.
   - **RF-CONS-06.CA3:** Menu no guarda la carta imprimible generada; cada solicitud genera una carta nueva.
   - **RF-CONS-06.CA4:** La generación de la carta imprimible no crea, modifica ni elimina ningún recurso del catálogo.
-- **Relacionados:** [OPEN-010](../open.md#open-010--contrato-externo-de-la-api) (operación de generación de la carta imprimible).
 
 ### RF-CONS-07 — Contenido de la carta imprimible
 

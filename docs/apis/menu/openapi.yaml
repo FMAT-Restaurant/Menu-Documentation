@@ -1,52 +1,82 @@
 openapi: 3.1.0
 info:
   title: API de Menu y referencia externa de Inventario
-  version: 7.0.3
+  version: 8.0.0
   description: >-
-    Contrato HTTP de las operaciones de consulta y administración de Menu,
-    con referencias a las consultas externas de Inventario para facilitar el
-    trabajo del frontend. El frontend llama directamente al microservicio de
-    Inventario; el backend de Menu no implementa ni atiende /items
-    ni /items/{id}.
-    InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto.
-    Las operaciones de Menu se organizan por recurso y no definen el host de
-    despliegue; sus rutas son relativas a una URL base que termina en /api/v1.
-    Las imágenes se cargan previamente mediante
-    POST /media/images, que recibe multipart/form-data y devuelve data.id con
-    un identificador generado por el servidor. Los POST y PATCH de entradas y
-    ofertas reciben JSON con imageId: obligatorio al crear y opcional al editar;
-    omitirlo conserva la imagen vigente. Solo la carga de imágenes recibe el
-    archivo mediante multipart/form-data. Las entradas nuevas inician INACTIVE,
-    con estado asignado por el servidor.
-    Los POST de categorías, entradas, ofertas para una entrada, recetas e imágenes,
-    y PATCH /menu/offers/{offerId}, requieren Idempotency-Key. Durante 24 horas desde
-    la primera confirmación exitosa, la misma clave y solicitud recuperan el estado
-    HTTP original (201 en creaciones y 200 en PATCH), el cuerpo y el ETag, sin repetir
-    efectos, generar otros IDs, asociar otra imagen ni volver a resolver recetas.
-    La carga de imagen compara los bytes del archivo y el tipo de medio declarado
-    de la parte file, ignorando boundary, nombre de archivo y orden de partes.
-    El PATCH conserva también el If-Match original: tras autenticar y autorizar,
-    un reintento coincidente recupera su respuesta antes de validar otra vez el
-    ETag vigente; una ejecución nueva exige el ETag vigente normalmente.
-    Una clave ausente o inválida devuelve 400; datos diferentes, incluido If-Match
-    en PATCH, devuelven 409. Una operación en curso o con resultado incierto devuelve
-    409 con Retry-After y no se ejecuta nuevamente hasta resolver el resultado previo.
-    Las ofertas nuevas también inician INACTIVE y deben activarse manualmente.
-    El servidor asigna status: ACTIVE a todas las opciones nuevas de POST;
-    la solicitud no acepta status para ellas. presentationTag es requerido en
-    POST y PATCH de ofertas y en sus respuestas.
-    Para un origen RECIPE solo se indica recipeId: al asignarlo, el servidor
-    selecciona la revisión válida más reciente y conserva internamente la
-    referencia histórica; las opciones no exponen recipeRevision.
-    El PATCH de ofertas conserva los demás campos omitidos y reemplaza recursivamente
-    los conjuntos de slots y opciones enviados. Valida el resultado completo y
-    persiste atómicamente, con un ETag fuerte vigente en If-Match.
-    Los DELETE de entradas y ofertas devuelven 409 si incumplen las reglas de
-    eliminación del dominio, 428 si falta If-Match y 412 si el ETag es obsoleto.
-    Su respuesta 204 no contiene cuerpo ni ETag porque el recurso eliminado
-    ya no tiene una representación vigente. Si falla la consulta a Inventario
-    necesaria para validar insumos en POST o PATCH de ofertas o recetas, se
-    devuelve 502 sin aplicar cambios.
+    Contrato HTTP del servicio Menu, alineado con la ERS 3.2.0, con referencias a las
+    consultas externas de Inventario. Las operaciones de Menu se organizan por recurso
+    bajo el prefijo /menu y sus rutas son relativas a una URL base que termina en /api/v1;
+    el contrato no define el host de despliegue. El frontend llama directamente al
+    microservicio de Inventario para /items y /items/{id}; el backend de Menu no implementa
+    esas rutas. InventoryItem.id e inventoryItemId son strings opacos sin formato impuesto.
+
+
+    Permisos. La credencial Bearer es un JWT emitido por un servicio externo que incluye la
+    lista permissions con valores de formato modulo:recurso:accion. Cada operación declara
+    en x-required-permission los permisos que exige; sin el permiso requerido se responde 403
+    sin aplicar cambios. En PATCH /menu/entries/{entryId} y PATCH /menu/offers/{offerId} la
+    lista contiene el permiso de gestión y el de estado: un cuerpo sin cambios de estado exige
+    el de gestión, uno con solo cambios de estado exige el de estado y uno que los mezcla
+    exige ambos. Menu no autentica a quien solicita ni asigna permisos.
+
+
+    Estado y disponibilidad. status es el estado administrativo y solo lo cambia el
+    administrador: ACTIVE, INACTIVE o ARCHIVED en entradas, y ACTIVE o INACTIVE en ofertas y
+    opciones; los grupos de selección no tienen estado. isAvailable es la disponibilidad
+    derivada, de solo lectura, que el servidor recalcula en entradas, ofertas, grupos de
+    selección y opciones a partir de los eventos de Inventario y de la composición. Una oferta
+    es ordenable si ella y su entrada están ACTIVE y ambas tienen isAvailable true. Ningún
+    cambio de disponibilidad modifica status. Las entradas y las ofertas nuevas inician
+    INACTIVE.
+
+
+    Imágenes. Se cargan antes con POST /menu/media/images (multipart/form-data) y se asocian
+    con imageId, obligatorio al crear entradas y ofertas. imageId es inmutable: los PATCH no
+    lo aceptan y la imagen se cambia reemplazando su archivo con PUT
+    /menu/media/images/{imageId}, que conserva el identificador. Una imagen pertenece a un
+    solo recurso; asociar una imagen ya asociada devuelve 409 IMAGE_ALREADY_ASSOCIATED.
+
+
+    Composición. Una opción RECIPE se indica solo con recipeId y usa siempre la revisión
+    vigente de la receta. La cantidad de una opción INVENTORY_ITEM y la de una línea de
+    ingrediente se expresan en la unidad que Inventario establece para el artículo, sin unidad
+    propia; quantity de un grupo de selección es su número de rondas. Una opción nueva puede
+    indicar status y, si lo omite, inicia ACTIVE. La copia de composición no tiene operación
+    propia: el cliente consulta la oferta origen y envía sus grupos y opciones sin
+    identificadores, con su status, en el POST de la oferta nueva o en el PATCH de la oferta
+    destino; las opciones copiadas conservan así su estado. Un solo ETag de la oferta protege
+    la oferta y su composición.
+
+
+    Concurrencia y eliminación. Hay DELETE en categorías, entradas, ofertas y recetas, con las
+    condiciones de cada operación. Toda modificación, cambio de estado, eliminación o
+    reemplazo del archivo de una imagen exige If-Match con el ETag fuerte vigente: su
+    ausencia devuelve 428 y un ETag obsoleto devuelve 412, sin cambios. Las respuestas 204 no
+    incluyen cuerpo ni ETag.
+
+
+    Idempotencia. Los POST de categorías, entradas, ofertas para una entrada, recetas e
+    imágenes (POST /menu/media/images) y PATCH /menu/offers/{offerId} requieren
+    Idempotency-Key. Durante 24 horas desde la primera confirmación exitosa, la misma clave
+    y solicitud recuperan el estado HTTP original (201 en creaciones y 200 en PATCH), el
+    cuerpo y el ETag, sin repetir efectos, generar otros identificadores ni asociar otra
+    imagen. La carga de imagen compara los bytes del archivo y el tipo de medio declarado de
+    la parte file, ignorando boundary, nombre de archivo y orden de partes. El PATCH conserva
+    también el If-Match original: tras autenticar y autorizar, un reintento coincidente
+    recupera su respuesta antes de validar otra vez el ETag vigente. Una clave ausente o
+    inválida devuelve 400; datos diferentes, incluido If-Match en PATCH, devuelven 409
+    IDEMPOTENCY_KEY_REUSED; una operación en curso o con resultado incierto devuelve 409
+    IDEMPOTENCY_IN_PROGRESS con Retry-After.
+
+
+    Errores. Los rechazos por reglas de dominio incluyen error.code en 409 y
+    error.details.violations[].code en 422, con los valores de DomainErrorCode. Si Menu no
+    puede consultar Inventario para validar artículos o para leer los datos de artículo de
+    una receta, devuelve 502 sin aplicar cambios.
+
+
+    Eventos. Los eventos entre Menu e Inventario no forman parte de este contrato HTTP; su
+    contrato queda pendiente en OPEN-011 de la ERS.
   license:
     name: MIT
     url: https://github.com/FMAT-Restaurant/Menu-Documentation/blob/main/LICENSE
@@ -60,21 +90,34 @@ servers:
 security:
   - bearerAuth: []
 tags:
+  - name: Catálogo
+    description: >-
+      Consulta del catálogo visible para quien consulta y generación de la
+      carta imprimible en PDF.
   - name: Categorías
-    description: Administración y consulta de categorías del menú.
+    description: Administración y consulta administrativa de categorías del menú.
   - name: Entradas
-    description: Administración y consulta de entradas del catálogo.
+    description: Administración y consulta administrativa de entradas del catálogo.
   - name: Ofertas
-    description: Administración de ofertas y sus composiciones.
+    description: Administración y consulta administrativa de ofertas y su composición.
   - name: Recetas
-    description: Administración y consulta de recetas.
+    description: >-
+      Administración y consulta de la biblioteca de recetas y de su historial
+      de revisiones.
+  - name: Imágenes
+    description: Carga de imágenes de entradas y ofertas y reemplazo de su archivo.
   - name: Inventario
     description: >-
       Referencia al servicio externo de Inventario; el frontend consulta allí
-      los artículos usados como fuentes de composición, no en el backend Menu.
-  - name: Imágenes
-    description: Carga de imágenes utilizadas por entradas y ofertas.
+      los artículos de Inventario usados en opciones y recetas, no en el
+      backend de Menu.
 paths:
+  /menu/catalog:
+    $ref: ./paths/catalog.yaml#/catalog
+  /menu/catalog/categories:
+    $ref: ./paths/catalog.yaml#/catalogCategories
+  /menu/catalog/printable:
+    $ref: ./paths/catalog.yaml#/catalogPrintable
   /menu/categories:
     $ref: ./paths/categories.yaml#/categories
   /menu/categories/{categoryId}:
@@ -93,18 +136,28 @@ paths:
     $ref: ./paths/recipes.yaml#/recipes
   /menu/recipes/{recipeId}:
     $ref: ./paths/recipes.yaml#/recipeById
+  /menu/recipes/{recipeId}/revisions:
+    $ref: ./paths/recipes.yaml#/recipeRevisions
+  /menu/recipes/{recipeId}/revisions/{revision}:
+    $ref: ./paths/recipes.yaml#/recipeRevisionByNumber
   /items:
     $ref: ./paths/inventory.yaml#/inventoryItems
   /items/{id}:
     $ref: ./paths/inventory.yaml#/inventoryItemById
-  /media/images:
+  /menu/media/images:
     $ref: ./paths/images.yaml#/images
+  /menu/media/images/{imageId}:
+    $ref: ./paths/images.yaml#/imageById
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: Token de acceso indicado en api.md.
+      bearerFormat: JWT
+      description: >-
+        JWT emitido por un servicio externo con la lista permissions (formato
+        modulo:recurso:accion) que Menu compara con x-required-permission de
+        cada operación.
   schemas:
     PageMeta:
       $ref: ./components/schemas/Common.yaml#/PageMeta
@@ -118,6 +171,18 @@ components:
       $ref: ./components/schemas/Common.yaml#/ErrorEnvelope
     ValidationErrorEnvelope:
       $ref: ./components/schemas/Common.yaml#/ValidationErrorEnvelope
+    DomainErrorCode:
+      $ref: ./components/schemas/Common.yaml#/DomainErrorCode
+    DomainConflictEnvelope:
+      $ref: ./components/schemas/Common.yaml#/DomainConflictEnvelope
+    IdempotencyConflictEnvelope:
+      $ref: ./components/schemas/Common.yaml#/IdempotencyConflictEnvelope
+    ImageUploadResponse:
+      $ref: ./components/schemas/Common.yaml#/ImageUploadResponse
+    InventoryItemListResponse:
+      $ref: ./components/schemas/Common.yaml#/InventoryItemListResponse
+    InventoryItemResponse:
+      $ref: ./components/schemas/Common.yaml#/InventoryItemResponse
     Category:
       $ref: ./components/schemas/Category.yaml#/Category
     CategoryReference:
@@ -158,8 +223,6 @@ components:
       $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferListResponse
     CatalogOfferResponse:
       $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferResponse
-    CatalogOfferPatchResponse:
-      $ref: ./components/schemas/CatalogOffer.yaml#/CatalogOfferPatchResponse
     Composition:
       $ref: ./components/schemas/CatalogOffer.yaml#/Composition
     CompositionInput:
@@ -186,20 +249,36 @@ components:
       $ref: ./components/schemas/Recipe.yaml#/RecipeCreateRequest
     RecipePatchRequest:
       $ref: ./components/schemas/Recipe.yaml#/RecipePatchRequest
-    RecipeSupply:
-      $ref: ./components/schemas/Recipe.yaml#/RecipeSupply
-    RecipeSupplyInput:
-      $ref: ./components/schemas/Recipe.yaml#/RecipeSupplyInput
+    RecipeIngredientLine:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeIngredientLine
+    RecipeIngredientLineInput:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeIngredientLineInput
+    RecipeRevision:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeRevision
     RecipeListResponse:
       $ref: ./components/schemas/Recipe.yaml#/RecipeListResponse
     RecipeResponse:
       $ref: ./components/schemas/Recipe.yaml#/RecipeResponse
-    ImageUploadResponse:
-      $ref: ./components/schemas/Common.yaml#/ImageUploadResponse
-    InventoryItemListResponse:
-      $ref: ./components/schemas/Common.yaml#/InventoryItemListResponse
-    InventoryItemResponse:
-      $ref: ./components/schemas/Common.yaml#/InventoryItemResponse
+    RecipeRevisionListResponse:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeRevisionListResponse
+    RecipeRevisionResponse:
+      $ref: ./components/schemas/Recipe.yaml#/RecipeRevisionResponse
+    CatalogEntryPageResponse:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogEntryPageResponse
+    CatalogCategory:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogCategory
+    CatalogCategoryListResponse:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogCategoryListResponse
+    CatalogViewEntry:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogViewEntry
+    CatalogViewOffer:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogViewOffer
+    CatalogViewComposition:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogViewComposition
+    CatalogViewSlot:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogViewSlot
+    CatalogViewOption:
+      $ref: ./components/schemas/Catalog.yaml#/CatalogViewOption
   parameters:
     Page:
       $ref: ./components/parameters.yaml#/Page
@@ -213,6 +292,8 @@ components:
       $ref: ./components/parameters.yaml#/EntryIdQuery
     ExcludeOfferId:
       $ref: ./components/parameters.yaml#/ExcludeOfferId
+    ExcludeArchivedEntries:
+      $ref: ./components/parameters.yaml#/ExcludeArchivedEntries
     EntryStatusQuery:
       $ref: ./components/parameters.yaml#/EntryStatusQuery
     IfMatch:
@@ -224,6 +305,10 @@ components:
   headers:
     ETag:
       $ref: ./components/headers.yaml#/ETag
+    ContentDisposition:
+      $ref: ./components/headers.yaml#/ContentDisposition
+    CacheControlNoStore:
+      $ref: ./components/headers.yaml#/CacheControlNoStore
   responses:
     NotModified:
       $ref: ./components/responses.yaml#/NotModified
@@ -237,6 +322,8 @@ components:
       $ref: ./components/responses.yaml#/ResourceInUse
     PreconditionFailed:
       $ref: ./components/responses.yaml#/PreconditionFailed
+    PreconditionRequired:
+      $ref: ./components/responses.yaml#/PreconditionRequired
     UnprocessableEntity:
       $ref: ./components/responses.yaml#/UnprocessableEntity
     TooManyRequests:
@@ -247,3 +334,11 @@ components:
       $ref: ./components/responses.yaml#/IdempotencyBadRequest
     IdempotencyConflict:
       $ref: ./components/responses.yaml#/IdempotencyConflict
+    DomainConflict:
+      $ref: ./components/responses.yaml#/DomainConflict
+    IdempotencyOrDomainConflict:
+      $ref: ./components/responses.yaml#/IdempotencyOrDomainConflict
+    NotAcceptable:
+      $ref: ./components/responses.yaml#/NotAcceptable
+    PrintableMenuPdf:
+      $ref: ./components/responses.yaml#/PrintableMenuPdf

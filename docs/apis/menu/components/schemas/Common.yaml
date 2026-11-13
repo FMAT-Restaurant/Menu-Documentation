@@ -31,7 +31,7 @@ PageMeta:
 
 Image:
   type: object
-  description: Imagen de catálogo y sus URL de visualización.
+  description: Imagen de una entrada u oferta; su id queda fijo desde la creación del recurso y el archivo se cambia reemplazándolo.
   required: [id, url, thumbnailUrl]
   properties:
     id:
@@ -56,25 +56,40 @@ Image:
 
 InventoryItem:
   type: object
-  description: Insumo de inventario referenciado por una receta u opción de una composición.
+  description: Artículo de Inventario según el contrato de Inventario, referenciado por líneas de ingrediente y opciones.
   required: [id, name, unit]
   properties:
     id:
       type: string
-      description: Identificador opaco del insumo como string, sin formato UUID requerido.
+      description: Identificador opaco del artículo según el contrato de Inventario, sin formato UUID requerido.
       example: CARNE-150G
     name:
       type: string
-      description: Nombre legible del insumo.
+      description: Nombre del artículo según el contrato de Inventario.
       example: Carne Molida Res 80/20
     unit:
       type: string
-      description: Unidad usada para expresar la cantidad del insumo.
+      description: Unidad de medida que Inventario establece para el artículo; es la única unidad de las cantidades que Menu referencia.
       example: g
   example:
     id: CARNE-150G
     name: Carne Molida Res 80/20
     unit: g
+
+DomainErrorCode:
+  type: string
+  description: Código estable de la regla de dominio incumplida. Los códigos de 409 se devuelven en error.code y los de 422 en error.details.violations[].code.
+  enum:
+    - CATEGORY_NAME_TAKEN
+    - ENTRY_ARCHIVED
+    - ENTRY_NOT_ARCHIVED
+    - OFFER_NOT_INACTIVE
+    - IMAGE_ALREADY_ASSOCIATED
+    - IMAGE_OWNER_ARCHIVED
+    - RECIPE_IN_USE
+    - SOURCE_TYPE_IMMUTABLE
+    - DUPLICATE_OPTION_CONTENT
+    - DUPLICATE_INVENTORY_ITEM
 
 Error:
   type: object
@@ -84,6 +99,9 @@ Error:
     message:
       type: string
       description: Explicación del error para quien consume la API.
+    code:
+      $ref: '#/DomainErrorCode'
+      description: Código de la regla de dominio incumplida, cuando aplica.
     details:
       type: object
       description: Datos adicionales opcionales y específicos de la respuesta de error.
@@ -102,6 +120,8 @@ ValidationViolation:
       type: string
       description: Explicación de la regla de validación incumplida por el campo.
       example: El nombre es obligatorio.
+    code:
+      $ref: '#/DomainErrorCode'
   example:
     path: /name
     message: El nombre es obligatorio.
@@ -154,6 +174,53 @@ ErrorEnvelope:
     error:
       $ref: '#/Error'
 
+DomainConflictEnvelope:
+  type: object
+  description: Rechazo 409 por una regla de dominio; error.code identifica la regla y no se aplican cambios.
+  required: [error]
+  properties:
+    error:
+      type: object
+      required: [message, code]
+      properties:
+        message:
+          type: string
+          description: Explicación del error para quien consume la API.
+        code:
+          type: string
+          enum: [CATEGORY_NAME_TAKEN, ENTRY_ARCHIVED, ENTRY_NOT_ARCHIVED, OFFER_NOT_INACTIVE, IMAGE_ALREADY_ASSOCIATED, IMAGE_OWNER_ARCHIVED, RECIPE_IN_USE]
+        details:
+          type: object
+          additionalProperties: true
+  example:
+    error:
+      message: La entrada está archivada y no admite esta operación.
+      code: ENTRY_ARCHIVED
+
+IdempotencyConflictEnvelope:
+  type: object
+  description: Rechazo 409 de idempotencia; error.details.code identifica el caso.
+  required: [error]
+  properties:
+    error:
+      type: object
+      required: [message, details]
+      properties:
+        message:
+          type: string
+        details:
+          type: object
+          required: [code]
+          properties:
+            code:
+              type: string
+              enum: [IDEMPOTENCY_KEY_REUSED, IDEMPOTENCY_IN_PROGRESS]
+  example:
+    error:
+      message: La clave de idempotencia ya está vinculada a una solicitud diferente.
+      details:
+        code: IDEMPOTENCY_KEY_REUSED
+
 ImageUploadResponse:
   type: object
   description: Respuesta de una carga de imagen exitosa.
@@ -178,7 +245,7 @@ InventoryItemResponse:
 InventoryItemListResponse:
   type: array
   description: >-
-    Lista plana, sin paginación, de insumos de Inventario que coinciden con la
+    Lista plana, sin paginación, de artículos de Inventario que coinciden con la
     búsqueda `q`. Cada elemento puede traer campos adicionales no documentados
     que se ignoran; solo interesan `id`, `name` y `unit`.
   items:

@@ -1,16 +1,29 @@
 # Reglas generales del catálogo
 
-Este documento reúne los requisitos que se aplican a todo el catálogo: capacidades de administración y de consulta, control de concurrencia por versión, datos obligatorios, estado administrativo y atomicidad de las operaciones. El índice completo de requisitos se encuentra en [`../functional-requirements.md`](../functional-requirements.md).
+Este documento reúne los requisitos que se aplican a todo el catálogo: permisos de las operaciones, control de concurrencia por versión, datos obligatorios, estado administrativo y atomicidad de las operaciones. El índice completo de requisitos se encuentra en [`../functional-requirements.md`](../functional-requirements.md).
 
-### RF-GEN-01 — Capacidades de administración y de consulta
+### RF-GEN-01 — Permisos de las operaciones
 
-- **Requisito:** El sistema deberá distinguir la capacidad de administrar el catálogo de la capacidad de consultarlo y permitir las operaciones administrativas solo a quien tenga la primera.
+- **Requisito:** El sistema deberá permitir cada operación del catálogo solo a quien tenga el permiso que la protege.
 - **Criterios de aceptación:**
-  - **RF-GEN-01.CA1:** Existen dos capacidades: la capacidad de administrar el catálogo y la capacidad de consultarlo.
-  - **RF-GEN-01.CA2:** Toda operación administrativa (crear, editar, cambiar el estado administrativo, actualizar o copiar una composición, eliminar, cargar una imagen, reemplazar el archivo de una imagen, consultar con visibilidad administrativa, consultar el historial de recetas o generar la carta imprimible) se rechaza sin cambios cuando quien la solicita no tiene la capacidad de administrar el catálogo.
-  - **RF-GEN-01.CA3:** Quien solo tiene la capacidad de consultar accede a la consulta del catálogo con la visibilidad de RF-CONS-01 y a la búsqueda de RF-CONS-03.
-  - **RF-GEN-01.CA4:** La autenticación de quien solicita una operación y la asignación de capacidades corresponden a un servicio externo; Menu no autentica ni asigna capacidades.
-- **Relacionados:** [OPEN-013](../open.md#open-013--capacidades-más-finas).
+  - **RF-GEN-01.CA1:** Cada operación del catálogo está protegida por uno o más de los permisos de RF-GEN-01.CA5, y Menu exige esos permisos para realizarla.
+  - **RF-GEN-01.CA2:** Una operación solicitada sin el permiso que la protege se rechaza sin cambios.
+  - **RF-GEN-01.CA3:** Una modificación que combina un cambio de estado administrativo con otros cambios exige tanto el permiso de cambio de estado del recurso como el de su gestión.
+  - **RF-GEN-01.CA4:** Los permisos llegan en la credencial de quien solicita la operación, emitida por un servicio externo; Menu no autentica a quien solicita ni asigna permisos.
+  - **RF-GEN-01.CA5:** Los permisos, con su etiqueta y la capacidad que conceden, son los siguientes:
+    - «Ver catálogo»: consultar el catálogo con la visibilidad de RF-CONS-01, incluidas la búsqueda y el filtrado de RF-CONS-03.
+    - «Imprimir carta»: generar la carta imprimible conforme a RF-CONS-06.
+    - «Ver categorías»: consultar las categorías con visibilidad administrativa.
+    - «Gestionar categorías»: crear, editar y eliminar categorías.
+    - «Ver entradas»: consultar las entradas en cualquier estado administrativo.
+    - «Gestionar entradas»: crear entradas, editar sus datos y eliminarlas.
+    - «Cambiar estado de entradas»: activar, inactivar, archivar y desarchivar entradas.
+    - «Ver ofertas»: consultar las ofertas y su composición con visibilidad administrativa.
+    - «Gestionar ofertas»: crear, editar y eliminar ofertas y actualizar su composición, incluida la copia de composición.
+    - «Cambiar estado de ofertas»: activar e inactivar ofertas y opciones.
+    - «Ver recetas»: consultar las recetas de la biblioteca y su historial de revisiones.
+    - «Gestionar recetas»: crear, editar y eliminar recetas.
+    - «Gestionar imágenes»: cargar imágenes y reemplazar su archivo.
 
 ### RF-GEN-02 — Control de concurrencia por versión
 
@@ -30,7 +43,7 @@ Este documento reúne los requisitos que se aplican a todo el catálogo: capacid
   - **RF-GEN-03.CA3:** En una entrada, son obligatorios el nombre comercial, la descripción y la imagen; las categorías son opcionales.
   - **RF-GEN-03.CA4:** En una oferta, son obligatorios la etiqueta de presentación, el precio base, la imagen y la composición inicial.
   - **RF-GEN-03.CA5:** En un grupo de selección nuevo, son obligatorios el nombre, el número de rondas y al menos una opción; el tiempo de servicio es opcional.
-  - **RF-GEN-03.CA6:** En una opción nueva, son obligatorios el nombre mostrado y el origen de contenido, y el estado administrativo no se indica, conforme a RF-OPC-01.CA2; el contenido directo de Inventario exige el artículo y la cantidad, y la receta exige el identificador de la receta o una receta nueva.
+  - **RF-GEN-03.CA6:** En una opción nueva, son obligatorios el nombre mostrado y el origen de contenido, y el estado administrativo es opcional conforme a RF-OPC-01.CA2; el contenido directo de Inventario exige el artículo y la cantidad, y la receta exige el identificador de la receta o una receta nueva.
   - **RF-GEN-03.CA7:** En una receta, son obligatorios el nombre, la descripción y las instrucciones; las líneas de ingrediente se exigen conforme a RF-REC-01.CA3, y cada línea de ingrediente exige el artículo y la cantidad.
   - **RF-GEN-03.CA8:** La única excepción a la exigencia de texto no vacío es la descripción opcional de la categoría, que se elimina cuando se edita con un valor vacío, conforme a RF-CAT-02.CA3.
   - **RF-GEN-03.CA9:** Ningún nombre ni etiqueta del catálogo exige unicidad, salvo el nombre de categoría conforme a RF-CAT-01.CA3: los nombres comerciales, las etiquetas de presentación, los nombres de grupo, los nombres mostrados y los nombres de receta pueden repetirse.

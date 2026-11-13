@@ -106,15 +106,15 @@ Este documento reúne los requisitos de la composición de una oferta: su valide
 
 ### RF-COMP-12 — Copia de composición desde otra oferta
 
-- **Requisito:** El sistema deberá permitir al administrador agregar a la composición de una oferta copias de los grupos de selección y opciones de otra oferta del catálogo.
+- **Requisito:** El sistema deberá permitir al administrador incorporar a una oferta copias de los grupos de selección y opciones de otra oferta del catálogo, enviadas como grupos y opciones nuevos.
 - **Criterios de aceptación:**
-  - **RF-COMP-12.CA1:** Puede servir de origen cualquier oferta salvo la propia oferta destino y las ofertas de entradas archivadas; otro origen se rechaza.
-  - **RF-COMP-12.CA2:** La copia agrega a la composición destino copias locales y editables de los grupos y opciones de la oferta origen; su independencia respecto del origen se rige por RF-COMP-12.CA6.
-  - **RF-COMP-12.CA3:** La copia conserva los grupos que ya tenía la composición destino.
-  - **RF-COMP-12.CA4:** Las opciones copiadas conservan el estado administrativo que tenían en la oferta origen; es una excepción a RF-OPC-01.CA2, según la cual una opción nueva inicia activa.
+  - **RF-COMP-12.CA1:** Quien configura obtiene los grupos de selección y las opciones de la oferta origen mediante la consulta administrativa de ofertas, y elige el origen conforme a RF-CONS-04.CA5.
+  - **RF-COMP-12.CA2:** La copia se envía como grupos de selección y opciones nuevos, sin identificadores, al crear la oferta destino conforme a RF-OFE-01.CA4 o al actualizar su composición conforme a RF-COMP-09 y RF-OPC-01; no existe una operación de copia distinta, y las copias son locales y editables, con la independencia de RF-COMP-12.CA6.
+  - **RF-COMP-12.CA3:** Para conservar los grupos que ya tenía la composición destino, la actualización los incluye junto con los grupos copiados, conforme a RF-COMP-11.CA1.
+  - **RF-COMP-12.CA4:** Las opciones copiadas se envían con el estado administrativo que tenían en la oferta origen y lo conservan, conforme a RF-OPC-01.CA2.
   - **RF-COMP-12.CA5:** Las opciones con receta copiadas referencian la misma receta y usan su revisión vigente conforme a RF-OPC-09.CA2; las opciones con contenido directo de Inventario copiadas conservan el artículo y la cantidad.
   - **RF-COMP-12.CA6:** La oferta destino no conserva el identificador ni una referencia a la oferta origen, y los cambios posteriores en cualquiera de las dos no se sincronizan.
-  - **RF-COMP-12.CA7:** La copia no incorpora el precio base de la oferta origen.
-  - **RF-COMP-12.CA8:** La copia exige la versión vigente de la composición destino conforme a RF-GEN-02.CA4 y es íntegra conforme a RF-GEN-05.CA1.
-  - **RF-COMP-12.CA9:** La copia recalcula la disponibilidad de las opciones copiadas, de los grupos, de la oferta destino y de su entrada conforme a RF-DISP-06.CA3.
+  - **RF-COMP-12.CA7:** La copia no incorpora el precio base, la etiqueta de presentación ni la imagen de la oferta origen.
+  - **RF-COMP-12.CA8:** Cuando la copia se envía en una actualización de la composición, exige la versión vigente de la composición destino conforme a RF-GEN-02.CA4; en todos los casos es íntegra conforme a RF-GEN-05.CA1.
+  - **RF-COMP-12.CA9:** La copia recalcula la disponibilidad de las opciones copiadas, de los grupos, de la oferta destino y de su entrada conforme a RF-DISP-06.CA3, como toda actualización de la composición según RF-COMP-08.CA6.
 - **Relacionados:** [OPEN-011](../open.md#open-011--contrato-de-eventos-con-inventario) (disponibilidad inicial de opciones copiadas).

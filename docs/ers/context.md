@@ -106,7 +106,7 @@ Todo grupo de selección participa en la selección y genera el número de ronda
 - Menu no registra auditoría de los cambios administrativos (autor, fecha, valores anteriores); Órdenes conserva su propia copia de los datos de la oferta al aceptar la orden. El historial de revisiones de recetas (RF-REC-05) no es una auditoría.
 - Menu no emite eventos de cambios del catálogo a sus consumidores, que obtienen los datos mediante consulta bajo demanda conforme a RF-CONS-05.CA1.
 - Las longitudes máximas y los formatos de los textos, la idempotencia de los reintentos y la paginación de las consultas pertenecen al contrato de API.
-- La autenticación de quien solicita y la asignación de capacidades corresponden a un servicio externo, conforme a RF-GEN-01.CA4.
+- La autenticación de quien solicita y la asignación de permisos corresponden a un servicio externo, conforme a RF-GEN-01.CA4.
 
 ## Glosario del dominio
 
@@ -146,12 +146,12 @@ Cada término remite al requisito que lo regula; la norma se enuncia solo en ese
 - **Existencias:** cantidad física de un artículo que administra Inventario y no Menu (RF-INTG-02).
 - **Imagen (identificador de la imagen):** archivo cargado de forma previa que se asocia a una entrada o a una oferta mediante su identificador (RF-IMG-01, RF-IMG-03).
 - **Reemplazo del archivo de una imagen:** operación que sustituye el archivo de una imagen existente; el identificador de la imagen no cambia (RF-IMG-05).
-- **Capacidad de administrar y capacidad de consultar:** permisos que distinguen al administrador de quien consulta el catálogo (RF-GEN-01).
+- **Permiso:** autorización para realizar una operación del catálogo, con una etiqueta y la capacidad que concede; llega en la credencial emitida por un servicio externo (RF-GEN-01).
 - **Versión del recurso:** dato que identifica el estado vigente de un recurso y que se indica en cada modificación o eliminación (RF-GEN-02).
 
 ## Tabla de correspondencia técnica
 
-Esta tabla y la vista técnica de [`architechture.md`](architechture.md) son los únicos lugares de la ERS con nombres de código. La unidad de medida es solo la del artículo de Inventario: la línea de ingrediente y el contenido directo de Inventario no tienen una unidad propia (RF-OPC-08, RF-REC-02).
+Estas tablas y la vista técnica de [`architechture.md`](architechture.md) son los únicos lugares de la ERS con nombres de código. La unidad de medida es solo la del artículo de Inventario: la línea de ingrediente y el contenido directo de Inventario no tienen una unidad propia (RF-OPC-08, RF-REC-02).
 
 | Término formal | Nombre técnico |
 | :--- | :--- |
@@ -182,3 +182,22 @@ Esta tabla y la vista técnica de [`architechture.md`](architechture.md) son los
 | estado administrativo | `status` |
 | activo, inactivo, archivado | `ACTIVE`, `INACTIVE`, `ARCHIVED` |
 | disponibilidad | `isAvailable` |
+| permiso | `permissions` (lista de la credencial) |
+
+La tabla siguiente relaciona cada permiso de RF-GEN-01.CA5 con su nombre técnico y con las operaciones de la API que protege, solo como correspondencia; las operaciones se definen en el contrato de la API.
+
+| Permiso | Nombre técnico | Operaciones de la API |
+| :--- | :--- | :--- |
+| Ver catálogo | `menu:catalog:read` | `GET /menu/catalog`, `GET /menu/catalog/categories` |
+| Imprimir carta | `menu:catalog:print` | `GET /menu/catalog/printable` |
+| Ver categorías | `menu:categories:read` | `GET /menu/categories`, `GET /menu/categories/{categoryId}` |
+| Gestionar categorías | `menu:categories:write` | `POST /menu/categories`, `PATCH /menu/categories/{categoryId}`, `DELETE /menu/categories/{categoryId}` |
+| Ver entradas | `menu:entries:read` | `GET /menu/entries`, `GET /menu/entries/{entryId}` |
+| Gestionar entradas | `menu:entries:write` | `POST /menu/entries`, `PATCH /menu/entries/{entryId}` sin `status`, `DELETE /menu/entries/{entryId}` |
+| Cambiar estado de entradas | `menu:entries:status` | `PATCH /menu/entries/{entryId}` con `status` |
+| Ver ofertas | `menu:offers:read` | `GET /menu/offers`, `GET /menu/offers/{offerId}` |
+| Gestionar ofertas | `menu:offers:write` | `POST /menu/entries/{entryId}/offers`, `PATCH /menu/offers/{offerId}` sin cambios de estado, `DELETE /menu/offers/{offerId}` |
+| Cambiar estado de ofertas | `menu:offers:status` | `PATCH /menu/offers/{offerId}` con `status` de la oferta o de una opción existente |
+| Ver recetas | `menu:recipes:read` | `GET /menu/recipes`, `GET /menu/recipes/{recipeId}`, `GET /menu/recipes/{recipeId}/revisions`, `GET /menu/recipes/{recipeId}/revisions/{revision}` |
+| Gestionar recetas | `menu:recipes:write` | `POST /menu/recipes`, `PATCH /menu/recipes/{recipeId}`, `DELETE /menu/recipes/{recipeId}` |
+| Gestionar imágenes | `menu:images:write` | `POST /menu/media/images`, `GET /menu/media/images/{imageId}`, `PUT /menu/media/images/{imageId}` |

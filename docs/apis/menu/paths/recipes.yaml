@@ -2,9 +2,15 @@ recipes:
   get:
     tags: [Recetas]
     operationId: listMenuRecipes
+    x-required-permission:
+      - menu:recipes:read
     summary: Listar recetas
-    description: Busca recetas por nombre y descripción y devuelve una página
-      con sus insumos y cantidades.
+    description: >-
+      Busca recetas de la biblioteca por nombre y descripción y devuelve una
+      página en orden alfabético por nombre, con su revisión vigente y sus líneas
+      de ingrediente en el orden indicado. Los datos de inventoryItem se leen de
+      Inventario al responder y Menu no los guarda; si Inventario no responde,
+      devuelve 502.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/SearchQuery
       - $ref: ../openapi.yaml#/components/parameters/Page
@@ -22,13 +28,14 @@ recipes:
               $ref: ../openapi.yaml#/components/schemas/RecipeListResponse
             examples:
               recetasEncontradas:
-                summary: Una receta y sus insumos
+                summary: Una receta y sus líneas de ingrediente
                 value:
                   data:
                     - id: c4813f65-00b4-4921-874e-03c555796401
+                      revision: 1
                       name: Hamburguesa Hawaiana
                       description: Carne, jamón, queso y piña.
-                      supplies:
+                      ingredients:
                         - inventoryItemId: CARNE-150G
                           quantity: 200
                           inventoryItem:
@@ -48,16 +55,23 @@ recipes:
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
   post:
     tags: [Recetas]
     operationId: createMenuRecipe
+    x-required-permission:
+      - menu:recipes:write
     summary: Crear una receta
     description: >-
-      Crea una receta con sus insumos y cantidades. Cada inventoryItemId debe
-      referirse a un artículo de inventario existente; una referencia inexistente
-      o inválida devuelve 422. Si falla la consulta a Inventario necesaria para
-      validar los insumos, devuelve 502 sin crear la receta ni aplicar cambios
-      parciales.
+      Crea una receta en la biblioteca con la revisión 1. Exige al menos una
+      línea de ingrediente con cantidad positiva expresada en la unidad que
+      Inventario establece para el artículo; las líneas no tienen unidad propia y
+      se conservan en el orden indicado. Un artículo repetido devuelve 422
+      DUPLICATE_INVENTORY_ITEM y un artículo inexistente 422. Si Inventario no
+      responde al validar los artículos, devuelve 502 sin crear la receta. La
+      receta puede crearse desde la configuración de una opción; esa creación es
+      independiente de la oferta que la use después.
       Requiere Idempotency-Key con un UUID generado por el cliente por operación,
       delimitado por el sujeto autenticado, el menú, el método POST y la ruta concreta.
       Durante 24 horas desde la confirmación inicial exitosa, reenviar la misma
@@ -85,12 +99,12 @@ recipes:
             $ref: ../openapi.yaml#/components/schemas/RecipeCreateRequest
           examples:
             recetaHamburguesa:
-              summary: Crear una receta con un insumo
+              summary: Crear una receta con una línea de ingrediente
               value:
                 name: Hamburguesa Hawaiana
                 description: Carne, jamón, queso y piña.
                 instructions: Asar carne, dorar jamón y piña. Montar en pan.
-                supplies:
+                ingredients:
                   - inventoryItemId: CARNE-150G
                     quantity: 200
     responses:
@@ -105,14 +119,15 @@ recipes:
               $ref: ../openapi.yaml#/components/schemas/RecipeResponse
             examples:
               recetaCreada:
-                summary: Receta creada con sus insumos
+                summary: Receta creada con sus líneas de ingrediente
                 value:
                   data:
                     id: c4813f65-00b4-4921-874e-03c555796401
+                    revision: 1
                     name: Hamburguesa Hawaiana
                     description: Carne, jamón, queso y piña.
                     instructions: Asar carne, dorar jamón y piña. Montar en pan.
-                    supplies:
+                    ingredients:
                       - inventoryItemId: CARNE-150G
                         quantity: 200
                         inventoryItem:
@@ -147,14 +162,19 @@ recipeById:
   get:
     tags: [Recetas]
     operationId: getMenuRecipe
+    x-required-permission:
+      - menu:recipes:read
     summary: Consultar una receta
-    description: Devuelve la receta, sus instrucciones y cada insumo con su
-      cantidad y los datos del artículo de inventario asociado.
+    description: >-
+      Devuelve la definición vigente de la receta, con su número de revisión,
+      sus instrucciones y sus líneas de ingrediente; inventoryItem se lee de
+      Inventario al responder (502 si no responde). Una receta eliminada devuelve
+      404; su historial sigue disponible en /revisions.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
     responses:
       '200':
-        description: Detalle de la receta y sus insumos.
+        description: Detalle de la receta y sus líneas de ingrediente.
         headers:
           ETag:
             $ref: ../openapi.yaml#/components/headers/ETag
@@ -168,10 +188,11 @@ recipeById:
                 value:
                   data:
                     id: c4813f65-00b4-4921-874e-03c555796401
+                    revision: 1
                     name: Hamburguesa Hawaiana
                     description: Carne, jamón, queso y piña.
                     instructions: Asar carne, dorar jamón y piña. Montar en pan.
-                    supplies:
+                    ingredients:
                       - inventoryItemId: CARNE-150G
                         quantity: 200
                         inventoryItem:
@@ -188,17 +209,22 @@ recipeById:
         $ref: ../openapi.yaml#/components/responses/NotFound
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
   patch:
     tags: [Recetas]
     operationId: patchMenuRecipe
+    x-required-permission:
+      - menu:recipes:write
     summary: Actualizar una receta
     description: >-
-      Actualiza los campos de la receta incluidos en el cuerpo. Cada
-      inventoryItemId proporcionado debe referirse a un artículo existente;
-      una referencia inexistente o inválida devuelve 422. Si falla la consulta
-      a Inventario necesaria para validar los insumos, devuelve 502 sin modificar
-      la receta ni aplicar cambios parciales. Envíe el ETag leído en If-Match para
-      evitar sobrescribir cambios recientes.
+      Edita la receta creando una revisión nueva con el número siguiente, que
+      pasa a ser la vigente; todas las opciones que la referencian usan esa
+      revisión de inmediato. Una edición sin cambios no crea revisión y devuelve
+      la vigente. Los campos omitidos se conservan; ingredients reemplaza la
+      lista completa y exige al menos una línea. Aplica las mismas validaciones
+      que la creación (422, DUPLICATE_INVENTORY_ITEM; 502 si Inventario no
+      responde). Exige If-Match: su ausencia devuelve 428 y un valor obsoleto 412.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -209,12 +235,12 @@ recipeById:
             $ref: ../openapi.yaml#/components/schemas/RecipePatchRequest
           examples:
             actualizarReceta:
-              summary: Actualizar instrucciones e insumos
+              summary: Actualizar instrucciones y líneas de ingrediente
               value:
                 name: Hamburguesa Hawaiana
                 description: Carne, jamón, queso y piña.
                 instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
-                supplies:
+                ingredients:
                   - inventoryItemId: CARNE-150G
                     quantity: 200
     responses:
@@ -233,10 +259,11 @@ recipeById:
                 value:
                   data:
                     id: c4813f65-00b4-4921-874e-03c555796401
+                    revision: 2
                     name: Hamburguesa Hawaiana
                     description: Carne, jamón, queso y piña.
                     instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
-                    supplies:
+                    ingredients:
                       - inventoryItemId: CARNE-150G
                         quantity: 200
                         inventoryItem:
@@ -253,6 +280,8 @@ recipeById:
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '428':
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
       '502':
@@ -260,19 +289,20 @@ recipeById:
   delete:
     tags: [Recetas]
     operationId: deleteMenuRecipe
+    x-required-permission:
+      - menu:recipes:write
     summary: Eliminar una receta
-    description: Elimina la receta cuando ninguna oferta la referencia. Si está
-      en uso, responde 409 Conflict e incluye los UUID afectados en
-      details.offerIds[]. Envíe el ETag leído en If-Match para confirmar que la
-      receta no cambió.
+    description: >-
+      Elimina la definición vigente si ninguna opción de ninguna oferta la
+      referencia, en cualquier estado administrativo; si alguna la referencia
+      devuelve 409 RECIPE_IN_USE con details.offerIds, sin cambios. El historial
+      de revisiones se conserva y sigue consultable. Exige If-Match: su ausencia
+      devuelve 428 y un valor obsoleto 412.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     responses:
       '204':
-        description: Receta eliminada.
-        headers:
-          ETag:
-            $ref: ../openapi.yaml#/components/headers/ETag
+        description: Receta eliminada; sin cuerpo ni ETag.
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
@@ -283,5 +313,158 @@ recipeById:
         $ref: ../openapi.yaml#/components/responses/ResourceInUse
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '428':
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+recipeRevisions:
+  parameters:
+    - name: recipeId
+      in: path
+      required: true
+      description: UUID de la receta.
+      schema:
+        type: string
+        format: uuid
+        example: c4813f65-00b4-4921-874e-03c555796401
+  get:
+    tags: [Recetas]
+    operationId: listMenuRecipeRevisions
+    x-required-permission:
+      - menu:recipes:read
+    summary: Consultar el historial de revisiones
+    description: >-
+      Devuelve, paginadas y en orden ascendente de número, las revisiones de la
+      receta, incluida la vigente mientras la definición exista. Funciona también
+      cuando la definición vigente se ha eliminado. Una receta que nunca existió
+      devuelve 404. inventoryItem se lee de Inventario (502 si no responde).
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página del historial de revisiones de la receta.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/RecipeRevisionListResponse
+            examples:
+              historialReceta:
+                summary: Dos revisiones de una receta
+                value:
+                  data:
+                    - recipeId: c4813f65-00b4-4921-874e-03c555796401
+                      revision: 1
+                      name: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña.
+                      instructions: Asar carne, dorar jamón y piña. Montar en pan.
+                      ingredients:
+                        - inventoryItemId: CARNE-150G
+                          quantity: 200
+                          inventoryItem:
+                            id: CARNE-150G
+                            name: Carne Molida Res 80/20
+                            unit: g
+                    - recipeId: c4813f65-00b4-4921-874e-03c555796401
+                      revision: 2
+                      name: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña.
+                      instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
+                      ingredients:
+                        - inventoryItemId: CARNE-150G
+                          quantity: 200
+                          inventoryItem:
+                            id: CARNE-150G
+                            name: Carne Molida Res 80/20
+                            unit: g
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 2
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable
+
+recipeRevisionByNumber:
+  parameters:
+    - name: recipeId
+      in: path
+      required: true
+      description: UUID de la receta.
+      schema:
+        type: string
+        format: uuid
+        example: c4813f65-00b4-4921-874e-03c555796401
+    - name: revision
+      in: path
+      required: true
+      description: Número de revisión.
+      schema:
+        type: integer
+        minimum: 1
+        example: 2
+  get:
+    tags: [Recetas]
+    operationId: getMenuRecipeRevision
+    x-required-permission:
+      - menu:recipes:read
+    summary: Consultar una revisión de la receta
+    description: >-
+      Devuelve una revisión del historial, también si la definición vigente se
+      ha eliminado; una revisión inexistente devuelve 404.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Revisión solicitada de la receta.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/RecipeRevisionResponse
+            examples:
+              revisionReceta:
+                summary: Revisión 2 de una receta
+                value:
+                  data:
+                    recipeId: c4813f65-00b4-4921-874e-03c555796401
+                    revision: 2
+                    name: Hamburguesa Hawaiana
+                    description: Carne, jamón, queso y piña.
+                    instructions: Asar la carne; dorar el jamón y la piña; montar en pan.
+                    ingredients:
+                      - inventoryItemId: CARNE-150G
+                        quantity: 200
+                        inventoryItem:
+                          id: CARNE-150G
+                          name: Carne Molida Res 80/20
+                          unit: g
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+      '502':
+        $ref: ../openapi.yaml#/components/responses/InventoryUnavailable

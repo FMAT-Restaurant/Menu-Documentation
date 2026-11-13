@@ -7,7 +7,7 @@ Este documento reúne los requisitos sobre las opciones de los grupos de selecci
 - **Requisito:** El sistema deberá permitir al administrador agregar opciones nuevas a un grupo de selección.
 - **Criterios de aceptación:**
   - **RF-OPC-01.CA1:** Una opción nueva se indica sin identificador y el sistema le asigna uno.
-  - **RF-OPC-01.CA2:** Toda opción nueva inicia activa y su estado administrativo no se indica al crearla; las opciones creadas por copia siguen la excepción de RF-COMP-12.CA4.
+  - **RF-OPC-01.CA2:** Toda opción nueva inicia activa, salvo que se indique otro estado administrativo al crearla.
   - **RF-OPC-01.CA3:** Los datos obligatorios de la opción nueva son los establecidos en RF-GEN-03.CA6.
 
 ### RF-OPC-02 — Modificación de una opción

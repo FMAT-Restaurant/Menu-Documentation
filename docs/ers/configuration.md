@@ -4,15 +4,15 @@
 | :--- | :--- |
 | Documento | Especificación de Requisitos y Dominio del Servicio Menu |
 | Servicio | Menu (Sistema de Comandas para Restaurantes) |
-| Versión | 3.1.0 (Consolidada Vigente) |
+| Versión | 3.2.0 (Consolidada Vigente) |
 | Estado | Vigente / En Revisión con Cuestiones Abiertas Pendientes |
-| Fecha | 2026-11-12 |
+| Fecha | 2026-11-13 |
 
 ## Identificación y Propósito
 
 Este documento fija la versión, las fuentes de autoridad y el alcance de la especificación vigente para el servicio **Menu**.
 
-La versión **3.1.0** (fecha 2026-11-12) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos para la disponibilidad y las recetas; el contrato de esos eventos queda pendiente en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
+La versión **3.2.0** (fecha 2026-11-13) fija como autoridad normativa los documentos de esta ERS en `docs/ers/`; el [modelo conceptual de referencia](../other/md/domain-model.md) aporta contexto y no es normativo. Los requisitos funcionales comprenden 75 requisitos atómicos agrupados en 11 áreas y distribuidos en 10 archivos de `requirements/`, cuyo índice es [`functional-requirements.md`](functional-requirements.md); cada requisito tiene criterios de aceptación identificados que expresan las reglas del dominio. Cada entrada, oferta y opción tiene un estado administrativo, que decide si se muestra a quien consulta el catálogo y que solo cambia el administrador, y una disponibilidad derivada, que decide si se puede ordenar y que el sistema recalcula sin intervención manual. Menu valida de forma síncrona con Inventario cada artículo que se referencia y se comunica con él mediante eventos para la disponibilidad y las recetas; el contrato de esos eventos queda pendiente en OPEN-011. Quienes consumen el catálogo lo consultan bajo demanda: Menu no emite eventos de catálogo ni audita los cambios administrativos.
 
 ## Alcance operativo vigente
 
@@ -39,13 +39,20 @@ Las fuentes siguientes registran el análisis y las decisiones del proyecto. El 
 
 La especificación vigente se aplica con este orden de autoridad:
 
-- Los documentos normativos de esta ERS en `docs/ers/` son la autoridad normativa del dominio del catálogo y de sus requisitos: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md) (índice y archivos por área en `requirements/`), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos y sus criterios de aceptación vigentes rigen la especificación; OPEN-005 está resuelta en RF-IMG-01..05. El [contrato de API existente](https://fmat-restaurant.github.io/Menu-Documentation/api/) define operaciones administrativas; su alineación integral y la cobertura de operaciones y representaciones faltantes siguen pendientes bajo OPEN-010.
+- Los documentos normativos de esta ERS en `docs/ers/` son la autoridad normativa del dominio del catálogo y de sus requisitos: [arquitectura](architechture.md), [requisitos funcionales](functional-requirements.md) (índice y archivos por área en `requirements/`), [requisitos no funcionales](non-functional-requirements.md), [cuestiones abiertas](open.md) y [trazabilidad](traceability.md). Los requisitos y sus criterios de aceptación vigentes rigen la especificación; OPEN-005 está resuelta en RF-IMG-01..05. El [contrato de API](https://fmat-restaurant.github.io/Menu-Documentation/api/), en su versión 8.0.0, está alineado con esta ERS; OPEN-010 se cerró en la versión 3.2.0.
 - El [modelo conceptual de referencia](../other/md/domain-model.md) aporta el contexto del dominio que sirvió de base a esta ERS: entidades, relaciones, reglas de composición, contenido, recetas, precios declarados y límites con otros contextos. No es normativo; donde difiera de los documentos de la ERS, prevalece la ERS.
 - Las fuentes históricas enumeradas arriba aportan contexto sobre la evolución y las decisiones del proyecto; no constituyen norma vigente ni prevalecen sobre los documentos normativos de la ERS.
 
 ## Registro de cambios
 
 Cada versión registra brevemente lo que cambia: lo que había antes y lo que hay ahora.
+
+### 3.2.0 (2026-11-13)
+
+- **Permisos:** Antes: dos capacidades, administrar y consultar el catálogo, con la definición de capacidades más finas pendiente en OPEN-013. → Ahora: cada operación exige un permiso de la lista de RF-GEN-01, con permisos separados de consulta, de gestión y de cambio de estado por recurso; una modificación que mezcla un cambio de estado con otros cambios exige ambos permisos, y los permisos llegan en la credencial emitida por un servicio externo.
+- **Copia de composición:** Antes: operación propia del sistema, en la que las opciones copiadas eran una excepción al estado inicial activo. → Ahora: quien configura arma la copia con la consulta administrativa y la envía como grupos y opciones nuevos (RF-COMP-12); una opción nueva puede indicar su estado administrativo (RF-OPC-01.CA2) y la exclusión de las ofertas de entradas archivadas como origen pasa a RF-CONS-04.CA5.
+- **Requisitos:** Antes: 75 requisitos funcionales y 287 criterios de aceptación. → Ahora: 75 requisitos funcionales y 291 criterios; RF-GEN-01 pasa a 5 criterios, RF-CONS-01 a 5 y RF-CONS-04 a 6, y las consultas citan su permiso.
+- **Cuestiones abiertas:** Antes: 9. → Ahora: 7; se cierran OPEN-010, porque el contrato de la API 8.0.0 queda alineado con la ERS, y OPEN-013, resuelta por los permisos de RF-GEN-01.
 
 ### 3.1.0 (2026-11-12)
 

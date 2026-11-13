@@ -1,0 +1,166 @@
+CatalogEntryPageResponse:
+  type: object
+  description: Página de entradas ACTIVE del catálogo visible para quien consulta, en orden alfabético por nombre comercial.
+  required: [data, meta]
+  properties:
+    data:
+      type: array
+      items:
+        $ref: '#/CatalogViewEntry'
+    meta:
+      $ref: 'Common.yaml#/PageMeta'
+
+CatalogCategory:
+  type: object
+  description: Categoría del menú tal como se presenta en el catálogo visible.
+  required: [id, name, entryCount]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la categoría.
+    name:
+      type: string
+      description: Nombre de la categoría.
+    description:
+      type: string
+      description: Explicación breve opcional de la categoría; si no existe, se omite.
+    entryCount:
+      type: integer
+      minimum: 0
+      description: Número de entradas ACTIVE que clasifica la categoría; no cuenta entradas INACTIVE ni ARCHIVED.
+
+CatalogCategoryListResponse:
+  type: object
+  description: Categorías del menú visibles en el catálogo y conteo de la agrupación «sin categoría».
+  required: [data, uncategorized]
+  properties:
+    data:
+      type: array
+      description: Categorías del menú en orden alfabético, incluidas las que no clasifican entradas.
+      items:
+        $ref: '#/CatalogCategory'
+    uncategorized:
+      type: object
+      required: [entryCount]
+      properties:
+        entryCount:
+          type: integer
+          minimum: 0
+          description: Número de entradas ACTIVE sin categorías (agrupación «sin categoría»).
+
+CatalogViewEntry:
+  type: object
+  description: Entrada ACTIVE tal como se presenta en el catálogo visible.
+  required: [id, brandName, description, image, categoryIds, isAvailable, offers]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la entrada.
+    brandName:
+      type: string
+      description: Nombre comercial de la entrada.
+    description:
+      type: string
+      description: Descripción de la entrada.
+    image:
+      $ref: 'Common.yaml#/Image'
+    categoryIds:
+      type: array
+      uniqueItems: true
+      description: Identificadores UUID de las categorías que clasifican la entrada; si está vacío, la entrada pertenece a la agrupación «sin categoría».
+      items:
+        type: string
+        format: uuid
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: Disponibilidad derivada; si es false, el elemento se presenta deshabilitado y no se puede ordenar ni elegir.
+    offers:
+      type: array
+      description: Ofertas ACTIVE en orden alfabético por etiqueta de presentación.
+      items:
+        $ref: '#/CatalogViewOffer'
+
+CatalogViewOffer:
+  type: object
+  description: Oferta ACTIVE de una entrada tal como se presenta en el catálogo visible.
+  required: [id, presentationTag, basePrice, image, isAvailable, composition]
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Identificador UUID de la oferta.
+    presentationTag:
+      type: string
+      description: Etiqueta de presentación de la oferta.
+    basePrice:
+      type: number
+      description: Precio base de la oferta.
+    image:
+      $ref: 'Common.yaml#/Image'
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: Disponibilidad derivada; si es false, el elemento se presenta deshabilitado y no se puede ordenar ni elegir.
+    composition:
+      $ref: '#/CatalogViewComposition'
+
+CatalogViewComposition:
+  type: object
+  description: Composición de la oferta tal como se presenta en el catálogo visible.
+  required: [slots]
+  properties:
+    slots:
+      type: array
+      minItems: 1
+      description: Grupos de selección en el orden de presentación y de sus rondas.
+      items:
+        $ref: '#/CatalogViewSlot'
+
+CatalogViewSlot:
+  type: object
+  description: Grupo de selección de la composición tal como se presenta en el catálogo visible.
+  required: [slotId, name, quantity, isAvailable, options]
+  properties:
+    slotId:
+      type: string
+      format: uuid
+      description: Identificador UUID del grupo de selección.
+    name:
+      type: string
+      description: Nombre del grupo de selección.
+    quantity:
+      type: number
+      description: Número de rondas.
+    course:
+      type: string
+      enum: [entrada, plato fuerte, postre, bebida]
+      description: Tiempo de servicio sugerido.
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: Disponibilidad derivada; si es false, el elemento se presenta deshabilitado y no se puede ordenar ni elegir.
+    options:
+      type: array
+      description: Solo las opciones ACTIVE, en el orden de presentación.
+      items:
+        $ref: '#/CatalogViewOption'
+
+CatalogViewOption:
+  type: object
+  description: Opción ACTIVE de un grupo de selección tal como se presenta en el catálogo visible.
+  required: [optionId, displayName, isAvailable]
+  properties:
+    optionId:
+      type: string
+      format: uuid
+      description: Identificador UUID de la opción.
+    displayName:
+      type: string
+      description: Nombre mostrado de la opción.
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: Disponibilidad derivada; si es false, el elemento se presenta deshabilitado y no se puede ordenar ni elegir.

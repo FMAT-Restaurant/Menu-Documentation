@@ -2,6 +2,8 @@ images:
   post:
     tags: [Imágenes]
     operationId: uploadMenuImage
+    x-required-permission:
+      - menu:images:write
     summary: Subir una imagen
     description: >-
       Sube el archivo del campo file mediante multipart/form-data. Acepta JPEG,
@@ -9,11 +11,12 @@ images:
       4096 px cada uno. Valida el contenido real y su decodificación, además del
       tipo declarado. Solo tras validar la carga, el servidor genera el UUID y
       devuelve data.id, data.url y data.thumbnailUrl. El cliente utiliza data.id
-      como imageId en las solicitudes JSON de creación o edición de entradas y
-      ofertas, sin reenviar el archivo. La carga y la asociación son operaciones
+      como imageId en las solicitudes JSON de creación de entradas y ofertas; el
+      identificador queda ligado al recurso y no se cambia después. La carga y
+      la asociación son operaciones
       separadas: cargar una imagen no crea una entrada ni una oferta. Una imagen
-      inválida devuelve 422 sin crear una imagen utilizable ni modificar un
-      recurso existente o su revisión.
+      inválida devuelve 422 sin crear una imagen utilizable ni modificar ningún
+      recurso ni imagen existentes.
       Requiere Idempotency-Key con un UUID generado por el cliente para la carga
       lógica, delimitado por el sujeto autenticado, el menú, el método POST y la
       ruta concreta. Durante 24 horas desde la confirmación inicial exitosa,
@@ -91,5 +94,135 @@ images:
         $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+
+imageById:
+  parameters:
+    - name: imageId
+      in: path
+      required: true
+      description: UUID de la imagen.
+      schema:
+        type: string
+        format: uuid
+        example: 55e62412-9249-4db6-8ccb-31f19ea2f501
+  get:
+    tags: [Imágenes]
+    operationId: getMenuImage
+    x-required-permission:
+      - menu:images:write
+    summary: Consultar una imagen
+    description: >-
+      Devuelve la imagen y su ETag vigente, que se envía en If-Match para
+      reemplazar su archivo. Exige menu:images:write porque solo sirve para
+      preparar ese reemplazo.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Imagen solicitada.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ImageUploadResponse
+            examples:
+              imagen:
+                summary: Imagen consultada
+                value:
+                  data:
+                    id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                    url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                    thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+  put:
+    tags: [Imágenes]
+    operationId: replaceMenuImageFile
+    x-required-permission:
+      - menu:images:write
+    summary: Reemplazar el archivo de una imagen
+    description: >-
+      Reemplaza el archivo de la imagen conservando su identificador (RF-IMG-05).
+      El archivo nuevo se recibe en el campo file de multipart/form-data y se
+      valida igual que en la carga: JPEG, PNG o WebP de hasta 10 MiB (10485760
+      bytes), con ancho y alto máximos de 4096 px, validando el contenido real y
+      su decodificación. Exige If-Match con el ETag vigente de la imagen: su
+      ausencia devuelve 428 y un ETag obsoleto 412. Un reemplazo aceptado
+      devuelve 200 con el mismo data.id, data.url y data.thumbnailUrl del
+      archivo nuevo y un ETag nuevo; el archivo anterior se elimina. Un archivo
+      inválido devuelve 422 y conserva sin cambios el archivo vigente. Si la
+      imagen pertenece a una entrada archivada o a una oferta de una entrada
+      archivada, devuelve 409 IMAGE_OWNER_ARCHIVED sin cambios. No requiere
+      Idempotency-Key: If-Match impide aplicar dos veces el mismo reemplazo.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfMatch
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            additionalProperties: false
+            required: [file]
+            properties:
+              file:
+                type: string
+                format: binary
+                description: >-
+                  Archivo JPEG, PNG o WebP de hasta 10 MiB (10485760 bytes), con
+                  ancho y alto máximos de 4096 px cada uno. Su contenido real debe
+                  ser válido y decodificable, además de coincidir con el tipo declarado.
+          encoding:
+            file:
+              contentType: image/jpeg, image/png, image/webp
+          examples:
+            archivoNuevo:
+              summary: Archivo nuevo que reemplaza al vigente
+              value:
+                file: hamburguesa-hawaiana-nueva.jpg
+    responses:
+      '200':
+        description: Archivo reemplazado; el identificador no cambia.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/ImageUploadResponse
+            examples:
+              archivoReemplazado:
+                summary: Imagen con el mismo identificador y el archivo nuevo
+                value:
+                  data:
+                    id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                    url: https://cdn.example.com/menu/hamburguesa-hawaiana-v2.jpg
+                    thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-v2-thumb.jpg
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '404':
+        $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        $ref: ../openapi.yaml#/components/responses/DomainConflict
+      '412':
+        $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '422':
+        $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '428':
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests

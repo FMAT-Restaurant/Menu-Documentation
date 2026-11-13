@@ -1,21 +1,21 @@
 # Trazabilidad de requisitos
 
-Este documento relaciona los requisitos de la ERS 3.1.0 del servicio Menu entre sí y con su versión anterior. Contiene tres matrices: la de requisitos funcionales, con el número de criterios de aceptación de cada requisito y sus requisitos no funcionales y cuestiones abiertas relacionados; la de requisitos no funcionales, con los requisitos funcionales que miden; y la de cuestiones abiertas, con los requisitos que cada una afecta. Se completa con la tabla de reglas transversales, que indica el criterio dueño de cada regla y los criterios que la citan, y con la tabla de correspondencia, que asigna a cada identificador de la versión 2.4.1 los requisitos y criterios que lo sustituyen. Los requisitos funcionales se definen en los archivos enlazados desde [`functional-requirements.md`](functional-requirements.md); los no funcionales, en [`non-functional-requirements.md`](non-functional-requirements.md); y las cuestiones abiertas, en [`open.md`](open.md). Las cuestiones abiertas no se tratan como decisiones adoptadas.
+Este documento relaciona los requisitos de la ERS 3.2.0 del servicio Menu entre sí y con su versión anterior. Contiene tres matrices: la de requisitos funcionales, con el número de criterios de aceptación de cada requisito y sus requisitos no funcionales y cuestiones abiertas relacionados; la de requisitos no funcionales, con los requisitos funcionales que miden; y la de cuestiones abiertas, con los requisitos que cada una afecta. Se completa con la tabla de reglas transversales, que indica el criterio dueño de cada regla y los criterios que la citan, y con la tabla de correspondencia, que asigna a cada identificador de la versión 2.4.1 los requisitos y criterios que lo sustituyen. Los requisitos funcionales se definen en los archivos enlazados desde [`functional-requirements.md`](functional-requirements.md); los no funcionales, en [`non-functional-requirements.md`](non-functional-requirements.md); y las cuestiones abiertas, en [`open.md`](open.md). Las cuestiones abiertas no se tratan como decisiones adoptadas.
 
 ## Matriz de requisitos funcionales
 
 | Requisito | Título | Archivo | Nº de criterios | RNF relacionados | OPEN relacionadas |
 | :--- | :--- | :--- | ---: | :--- | :--- |
-| RF-GEN-01 | Capacidades de administración y de consulta | [`transversales.md`](requirements/transversales.md) | 4 | — | OPEN-013 |
+| RF-GEN-01 | Permisos de las operaciones | [`transversales.md`](requirements/transversales.md) | 5 | — | — |
 | RF-GEN-02 | Control de concurrencia por versión | [`transversales.md`](requirements/transversales.md) | 4 | — | — |
 | RF-GEN-03 | Datos obligatorios y textos no vacíos | [`transversales.md`](requirements/transversales.md) | 9 | — | — |
 | RF-GEN-04 | Estado administrativo | [`transversales.md`](requirements/transversales.md) | 7 | — | OPEN-012 |
 | RF-GEN-05 | Atomicidad de las operaciones | [`transversales.md`](requirements/transversales.md) | 3 | — | — |
-| RF-IMG-01 | Carga de una imagen | [`imagenes.md`](requirements/imagenes.md) | 2 | — | OPEN-010 |
+| RF-IMG-01 | Carga de una imagen | [`imagenes.md`](requirements/imagenes.md) | 2 | — | — |
 | RF-IMG-02 | Validación del archivo de imagen | [`imagenes.md`](requirements/imagenes.md) | 6 | — | — |
 | RF-IMG-03 | Asociación de una imagen a una entrada u oferta | [`imagenes.md`](requirements/imagenes.md) | 3 | — | — |
 | RF-IMG-04 | Pertenencia y eliminación de imágenes | [`imagenes.md`](requirements/imagenes.md) | 3 | — | OPEN-014 |
-| RF-IMG-05 | Reemplazo del archivo de una imagen | [`imagenes.md`](requirements/imagenes.md) | 6 | — | OPEN-010 |
+| RF-IMG-05 | Reemplazo del archivo de una imagen | [`imagenes.md`](requirements/imagenes.md) | 6 | — | — |
 | RF-CAT-01 | Creación de una categoría | [`categorias-y-entradas.md`](requirements/categorias-y-entradas.md) | 4 | — | — |
 | RF-CAT-02 | Edición de una categoría | [`categorias-y-entradas.md`](requirements/categorias-y-entradas.md) | 4 | — | — |
 | RF-CAT-03 | Eliminación de una categoría | [`categorias-y-entradas.md`](requirements/categorias-y-entradas.md) | 3 | — | — |
@@ -60,7 +60,7 @@ Este documento relaciona los requisitos de la ERS 3.1.0 del servicio Menu entre 
 | RF-REC-03 | Unidad de medida visible | [`recetas.md`](requirements/recetas.md) | 2 | — | OPEN-006 |
 | RF-REC-04 | Edición de una receta por revisión | [`recetas.md`](requirements/recetas.md) | 6 | — | OPEN-011 |
 | RF-REC-05 | Conservación del historial de revisiones | [`recetas.md`](requirements/recetas.md) | 2 | — | — |
-| RF-REC-06 | Consulta del historial de revisiones | [`recetas.md`](requirements/recetas.md) | 3 | — | OPEN-010 |
+| RF-REC-06 | Consulta del historial de revisiones | [`recetas.md`](requirements/recetas.md) | 3 | — | — |
 | RF-REC-07 | Eliminación de una receta sin referencias | [`recetas.md`](requirements/recetas.md) | 4 | — | — |
 | RF-DISP-01 | Disponibilidad de una opción | [`disponibilidad.md`](requirements/disponibilidad.md) | 3 | — | OPEN-011 |
 | RF-DISP-02 | Disponibilidad de un grupo de selección | [`disponibilidad.md`](requirements/disponibilidad.md) | 1 | — | — |
@@ -73,16 +73,16 @@ Este documento relaciona los requisitos de la ERS 3.1.0 del servicio Menu entre 
 | RF-INTG-03 | Recepción de eventos de factibilidad de recetas | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 5 | — | OPEN-011 |
 | RF-INTG-04 | Recepción de eventos de disponibilidad de artículos | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 4 | — | OPEN-011 |
 | RF-INTG-05 | Emisión de eventos de receta | [`integracion-con-inventario.md`](requirements/integracion-con-inventario.md) | 3 | — | OPEN-011 |
-| RF-CONS-01 | Consulta del catálogo para quien no lo administra | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | OPEN-010 |
+| RF-CONS-01 | Consulta del catálogo para quien no lo administra | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 5 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | — |
 | RF-CONS-02 | Presentación de las ofertas vendibles | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 5 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | — |
-| RF-CONS-03 | Búsqueda y filtrado de entradas | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | OPEN-009, OPEN-010 |
-| RF-CONS-04 | Consulta administrativa del catálogo | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | — | OPEN-010 |
+| RF-CONS-03 | Búsqueda y filtrado de entradas | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | RNF-REND-01, RNF-REND-02, RNF-REND-03 | OPEN-009 |
+| RF-CONS-04 | Consulta administrativa del catálogo | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | — |
 | RF-CONS-05 | Consumo del catálogo bajo demanda | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 2 | — | OPEN-012 |
-| RF-CONS-06 | Generación de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | — | OPEN-010 |
+| RF-CONS-06 | Generación de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 4 | — | — |
 | RF-CONS-07 | Contenido de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | OPEN-001 |
 | RF-CONS-08 | Organización de la carta imprimible | [`consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md) | 6 | — | — |
 
-Total: 75 requisitos funcionales y 287 criterios de aceptación.
+Total: 75 requisitos funcionales y 291 criterios de aceptación.
 
 ## Matriz de requisitos no funcionales
 
@@ -102,10 +102,8 @@ Los tres requisitos no funcionales miden solo la consulta, la búsqueda y el fil
 | [OPEN-003](open.md#open-003--alcance-de-la-biblioteca-de-recetas) | Alcance de la biblioteca de recetas | RF-REC-01 |
 | [OPEN-006](open.md#open-006--cantidades-y-unidades) | Cantidades y unidades | RF-COMP-03, RF-OPC-08, RF-REC-02, RF-REC-03 |
 | [OPEN-009](open.md#open-009--distribución-de-carga-del-perfil-nominal) | Distribución de carga del perfil nominal | RF-CONS-03, RNF-REND-02, RNF-REND-03 |
-| [OPEN-010](open.md#open-010--contrato-externo-de-la-api) | Contrato externo de la API | RF-IMG-01, RF-IMG-05, RF-REC-06, RF-CONS-01, RF-CONS-03, RF-CONS-04, RF-CONS-06 |
 | [OPEN-011](open.md#open-011--contrato-de-eventos-con-inventario) | Contrato de eventos con Inventario | RF-COMP-12, RF-REC-04, RF-DISP-01, RF-DISP-06, RF-INTG-03, RF-INTG-04, RF-INTG-05 |
 | [OPEN-012](open.md#open-012--notificación-y-revisión-ante-cambios-de-disponibilidad) | Notificación y revisión ante cambios de disponibilidad | RF-GEN-04, RF-OFE-04, RF-DISP-06, RF-CONS-05 |
-| [OPEN-013](open.md#open-013--capacidades-más-finas) | Capacidades más finas | RF-GEN-01 |
 | [OPEN-014](open.md#open-014--retención-de-imágenes-nunca-asociadas) | Retención de imágenes nunca asociadas | RF-IMG-04 |
 
 ## Reglas transversales
@@ -114,16 +112,17 @@ Cada regla transversal tiene un único criterio dueño, o un conjunto de criteri
 
 | Regla | Criterio dueño | Criterios que la citan |
 | :--- | :--- | :--- |
+| Permisos de las operaciones | RF-GEN-01.CA5 | RF-GEN-01.CA5: RF-CONS-01.CA5, RF-CONS-04.CA6, RF-CONS-06.CA1, RF-REC-06.CA3 |
 | Datos obligatorios y textos no vacíos | RF-GEN-03.CA1 | RF-GEN-03.CA2: RF-CAT-01.CA2; RF-GEN-03.CA3: RF-ENT-01.CA2; RF-GEN-03.CA4: RF-OFE-01.CA3; RF-GEN-03.CA5: RF-COMP-01.CA2, RF-COMP-09.CA2; RF-GEN-03.CA6: RF-COMP-01.CA2, RF-OPC-01.CA3; RF-GEN-03.CA7: RF-REC-01.CA2 |
 | Versión vigente del recurso | RF-GEN-02.CA1, RF-GEN-02.CA2 | RF-GEN-02.CA1: RF-CAT-02.CA4, RF-IMG-05.CA5, RF-OFE-02.CA4, RF-REC-04.CA6, RF-REC-07.CA4; RF-GEN-02.CA4: RF-COMP-08.CA4, RF-COMP-12.CA8 |
 | Atomicidad de las operaciones | RF-GEN-05.CA1 | RF-GEN-05.CA1: RF-GEN-03.CA1, RF-IMG-03.CA3, RF-IMG-05.CA4, RF-ENT-07.CA1, RF-OFE-06.CA1, RF-COMP-08.CA5, RF-COMP-12.CA8, RF-OPC-09.CA3, RF-REC-07.CA2, RF-INTG-01.CA2, RF-INTG-01.CA3; RF-GEN-05.CA3: RF-IMG-01.CA2, RF-OPC-10.CA3 |
 | Estado administrativo | RF-GEN-04.CA4, RF-GEN-04.CA5, RF-GEN-04.CA6 | RF-GEN-04.CA4: RF-COMP-08.CA6, RF-OPC-04.CA2, RF-OPC-05.CA2, RF-DISP-05.CA1, RF-DISP-06.CA5, RF-INTG-03.CA5; RF-GEN-04.CA5: RF-ENT-03.CA3, RF-ENT-04.CA2, RF-ENT-05.CA2, RF-ENT-06.CA2; RF-GEN-04.CA7: RF-OFE-05.CA2 |
-| Visibilidad para quien consulta el catálogo | RF-CONS-01.CA1, RF-CONS-01.CA2 | RF-CONS-01: RF-GEN-01.CA3, RF-CONS-03.CA4; RF-CONS-01.CA1: RF-ENT-04.CA1, RF-OFE-05.CA1, RF-OPC-04.CA1, RF-OPC-05.CA1; RF-CONS-01.CA2: RF-COMP-01.CA3, RF-INTG-03.CA3 |
+| Visibilidad para quien consulta el catálogo | RF-CONS-01.CA1, RF-CONS-01.CA2 | RF-CONS-01: RF-GEN-01.CA5, RF-CONS-03.CA4; RF-CONS-01.CA1: RF-ENT-04.CA1, RF-OFE-05.CA1, RF-OPC-04.CA1, RF-OPC-05.CA1; RF-CONS-01.CA2: RF-COMP-01.CA3, RF-INTG-03.CA3 |
 | Composición válida | RF-COMP-01.CA2, RF-COMP-01.CA4 | RF-COMP-01.CA2: RF-OFE-04.CA1; RF-COMP-01.CA4: RF-OFE-01.CA4 |
 | Recálculo de la disponibilidad | RF-DISP-06.CA3 | RF-DISP-06.CA3: RF-OFE-04.CA5, RF-OFE-05.CA3, RF-OFE-06.CA5, RF-COMP-08.CA6, RF-COMP-12.CA9, RF-OPC-04.CA2, RF-OPC-05.CA2; RF-DISP-06.CA2: RF-INTG-03.CA3, RF-INTG-04.CA2; RF-DISP-06.CA4: RF-INTG-03.CA4, RF-INTG-04.CA3 |
 | Imagen de entradas y ofertas | RF-IMG-03.CA1, RF-IMG-03.CA2, RF-IMG-04.CA2 | RF-IMG-03.CA1: RF-ENT-01.CA2, RF-OFE-01.CA3; RF-IMG-03.CA2: RF-ENT-02.CA2, RF-OFE-02.CA3; RF-IMG-04.CA2: RF-IMG-05.CA3; RF-IMG-04.CA3: RF-ENT-07.CA3, RF-OFE-06.CA5 |
 | Unidad de medida de Inventario | RF-INTG-02.CA3 | RF-INTG-02.CA3: RF-REC-03.CA2 |
-| Estado administrativo de las opciones copiadas | RF-COMP-12.CA4 | RF-COMP-12.CA4: RF-OPC-01.CA2 |
+| Estado administrativo inicial de las opciones | RF-OPC-01.CA2 | RF-OPC-01.CA2: RF-GEN-03.CA6, RF-COMP-12.CA4 |
 | Revisión vigente de la receta | RF-OPC-09.CA2 | RF-OPC-09.CA2: RF-COMP-12.CA5 |
 | Elegibilidad de opciones | RF-COMP-05.CA1, RF-COMP-05.CA2 | RF-COMP-05.CA1: RF-COMP-03.CA2; RF-COMP-05.CA2: RF-OPC-04.CA1, RF-OPC-05.CA1 |
 
@@ -225,6 +224,10 @@ Esta tabla es el único lugar de la ERS, junto con el registro de cambios de [`c
 ## Decisión resuelta
 
 OPEN-005 está resuelta: la carga previa e independiente del archivo de imagen, su validación, su asociación permanente a una entrada u oferta mediante su identificador y el reemplazo de su archivo se especifican en RF-IMG-01..05, en [`imagenes.md`](requirements/imagenes.md).
+
+OPEN-010 está cerrada desde la versión 3.2.0: el contrato de la API, en su versión 8.0.0, queda alineado con esta ERS e incluye las operaciones y representaciones que faltaban; las longitudes máximas de los textos, la idempotencia de los reintentos y la paginación siguen perteneciendo al contrato.
+
+OPEN-013 está cerrada desde la versión 3.2.0: los permisos de RF-GEN-01 sustituyen a las dos capacidades anteriores, con permisos separados de consulta, de gestión y de cambio de estado por recurso.
 
 ## Criterio de mantenimiento
 

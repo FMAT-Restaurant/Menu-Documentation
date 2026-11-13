@@ -12,17 +12,18 @@ inventoryItems:
   get:
     tags: [Inventario]
     operationId: searchInventoryItems
+    x-required-permission: []
     summary: Consultar artículos del servicio externo de Inventario
     description: >-
       Operación del microservicio externo de Inventario, llamada directamente
-      por el frontend para buscar artículos por texto y seleccionar insumos en
-      recetas u opciones de composición. El backend de Menu no implementa esta
-      ruta; Menu solo conserva referencias de solo lectura a los artículos.
-      La búsqueda se hace con el parámetro q. La operación reutiliza un
-      endpoint ya existente de Inventario y devuelve una lista plana, sin
-      paginación. Cada artículo puede incluir otros campos del servicio de
-      Inventario no documentados; el contrato solo documenta id, name y unit,
-      y el resto se ignora.
+      por el frontend para buscar artículos de Inventario por texto con q y
+      seleccionarlos en líneas de ingrediente u opciones. El backend de Menu no
+      implementa esta ruta. Devuelve una lista plana, sin paginación; el
+      contrato documenta id, name y unit, y los demás campos y comportamientos
+      se rigen por el contrato de Inventario. La autenticación y la
+      autorización de esta ruta las define el servicio de Inventario y no se
+      rigen por los permisos de Menu; por eso x-required-permission está
+      vacío.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/SearchQuery
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
@@ -67,19 +68,24 @@ inventoryItemById:
     - name: id
       in: path
       required: true
-      description: Identificador opaco del insumo, sin formato impuesto.
+      description: Identificador opaco del artículo de Inventario, sin formato impuesto.
       schema:
         type: string
         example: CARNE-150G
   get:
     tags: [Inventario]
     operationId: getInventoryItem
+    x-required-permission: []
     summary: Consultar artículo por ID
     description: >-
-      Operación del microservicio externo de Inventario, llamada directamente
-      por el frontend para consultar un artículo por su identificador. El backend
-      de Menu no implementa esta ruta; Menu solo conserva referencias de solo
-      lectura a los artículos.
+      Operación del microservicio externo de Inventario para consultar un
+      artículo por su identificador. El backend de Menu consulta de forma
+      síncrona el artículo en Inventario al crear o modificar opciones
+      INVENTORY_ITEM y recetas, y al responder consultas de recetas: si el
+      artículo no existe responde 422 y si Inventario no responde, 502. La
+      autenticación y la autorización de esta ruta las define el servicio de
+      Inventario; x-required-permission está vacío. Lo no documentado aquí se
+      rige por el contrato de Inventario.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
     responses:

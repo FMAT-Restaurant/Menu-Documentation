@@ -33,7 +33,7 @@ CategoryFilter:
   name: categoryId
   in: query
   required: false
-  description: UUID de categoría o el token reservado para entradas sin categoría.
+  description: UUID de una categoría o el valor reservado __uncategorized__, que selecciona la agrupación «sin categoría» (entradas sin categorías).
   example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
   schema:
     anyOf:
@@ -57,17 +57,27 @@ ExcludeOfferId:
   name: excludeOfferId
   in: query
   required: false
-  description: Identificador UUID de la oferta que se excluye de los resultados.
+  description: Identificador UUID de una oferta que se excluye de los resultados, por ejemplo la oferta destino al elegir el origen de una copia.
   schema:
     type: string
     format: uuid
     example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
 
+ExcludeArchivedEntries:
+  name: excludeArchivedEntries
+  in: query
+  required: false
+  description: Con true excluye las ofertas de entradas archivadas, que no sirven de origen de una copia de composición.
+  schema:
+    type: boolean
+    default: false
+    example: true
+
 EntryStatusQuery:
   name: status
   in: query
   required: false
-  description: Estado por el que se filtran las entradas.
+  description: Filtro administrativo por estado; si se omite, se devuelven entradas en cualquier estado, incluidas las ARCHIVED.
   schema:
     $ref: './schemas/CatalogEntry.yaml#/EntryStatus'
 
@@ -76,15 +86,17 @@ IfMatch:
   in: header
   required: true
   description: >-
-    ETag fuerte de la versión vigente del recurso leída por el cliente; se envía
-    para una actualización condicional con comparación fuerte. En PATCH
+    ETag fuerte de la versión vigente del recurso; obligatorio en toda
+    modificación, cambio de estado, eliminación (PATCH y DELETE) y en el
+    reemplazo del archivo de una imagen (PUT). Su ausencia devuelve 428 y un
+    valor obsoleto 412. En PATCH
     /menu/offers/{offerId}, un reintento idempotente conserva el If-Match original:
     si coincide con una solicitud exitosa vigente, se recupera su respuesta antes
     de reevaluar ese ETag, aunque ya sea obsoleto. Una ejecución nueva valida el
     ETag contra la versión vigente normalmente.
   schema:
     type: string
-    example: '"rev-3"'
+    example: '"v3"'
 
 IfNoneMatch:
   name: If-None-Match
@@ -93,7 +105,7 @@ IfNoneMatch:
   description: ETag previamente recibido que se compara durante una consulta condicional.
   schema:
     type: string
-    example: W/"rev-3"
+    example: '"v3"'
 
 IdempotencyKey:
   name: Idempotency-Key
@@ -102,8 +114,11 @@ IdempotencyKey:
   description: >-
     UUID generado por el cliente para una operación lógica; se envía sin comillas.
     Es obligatorio en POST /menu/categories, POST /menu/entries,
-    POST /menu/entries/{entryId}/offers, POST /menu/recipes, POST /media/images y
-    PATCH /menu/offers/{offerId}. Su ausencia o un formato inválido devuelve 400.
+    POST /menu/entries/{entryId}/offers, POST /menu/recipes, POST /menu/media/images y
+    PATCH /menu/offers/{offerId}. La copia de composición no tiene operación
+    propia: se envía en POST /menu/entries/{entryId}/offers o en PATCH
+    /menu/offers/{offerId}, que ya exigen la clave. PUT
+    /menu/media/images/{imageId} no la requiere. Su ausencia o un formato inválido devuelve 400.
     Los reintentos deben conservar la clave y los datos originales. Para JSON,
     la comparación ignora espacios y el orden de las propiedades de objetos;
     conserva el orden de los arrays y distingue un campo omitido de null.

@@ -7,14 +7,14 @@
 | Campo | Valor |
 | :--- | :--- |
 | Servicio | Menu |
-| Versión | 3.1.0 |
+| Versión | 3.2.0 |
 | Estado | Vigente / En revisión con cuestiones abiertas pendientes |
 | Configuración de referencia | [`configuration.md`](configuration.md) |
-| Alcance | Menu administra la identidad comercial del catálogo de un restaurante: categorías, entradas, ofertas vendibles con su composición de grupos de selección y opciones, imágenes y la biblioteca de recetas. Cada recurso distingue el estado administrativo, que solo decide el administrador, de la disponibilidad, que se deriva de la información recibida de Inventario. Menu valida con Inventario los artículos que referencia e intercambia con él eventos de receta, de factibilidad y de disponibilidad. El administrador genera bajo demanda una carta imprimible con las entradas y ofertas activas para entregarla a los comensales. Órdenes consulta el catálogo bajo demanda, registra la opción elegida en cada ronda y determina el precio final. |
+| Alcance | Menu administra la identidad comercial del catálogo de un restaurante: categorías, entradas, ofertas vendibles con su composición de grupos de selección y opciones, imágenes y la biblioteca de recetas. Cada recurso distingue el estado administrativo, que solo decide el administrador, de la disponibilidad, que se deriva de la información recibida de Inventario. Menu valida con Inventario los artículos que referencia e intercambia con él eventos de receta, de factibilidad y de disponibilidad. Cada operación exige un permiso, que llega en la credencial emitida por un servicio externo. El administrador genera bajo demanda una carta imprimible con las entradas y ofertas activas para entregarla a los comensales. Órdenes consulta el catálogo bajo demanda, registra la opción elegida en cada ronda y determina el precio final. |
 
 La especificación establece capacidades observables, restricciones del dominio, criterios no funcionales y preguntas pendientes. No afirma que el software ya las implemente o que hayan sido verificadas en ejecución.
 
-> **OPEN-005:** está resuelta en RF-IMG-01..05. Permanecen pendientes OPEN-001, OPEN-003, OPEN-006, OPEN-009, OPEN-010, OPEN-011, OPEN-012, OPEN-013 y OPEN-014, descritas en [`open.md`](open.md).
+> **OPEN-005:** está resuelta en RF-IMG-01..05, y OPEN-010 y OPEN-013 se cerraron en la versión 3.2.0 (contrato de la API alineado y permisos de RF-GEN-01). Permanecen pendientes OPEN-001, OPEN-003, OPEN-006, OPEN-009, OPEN-011, OPEN-012 y OPEN-014, descritas en [`open.md`](open.md).
 
 ## Ruta de lectura recomendada
 
@@ -35,7 +35,7 @@ La especificación establece capacidades observables, restricciones del dominio,
    9. [`requirements/integracion-con-inventario.md`](requirements/integracion-con-inventario.md): integración con Inventario.
    10. [`requirements/consulta-del-catalogo.md`](requirements/consulta-del-catalogo.md): consulta del catálogo y carta imprimible.
 7. [`non-functional-requirements.md`](non-functional-requirements.md) para consultar los criterios de rendimiento.
-8. [`open.md`](open.md) para identificar las 9 cuestiones de requisitos aún pendientes.
+8. [`open.md`](open.md) para identificar las 7 cuestiones de requisitos aún pendientes.
 9. [`traceability.md`](traceability.md) para consultar las relaciones entre requisitos funcionales, requisitos no funcionales y cuestiones abiertas, y la correspondencia con los identificadores anteriores.
 
 ## Mapa de documentos
@@ -49,7 +49,7 @@ La especificación establece capacidades observables, restricciones del dominio,
 | [`functional-requirements.md`](functional-requirements.md) | Índice de los 75 requisitos funcionales organizados en 11 áreas, con las convenciones de identificación y el formato de la ficha. | Localizar un requisito y el archivo que lo contiene. |
 | `requirements/` | 10 archivos con las fichas de los requisitos funcionales por área y sus criterios de aceptación; la lista y el orden figuran en el índice de requisitos funcionales. | Implementar o revisar las capacidades funcionales solicitadas. |
 | [`non-functional-requirements.md`](non-functional-requirements.md) | 3 requisitos `RNF-REND-*` de rendimiento de la consulta, la búsqueda y el filtrado del catálogo. | Evaluar los objetivos de calidad definidos para el servicio. |
-| [`open.md`](open.md) | 9 cuestiones de requisitos que requieren una decisión explícita. | Evitar fijar valores o comportamientos que aún no están determinados. |
+| [`open.md`](open.md) | 7 cuestiones de requisitos que requieren una decisión explícita. | Evitar fijar valores o comportamientos que aún no están determinados. |
 | [`traceability.md`](traceability.md) | Matrices entre requisitos funcionales, requisitos no funcionales y cuestiones abiertas, recuento de criterios y tabla de correspondencia con los identificadores anteriores. | Auditar cobertura e integridad de las referencias normativas. |
 
 ## Límites de responsabilidad destacados

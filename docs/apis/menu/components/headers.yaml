@@ -1,4 +1,16 @@
 ETag:
-  description: Validador de la representación devuelta o modificada.
+  description: ETag fuerte de la versión vigente del recurso devuelto o modificado. Se envía en If-Match para toda modificación, cambio de estado, eliminación o reemplazo del archivo de una imagen, y en If-None-Match para consultas condicionales. En una oferta cubre también su composición.
   schema:
     type: string
+    example: '"v3"'
+ContentDisposition:
+  description: Presenta la carta imprimible como archivo PDF con un nombre sugerido.
+  schema:
+    type: string
+    example: 'attachment; filename="carta.pdf"'
+CacheControlNoStore:
+  description: La carta se genera en cada solicitud con el catálogo del momento y no debe almacenarse.
+  schema:
+    type: string
+    const: no-store
+    example: no-store

@@ -1,6 +1,6 @@
 # Requisitos funcionales del servicio Menu
 
-La ERS 3.1.0 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
+La ERS 3.2.0 organiza 75 requisitos funcionales en 11 áreas, distribuidos en 10 archivos del directorio `requirements/`. Cada requisito declara una capacidad del servicio Menu, y sus criterios de aceptación expresan las reglas del dominio que la capacidad debe respetar. Este documento es el índice de esos requisitos: no contiene criterios ni normas propias.
 
 ## Convenciones
 
@@ -19,7 +19,7 @@ La correspondencia entre estos identificadores y los de versiones anteriores de 
 
 | Código | Área | Archivo |
 | :-- | :-- | :-- |
-| `GEN` | Reglas generales: capacidades, concurrencia, datos obligatorios, estado administrativo, atomicidad | [transversales.md](requirements/transversales.md) |
+| `GEN` | Reglas generales: permisos, concurrencia, datos obligatorios, estado administrativo, atomicidad | [transversales.md](requirements/transversales.md) |
 | `IMG` | Imágenes | [imagenes.md](requirements/imagenes.md) |
 | `CAT` | Categorías | [categorias-y-entradas.md](requirements/categorias-y-entradas.md) |
 | `ENT` | Entradas del catálogo | [categorias-y-entradas.md](requirements/categorias-y-entradas.md) |
@@ -57,8 +57,8 @@ Cada regla transversal tiene un único criterio dueño. Los demás requisitos qu
 ### Significado de «ordenar» y actores
 
 - «Ordenar» significa siempre pedir en una orden; de ahí el adjetivo «ordenable». Para la secuencia en que se muestran los elementos se emplea «orden de presentación».
-- «El administrador» es quien tiene la capacidad de administrar el catálogo.
-- «Quien consulta el catálogo» es quien solo tiene la capacidad de consultarlo, conforme a RF-GEN-01.
+- «El administrador» es quien tiene el permiso que protege la operación administrativa de que se trate, conforme a RF-GEN-01.
+- «Quien consulta el catálogo» es quien tiene el permiso «Ver catálogo» y accede al catálogo con la visibilidad de RF-CONS-01, conforme a RF-GEN-01.
 
 ## Áreas y archivos
 
@@ -80,7 +80,7 @@ Cada regla transversal tiene un único criterio dueño. Los demás requisitos qu
 
 | ID | Título | Archivo |
 | :-- | :-- | :-- |
-| RF-GEN-01 | Capacidades de administración y de consulta | [transversales.md](requirements/transversales.md) |
+| RF-GEN-01 | Permisos de las operaciones | [transversales.md](requirements/transversales.md) |
 | RF-GEN-02 | Control de concurrencia por versión | [transversales.md](requirements/transversales.md) |
 | RF-GEN-03 | Datos obligatorios y textos no vacíos | [transversales.md](requirements/transversales.md) |
 | RF-GEN-04 | Estado administrativo | [transversales.md](requirements/transversales.md) |

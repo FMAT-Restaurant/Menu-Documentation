@@ -2,11 +2,15 @@ categories:
   get:
     tags: [Categorías]
     operationId: listMenuCategories
+    x-required-permission:
+      - menu:categories:read
     summary: Listar categorías
     description: >-
       Devuelve una página de categorías con el número de entradas asociadas. Use
       page y pageSize para recorrer la lista; If-None-Match permite reutilizar
-      una respuesta que no haya cambiado.
+      una respuesta que no haya cambiado. Las categorías se devuelven en orden
+      alfabético por nombre. entryCount cuenta todas las entradas que clasifica
+      la categoría, en cualquier estado.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/Page
       - $ref: ../openapi.yaml#/components/parameters/PageSize
@@ -46,9 +50,14 @@ categories:
   post:
     tags: [Categorías]
     operationId: createMenuCategory
+    x-required-permission:
+      - menu:categories:write
     summary: Crear una categoría
     description: >-
-      Crea una categoría para organizar entradas del catálogo. Requiere
+      Crea una categoría para organizar entradas del catálogo. El nombre es
+      único en el menú: se compara sin distinguir mayúsculas de minúsculas ni
+      acentos y sin los espacios del inicio y del final; un nombre ya usado
+      devuelve 409 CATEGORY_NAME_TAKEN. Requiere
       Idempotency-Key con un UUID generado por el cliente por operación; su
       alcance es el sujeto autenticado, el menú, el método POST y la ruta concreta.
       Durante 24 horas desde la confirmación inicial exitosa, la misma clave y
@@ -106,7 +115,7 @@ categories:
       '403':
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '409':
-        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
+        $ref: ../openapi.yaml#/components/responses/IdempotencyOrDomainConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':
@@ -125,9 +134,12 @@ categoryById:
   get:
     tags: [Categorías]
     operationId: getMenuCategory
+    x-required-permission:
+      - menu:categories:read
     summary: Consultar una categoría
     description: >-
-      Devuelve la categoría solicitada. La respuesta incluye el ETag fuerte
+      Devuelve la categoría solicitada; entryCount cuenta todas las entradas
+      que clasifica la categoría, en cualquier estado. La respuesta incluye el ETag fuerte
       vigente de esta categoría; el cliente puede enviarlo en If-Match al
       actualizar o eliminar este mismo recurso.
     parameters:
@@ -164,9 +176,15 @@ categoryById:
   patch:
     tags: [Categorías]
     operationId: patchMenuCategory
+    x-required-permission:
+      - menu:categories:write
     summary: Actualizar una categoría
-    description: Actualiza los campos de la categoría indicados en el cuerpo.
-      Envíe el ETag leído en If-Match para evitar sobrescribir cambios recientes.
+    description: >-
+      Actualiza el nombre o la descripción de la categoría; los campos omitidos
+      se conservan y una descripción vacía la elimina. El nuevo nombre cumple la
+      misma unicidad que al crear (409 CATEGORY_NAME_TAKEN). Exige If-Match con
+      el ETag vigente: su ausencia devuelve 428 y un valor obsoleto 412, sin
+      cambios.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     requestBody:
@@ -206,26 +224,32 @@ categoryById:
         $ref: ../openapi.yaml#/components/responses/Forbidden
       '404':
         $ref: ../openapi.yaml#/components/responses/NotFound
+      '409':
+        $ref: ../openapi.yaml#/components/responses/DomainConflict
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
+      '428':
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
   delete:
     tags: [Categorías]
     operationId: deleteMenuCategory
+    x-required-permission:
+      - menu:categories:write
     summary: Eliminar una categoría
-    description: Elimina la categoría y quita su UUID de las entradas asociadas.
-      Envíe el ETag leído en If-Match para confirmar que la categoría no cambió.
+    description: >-
+      Elimina la categoría; la eliminación se permite siempre. Las entradas que
+      clasificaba dejan de pertenecer a ella sin otro cambio y, si era su única
+      categoría, pasan a la agrupación «sin categoría». Exige If-Match: su
+      ausencia devuelve 428 y un valor obsoleto 412.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     responses:
       '204':
-        description: Categoría eliminada y referencias retiradas.
-        headers:
-          ETag:
-            $ref: ../openapi.yaml#/components/headers/ETag
+        description: Categoría eliminada; sin cuerpo ni ETag.
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
@@ -234,5 +258,7 @@ categoryById:
         $ref: ../openapi.yaml#/components/responses/NotFound
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
+      '428':
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests

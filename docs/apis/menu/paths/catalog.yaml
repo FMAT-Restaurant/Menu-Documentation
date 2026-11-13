@@ -1,0 +1,180 @@
+catalog:
+  get:
+    tags: [Catálogo]
+    operationId: getMenuCatalog
+    x-required-permission:
+      - menu:catalog:read
+    summary: Consultar las entradas del catálogo visible
+    description: >-
+      Devuelve una página de las entradas ACTIVE visibles para quien consulta
+      (RF-CONS-01, RF-CONS-03), ordenadas alfabéticamente por nombre comercial;
+      la respuesta no se organiza en secciones. Cada entrada incluye sus
+      categoryIds, sus ofertas ACTIVE en orden alfabético por etiqueta de
+      presentación y, en cada oferta, su composición con los grupos de selección
+      en el orden de presentación, su tiempo de servicio y solo las opciones
+      ACTIVE. Las entradas, ofertas, grupos y opciones incluyen isAvailable: lo
+      no disponible se presenta deshabilitado. Una entrada ACTIVE sin ofertas
+      ACTIVE aparece con offers vacío e isAvailable false. q busca en nombre
+      comercial, descripción y nombres de categoría. categoryId limita la página
+      a las entradas de esa categoría; con __uncategorized__, a las entradas sin
+      categorías; un categoryId inexistente devuelve una página vacía. Lo
+      INACTIVE o ARCHIVED no se incluye. Las categorías se consultan con
+      GET /menu/catalog/categories.
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/SearchQuery
+      - $ref: ../openapi.yaml#/components/parameters/CategoryFilter
+      - $ref: ../openapi.yaml#/components/parameters/Page
+      - $ref: ../openapi.yaml#/components/parameters/PageSize
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Página de entradas del catálogo visible para quien consulta.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogEntryPageResponse
+            examples:
+              catalogo:
+                summary: Página con una entrada sin categorías ni ofertas ACTIVE y otra disponible
+                value:
+                  data:
+                    - id: 3f6a2c1e-8b4d-4e2a-9c7f-1a2b3c4d5e01
+                      brandName: Agua de Jamaica
+                      description: Agua fresca de flor de jamaica.
+                      image:
+                        id: 6a7b8c9d-0e1f-4a2b-8c3d-4e5f6a7b8c01
+                        url: https://cdn.example.com/menu/agua-jamaica.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/agua-jamaica-thumb.jpg
+                      categoryIds: []
+                      isAvailable: false
+                      offers: []
+                    - id: 7d19a8ce-402c-4bab-b383-9969b69fe101
+                      brandName: Hamburguesa Hawaiana
+                      description: Carne, jamón, queso y piña en pan artesanal.
+                      image:
+                        id: 55e62412-9249-4db6-8ccb-31f19ea2f501
+                        url: https://cdn.example.com/menu/hamburguesa-hawaiana.jpg
+                        thumbnailUrl: https://cdn.example.com/menu/hamburguesa-hawaiana-thumb.jpg
+                      categoryIds:
+                        - 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                      isAvailable: true
+                      offers:
+                        - id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+                          presentationTag: Individual
+                          basePrice: 180.0
+                          image:
+                            id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                            url: https://cdn.example.com/menu/hamburguesa-individual.jpg
+                            thumbnailUrl: https://cdn.example.com/menu/hamburguesa-individual-thumb.jpg
+                          isAvailable: true
+                          composition:
+                            slots:
+                              - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                                name: Plato principal
+                                quantity: 1
+                                course: plato fuerte
+                                isAvailable: true
+                                options:
+                                  - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
+                                    displayName: Hamburguesa Hawaiana
+                                    isAvailable: true
+                  meta:
+                    page: 1
+                    pageSize: 12
+                    total: 2
+                    totalPages: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+catalogCategories:
+  get:
+    tags: [Catálogo]
+    operationId: listMenuCatalogCategories
+    x-required-permission:
+      - menu:catalog:read
+    summary: Consultar las categorías del catálogo visible
+    description: >-
+      Devuelve, sin paginar, todas las categorías del menú en orden alfabético,
+      también las que no clasifican entradas (RF-CONS-01). entryCount es el
+      número de entradas ACTIVE que clasifica cada categoría, es decir, las que
+      ve quien consulta; uncategorized.entryCount es el número de entradas
+      ACTIVE sin categorías (agrupación «sin categoría»).
+    parameters:
+      - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
+    responses:
+      '200':
+        description: Categorías del catálogo visible para quien consulta.
+        headers:
+          ETag:
+            $ref: ../openapi.yaml#/components/headers/ETag
+        content:
+          application/json:
+            schema:
+              $ref: ../openapi.yaml#/components/schemas/CatalogCategoryListResponse
+            examples:
+              categorias:
+                summary: Una categoría con entradas, otra vacía y entradas sin categoría
+                value:
+                  data:
+                    - id: 0ddba9d0-0f45-4abc-9e4a-3e3471a5ce01
+                      name: Hamburguesas
+                      description: Hamburguesas en pan artesanal.
+                      entryCount: 1
+                    - id: 5b1e8f3a-6c2d-4e7f-9a0b-1c2d3e4f5a60
+                      name: Postres
+                      entryCount: 0
+                  uncategorized:
+                    entryCount: 1
+      '304':
+        $ref: ../openapi.yaml#/components/responses/NotModified
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests
+catalogPrintable:
+  get:
+    tags: [Catálogo]
+    operationId: getPrintableMenu
+    x-required-permission:
+      - menu:catalog:print
+    summary: Generar la carta imprimible
+    description: >-
+      Genera bajo demanda la carta imprimible en PDF con el estado del catálogo
+      en el momento de la solicitud (RF-CONS-06); Menu no la guarda y cada
+      solicitud genera una carta nueva, sin modificar ningún recurso. Contenido
+      (RF-CONS-07): solo las entradas ACTIVE con al menos una oferta ACTIVE y, de
+      cada una, solo sus ofertas ACTIVE; la disponibilidad no interviene ni se
+      muestra. Cada entrada muestra su nombre comercial, descripción e imagen;
+      cada oferta, bajo su entrada, su etiqueta de presentación, que forma su
+      nombre visible, su precio base y su imagen; no se muestra la composición.
+      El encabezado muestra el nombre del menú, la fecha de generación y la
+      moneda, cuyo origen queda pendiente en OPEN-001. Organización (RF-CONS-08):
+      una sección por categoría en orden alfabético; se omiten las secciones sin
+      entradas incluidas; las entradas sin categorías figuran en la sección «sin
+      categoría», después de las demás; dentro de cada sección, las entradas van
+      en orden alfabético por nombre comercial y una entrada con varias
+      categorías figura en cada una; las ofertas van en orden alfabético por
+      etiqueta de presentación. La respuesta es application/pdf con
+      Content-Disposition y Cache-Control: no-store, sin ETag; si Accept no
+      admite application/pdf devuelve 406.
+    responses:
+      '200':
+        $ref: ../openapi.yaml#/components/responses/PrintableMenuPdf
+      '401':
+        $ref: ../openapi.yaml#/components/responses/Unauthorized
+      '403':
+        $ref: ../openapi.yaml#/components/responses/Forbidden
+      '406':
+        $ref: ../openapi.yaml#/components/responses/NotAcceptable
+      '429':
+        $ref: ../openapi.yaml#/components/responses/TooManyRequests

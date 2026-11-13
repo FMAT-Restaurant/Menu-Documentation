@@ -1,13 +1,17 @@
 EntryStatus:
   type: string
-  description: Estado administrativo de una entrada del catálogo.
+  description: >-
+    Estado administrativo de una entrada, que solo cambia el administrador.
+    Transiciones: ACTIVE ↔ INACTIVE; ACTIVE o INACTIVE → ARCHIVED; ARCHIVED →
+    INACTIVE (desarchivar). Una entrada ARCHIVED es de solo lectura salvo el
+    desarchivado y la eliminación.
   enum: [ACTIVE, INACTIVE, ARCHIVED]
   example: ACTIVE
 
 CatalogEntrySummary:
   type: object
   description: Campos de catálogo que identifican una entrada y resumen su clasificación y cantidad de ofertas.
-  required: [id, brandName, description, status, image, categories, offerCount]
+  required: [id, brandName, description, status, isAvailable, image, categories, offerCount]
   properties:
     id:
       type: string
@@ -24,6 +28,13 @@ CatalogEntrySummary:
       example: Hamburguesa con piña asada y queso.
     status:
       $ref: '#/EntryStatus'
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: >-
+        Disponibilidad derivada, de solo lectura: true si y solo si al menos una
+        oferta ACTIVE de la entrada está disponible. No cambia status.
+      example: true
     image:
       $ref: 'Common.yaml#/Image'
     categories:
@@ -34,13 +45,14 @@ CatalogEntrySummary:
     offerCount:
       type: integer
       minimum: 0
-      description: Cantidad de ofertas asociadas a la entrada.
+      description: Cantidad de ofertas de la entrada en cualquier estado administrativo.
       example: 2
   example:
     id: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
     brandName: Hamburguesa Hawaiana
     description: Hamburguesa con piña asada y queso.
     status: ACTIVE
+    isAvailable: true
     image:
       id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
       url: https://cdn.example.com/menu/burger.jpg
@@ -53,7 +65,7 @@ CatalogEntrySummary:
 CatalogEntryDetail:
   type: object
   description: Datos completos de una entrada, incluidos sus identificadores de categoría.
-  required: [id, brandName, description, status, image, categoryIds]
+  required: [id, brandName, description, status, isAvailable, image, categoryIds]
   properties:
     id:
       type: string
@@ -70,6 +82,13 @@ CatalogEntryDetail:
       example: Hamburguesa con piña asada y queso.
     status:
       $ref: '#/EntryStatus'
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: >-
+        Disponibilidad derivada, de solo lectura: true si y solo si al menos una
+        oferta ACTIVE de la entrada está disponible. No cambia status.
+      example: true
     image:
       $ref: 'Common.yaml#/Image'
     categoryIds:
@@ -85,6 +104,7 @@ CatalogEntryDetail:
     brandName: Hamburguesa Hawaiana
     description: Hamburguesa con piña asada y queso.
     status: ACTIVE
+    isAvailable: true
     image:
       id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
       url: https://cdn.example.com/menu/burger.jpg
@@ -98,21 +118,28 @@ CatalogEntryCreateRequest:
     Datos JSON para crear una entrada y asociarla con sus categorías y una imagen
     previamente cargada y validada. El backend asigna el estado INACTIVE; el
     cliente no proporciona status. imageId referencia data.id de la respuesta de
-    POST /api/v1/media/images; no se envía el archivo ni una URL en esta solicitud.
-  required: [brandName, description, categoryIds, imageId]
+    POST /menu/media/images; no se envía el archivo ni una URL en esta solicitud.
+    imageId queda ligado a la entrada y no se cambia después; una imagen ya
+    asociada a otro recurso devuelve 409 IMAGE_ALREADY_ASSOCIATED.
+  required: [brandName, description, imageId]
   additionalProperties: false
   properties:
     brandName:
       type: string
+      minLength: 1
       description: Nombre comercial de la nueva entrada.
       example: Hamburguesa Hawaiana
     description:
       type: string
+      minLength: 1
       description: Descripción de la nueva entrada.
       example: Hamburguesa con piña asada y queso.
     categoryIds:
-      description: Identificadores UUID de las categorías que se asociarán a la entrada.
+      description: >-
+        Identificadores de las categorías del menú; opcional. Sin categorías, la
+        entrada pertenece a la agrupación «sin categoría».
       type: array
+      uniqueItems: true
       items:
         type: string
         format: uuid
@@ -123,7 +150,7 @@ CatalogEntryCreateRequest:
       format: uuid
       description: >-
         UUID obligatorio de la imagen previamente cargada y validada, obtenido
-        de data.id en POST /api/v1/media/images. No admite null, archivos ni URLs.
+        de data.id en POST /menu/media/images. No admite null, archivos ni URLs.
       example: 55e62412-9249-4db6-8ccb-31f19ea2f501
   example:
     brandName: Hamburguesa Hawaiana
@@ -135,47 +162,40 @@ CatalogEntryCreateRequest:
 CatalogEntryPatchRequest:
   type: object
   description: >-
-    Campos de una entrada que se desean actualizar, enviados como JSON. Los
-    campos omitidos conservan sus valores vigentes. Para reemplazar la imagen se
-    envía imageId con data.id de la respuesta de POST /api/v1/media/images para
-    una imagen previamente cargada y validada. Omitir imageId conserva la imagen
-    vigente; null se rechaza. No se envían archivos ni URLs en esta solicitud.
+    Campos de una entrada que se desean actualizar, enviados como JSON; los
+    omitidos conservan su valor. imageId no se acepta: la imagen se cambia
+    reemplazando su archivo con PUT /menu/media/images/{imageId}. Una entrada
+    ARCHIVED solo acepta {"status": "INACTIVE"}; cualquier otro cuerpo devuelve
+    409 ENTRY_ARCHIVED.
   additionalProperties: false
   properties:
     brandName:
       type: string
+      minLength: 1
       description: Nuevo nombre comercial, si se desea cambiar.
       example: Hamburguesa Hawaiana Especial
     description:
       type: string
+      minLength: 1
       description: Nueva descripción, si se desea cambiar.
       example: Hamburguesa con piña asada, queso y salsa de la casa.
     status:
       $ref: '#/EntryStatus'
       description: >-
-        Estado administrativo solicitado. Se permite activar o inactivar una
-        entrada y pasar de ACTIVE o INACTIVE a ARCHIVED. Desarchivar requiere
-        pasar de ARCHIVED a INACTIVE; se rechaza el paso directo de ARCHIVED a
-        ACTIVE.
+        Estado administrativo solicitado, conforme a las transiciones de
+        EntryStatus; exige el permiso menu:entries:status.
     categoryIds:
       description: >-
         Identificadores UUID de las categorías asociadas a la entrada. Al enviar
         este campo se reemplaza el conjunto completo de categorías; al omitirlo
         se conserva el conjunto vigente.
       type: array
+      uniqueItems: true
       items:
         type: string
         format: uuid
       example:
         - 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
-    imageId:
-      type: string
-      format: uuid
-      description: >-
-        UUID de la imagen de reemplazo previamente cargada y validada, obtenido
-        de data.id en POST /api/v1/media/images. Omitirlo conserva la imagen
-        vigente; no admite null, archivos ni URLs.
-      example: 55e62412-9249-4db6-8ccb-31f19ea2f501
 
 CatalogEntryListResponse:
   type: object

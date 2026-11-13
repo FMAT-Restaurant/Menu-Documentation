@@ -10,6 +10,7 @@ Category:
       example: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
     name:
       type: string
+      minLength: 1
       description: Nombre que se muestra para la categoría.
       example: Bebidas
     description:
@@ -19,7 +20,7 @@ Category:
     entryCount:
       type: integer
       minimum: 0
-      description: Cantidad de entradas asociadas a la categoría.
+      description: Número total de entradas que clasifica la categoría, en cualquier estado administrativo (ACTIVE, INACTIVE o ARCHIVED). Para el conteo visible a quien consulta, ver GET /menu/catalog/categories.
       example: 4
   example:
     id: 7d9c8f30-6c64-4f12-9a1b-6c4a2d5e8f01
@@ -46,10 +47,13 @@ CategoryCreateRequest:
   type: object
   description: Datos para crear una categoría.
   required: [name]
+  additionalProperties: false
   properties:
     name:
       type: string
-      description: Nombre que tendrá la nueva categoría.
+      minLength: 1
+      pattern: '\S'
+      description: Nombre de la nueva categoría, no vacío y único en el menú; la unicidad se compara sin distinguir mayúsculas de minúsculas ni acentos y sin los espacios del inicio y del final (409 CATEGORY_NAME_TAKEN).
       example: Bebidas
     description:
       type: string
@@ -59,10 +63,13 @@ CategoryCreateRequest:
 CategoryPatchRequest:
   type: object
   description: Campos de categoría que se desean actualizar.
+  additionalProperties: false
   properties:
     name:
       type: string
-      description: Nuevo nombre de la categoría, si se desea cambiar.
+      minLength: 1
+      pattern: '\S'
+      description: Nuevo nombre, no vacío y único en el menú con la misma comparación que al crear (409 CATEGORY_NAME_TAKEN).
       example: Bebidas preparadas
     description:
       type: string

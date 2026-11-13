@@ -8,7 +8,6 @@ Este documento reúne los requisitos sobre la carga, la validación, la asociaci
 - **Criterios de aceptación:**
   - **RF-IMG-01.CA1:** La carga de un archivo válido le asigna un identificador de imagen.
   - **RF-IMG-01.CA2:** La carga se realiza antes y por separado de la creación del recurso, conforme a RF-GEN-05.CA3.
-- **Relacionados:** [OPEN-010](../open.md#open-010--contrato-externo-de-la-api) (alineación del contrato).
 
 ### RF-IMG-02 — Validación del archivo de imagen
 
@@ -48,4 +47,3 @@ Este documento reúne los requisitos sobre la carga, la validación, la asociaci
   - **RF-IMG-05.CA4:** Un rechazo conserva sin cambios el archivo vigente, conforme a RF-GEN-05.CA1.
   - **RF-IMG-05.CA5:** El reemplazo exige la versión vigente de la imagen, conforme a RF-GEN-02.CA1.
   - **RF-IMG-05.CA6:** No se reemplaza el archivo de la imagen de una entrada archivada ni el de las imágenes de sus ofertas, conforme a RF-ENT-05.CA3.
-- **Relacionados:** [OPEN-010](../open.md#open-010--contrato-externo-de-la-api) (operación de reemplazo en el contrato).

@@ -61,8 +61,7 @@ Este documento reúne los requisitos sobre la biblioteca de recetas: creación, 
 - **Criterios de aceptación:**
   - **RF-REC-06.CA1:** La consulta presenta cada revisión con su número y con el nombre, la descripción, las instrucciones y las líneas de ingrediente que tenía.
   - **RF-REC-06.CA2:** El historial de revisiones puede consultarse también cuando se ha eliminado la definición vigente de la receta.
-  - **RF-REC-06.CA3:** La consulta del historial de revisiones requiere la capacidad de administrar el catálogo, conforme a RF-GEN-01.CA2.
-- **Relacionados:** [OPEN-010](../open.md#open-010--contrato-externo-de-la-api) (operación en el contrato).
+  - **RF-REC-06.CA3:** La consulta del historial de revisiones requiere el permiso «Ver recetas», conforme a RF-GEN-01.CA5.
 
 ### RF-REC-07 — Eliminación de una receta sin referencias
 

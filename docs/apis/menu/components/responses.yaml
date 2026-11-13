@@ -18,17 +18,17 @@ Unauthorized:
               message: Se requiere un token de acceso válido.
 
 Forbidden:
-  description: El token no tiene permiso para la operación.
+  description: La credencial no incluye el permiso requerido por la operación (x-required-permission); no se aplican cambios.
   content:
     application/json:
       schema:
         $ref: './schemas/Common.yaml#/ErrorEnvelope'
       examples:
         forbidden:
-          summary: El token no permite la operación
+          summary: Falta el permiso requerido
           value:
             error:
-              message: No tienes permiso para realizar esta operación.
+              message: No tienes el permiso requerido para esta operación.
 
 NotFound:
   description: No existe el recurso indicado.
@@ -44,7 +44,7 @@ NotFound:
               message: No se encontró el recurso solicitado.
 
 ResourceInUse:
-  description: La receta está referenciada por una o más ofertas.
+  description: La receta está referenciada por una o más opciones de ofertas (RECIPE_IN_USE).
   content:
     application/json:
       schema:
@@ -53,11 +53,14 @@ ResourceInUse:
         properties:
           error:
             type: object
-            required: [message, details]
+            required: [message, code, details]
             properties:
               message:
                 type: string
                 description: Explicación del error para quien consume la API.
+              code:
+                type: string
+                const: RECIPE_IN_USE
               details:
                 type: object
                 description: Datos específicos del error.
@@ -79,6 +82,7 @@ ResourceInUse:
           value:
             error:
               message: No se puede eliminar la receta mientras una oferta la utilice.
+              code: RECIPE_IN_USE
               details:
                 offerIds:
                   - 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
@@ -97,6 +101,19 @@ PreconditionFailed:
             error:
               message: El recurso cambió desde que fue leído.
 
+PreconditionRequired:
+  description: Falta el encabezado If-Match obligatorio en una modificación, cambio de estado, eliminación o reemplazo del archivo de una imagen; no se aplican cambios.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        faltaIfMatch:
+          summary: Falta el encabezado If-Match
+          value:
+            error:
+              message: El encabezado If-Match es requerido.
+
 UnprocessableEntity:
   description: La validación de los datos de la solicitud falló; esta respuesta representa errores de validación que impiden procesarla.
   content:
@@ -113,6 +130,36 @@ UnprocessableEntity:
                 violations:
                   - path: /name
                     message: El nombre es obligatorio.
+        sourceTypeImmutable:
+          summary: Se intentó cambiar el sourceType de una opción existente
+          value:
+            error:
+              message: Revisa los datos enviados en la solicitud.
+              details:
+                violations:
+                  - path: /composition/slots/0/options/0/sourceType
+                    message: El sourceType de una opción existente no puede cambiar.
+                    code: SOURCE_TYPE_IMMUTABLE
+        duplicateOptionContent:
+          summary: Dos opciones del grupo de selección tienen el mismo contenido
+          value:
+            error:
+              message: Revisa los datos enviados en la solicitud.
+              details:
+                violations:
+                  - path: /composition/slots/0/options/1
+                    message: Ya existe una opción con el mismo artículo o la misma receta en el grupo de selección.
+                    code: DUPLICATE_OPTION_CONTENT
+        duplicateInventoryItem:
+          summary: Artículo de Inventario repetido en las líneas de ingrediente
+          value:
+            error:
+              message: Revisa los datos enviados en la solicitud.
+              details:
+                violations:
+                  - path: /ingredients/1/inventoryItemId
+                    message: El artículo de Inventario ya figura en otra línea de ingrediente de la receta.
+                    code: DUPLICATE_INVENTORY_ITEM
 
 TooManyRequests:
   description: Se excedió el límite de solicitudes.
@@ -129,10 +176,10 @@ TooManyRequests:
 
 InventoryUnavailable:
   description: >-
-    502 cuando Menu no pudo consultar Inventario para validar los artículos o
-    insumos de la operación. No se persiste la creación ni la actualización y no
-    se aplican cambios parciales. Una referencia que se validó como inválida
-    devuelve 422, no 502.
+    502 cuando Menu no pudo consultar Inventario para validar los artículos de
+    una creación o modificación, o para leer los datos de artículo de una
+    consulta de recetas. No se aplican cambios. Un artículo que se validó como
+    inexistente devuelve 422, no 502.
   content:
     application/json:
       schema:
@@ -199,22 +246,7 @@ IdempotencyConflict:
   content:
     application/json:
       schema:
-        type: object
-        required: [error]
-        properties:
-          error:
-            type: object
-            required: [message, details]
-            properties:
-              message:
-                type: string
-              details:
-                type: object
-                required: [code]
-                properties:
-                  code:
-                    type: string
-                    enum: [IDEMPOTENCY_KEY_REUSED, IDEMPOTENCY_IN_PROGRESS]
+        $ref: './schemas/Common.yaml#/IdempotencyConflictEnvelope'
       examples:
         idempotencyKeyReused:
           summary: La clave ya identifica otros datos de solicitud
@@ -230,3 +262,127 @@ IdempotencyConflict:
               message: La solicitud con esta clave de idempotencia sigue en proceso.
               details:
                 code: IDEMPOTENCY_IN_PROGRESS
+
+DomainConflict:
+  description: Una regla de dominio impide la operación; error.code indica cuál y no se aplican cambios.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/DomainConflictEnvelope'
+      examples:
+        categoryNameTaken:
+          summary: Ya existe una categoría con ese nombre
+          value:
+            error:
+              message: Ya existe una categoría con ese nombre.
+              code: CATEGORY_NAME_TAKEN
+        entryArchived:
+          summary: La entrada está archivada
+          value:
+            error:
+              message: La entrada está archivada y no admite esta operación.
+              code: ENTRY_ARCHIVED
+        entryNotArchived:
+          summary: La entrada no está archivada
+          value:
+            error:
+              message: Solo se puede eliminar una entrada archivada.
+              code: ENTRY_NOT_ARCHIVED
+        offerNotInactive:
+          summary: La oferta no está inactiva
+          value:
+            error:
+              message: Solo se puede eliminar una oferta inactiva.
+              code: OFFER_NOT_INACTIVE
+        imageAlreadyAssociated:
+          summary: La imagen ya está asociada a otro recurso
+          value:
+            error:
+              message: La imagen ya está asociada a otra entrada u oferta.
+              code: IMAGE_ALREADY_ASSOCIATED
+        imageOwnerArchived:
+          summary: La imagen pertenece a una entrada archivada
+          value:
+            error:
+              message: No se puede reemplazar el archivo de una imagen de una entrada archivada o de sus ofertas.
+              code: IMAGE_OWNER_ARCHIVED
+
+IdempotencyOrDomainConflict:
+  description: 'Conflicto de idempotencia (error.details.code: IDEMPOTENCY_KEY_REUSED o IDEMPOTENCY_IN_PROGRESS) o de una regla de dominio (error.code), según la operación. Ninguno aplica cambios; para IDEMPOTENCY_IN_PROGRESS espere los segundos de Retry-After.'
+  headers:
+    Retry-After:
+      description: Segundos antes de reintentar; solo se devuelve para IDEMPOTENCY_IN_PROGRESS.
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+  content:
+    application/json:
+      schema:
+        oneOf:
+          - $ref: './schemas/Common.yaml#/IdempotencyConflictEnvelope'
+          - $ref: './schemas/Common.yaml#/DomainConflictEnvelope'
+      examples:
+        idempotencyKeyReused:
+          summary: La clave ya identifica otros datos de solicitud
+          value:
+            error:
+              message: La clave de idempotencia ya está vinculada a una solicitud diferente.
+              details:
+                code: IDEMPOTENCY_KEY_REUSED
+        idempotencyInProgress:
+          summary: La misma operación todavía se está procesando
+          value:
+            error:
+              message: La solicitud con esta clave de idempotencia sigue en proceso.
+              details:
+                code: IDEMPOTENCY_IN_PROGRESS
+        categoryNameTaken:
+          summary: Ya existe una categoría con ese nombre
+          value:
+            error:
+              message: Ya existe una categoría con ese nombre.
+              code: CATEGORY_NAME_TAKEN
+        entryArchived:
+          summary: La entrada está archivada
+          value:
+            error:
+              message: La entrada está archivada y no admite esta operación.
+              code: ENTRY_ARCHIVED
+        imageAlreadyAssociated:
+          summary: La imagen ya está asociada a otro recurso
+          value:
+            error:
+              message: La imagen ya está asociada a otra entrada u oferta.
+              code: IMAGE_ALREADY_ASSOCIATED
+
+NotAcceptable:
+  description: El encabezado Accept no admite el tipo de medio de la respuesta (application/pdf); no se genera la carta.
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/Common.yaml#/ErrorEnvelope'
+      examples:
+        notAcceptable:
+          summary: El cliente no acepta application/pdf
+          value:
+            error:
+              message: La carta imprimible solo se entrega como application/pdf.
+
+PrintableMenuPdf:
+  description: Carta imprimible en PDF generada con el catálogo del momento; no incluye ETag y Menu no la guarda.
+  headers:
+    Content-Disposition:
+      $ref: './headers.yaml#/ContentDisposition'
+    Cache-Control:
+      $ref: './headers.yaml#/CacheControlNoStore'
+  content:
+    application/pdf:
+      schema:
+        type: string
+        format: binary
+        description: Documento PDF de la carta.
+      examples:
+        cartaPdf:
+          summary: Documento PDF de la carta
+          value: '%PDF-1.7 …'

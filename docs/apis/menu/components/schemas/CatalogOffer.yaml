@@ -1,20 +1,20 @@
 OfferStatus:
   type: string
-  description: Estado de disponibilidad de una oferta del catálogo.
+  description: Estado administrativo de una oferta o de una opción; solo lo cambia el administrador y no expresa disponibilidad (véase isAvailable).
   enum: [ACTIVE, INACTIVE]
   example: ACTIVE
 
 RecipeSlotOption:
   type: object
-  description: Opción de slot cuyo origen es una receta identificada por recipeId. El servidor conserva internamente la revisión resuelta al asignarla; no se expone en la opción. Las respuestas del POST y del PATCH también incluyen su estado.
+  description: Opción cuyo origen es una receta, identificada solo por recipeId; usa siempre la revisión vigente de la receta.
   additionalProperties: false
-  required: [optionId, sourceType, recipeId, displayName]
+  required: [optionId, sourceType, recipeId, displayName, status, isAvailable]
   properties:
     optionId:
       type: string
       format: uuid
       description: Identificador UUID de la opción.
-      example: a1b2c3d4-e5f6-4789-8abc-def012345678
+      example: 89cce4da-2f19-4d27-942d-b2ee82fb5401
     sourceType:
       const: RECIPE
       description: Indica que la opción se basa en una receta.
@@ -22,63 +22,73 @@ RecipeSlotOption:
       type: string
       format: uuid
       description: Identificador UUID de la receta de origen.
-      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+      example: c4813f65-00b4-4921-874e-03c555796401
     status:
       $ref: '#/OfferStatus'
-      description: Estado de la opción, incluido en las respuestas del POST y del PATCH; al crearla mediante POST el servidor asigna ACTIVE.
+      description: Estado administrativo de la opción.
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: Disponibilidad derivada de la opción según el último estado comunicado por Inventario sobre su contenido.
+      example: true
     displayName:
       type: string
       description: Nombre que se muestra para esta opción en el catálogo.
       example: Hamburguesa hawaiana
   example:
-    optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+    optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
     sourceType: RECIPE
-    recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    recipeId: c4813f65-00b4-4921-874e-03c555796401
     displayName: Hamburguesa hawaiana
+    status: ACTIVE
+    isAvailable: true
 
 InventoryItemSlotOption:
   type: object
-  description: Opción de slot cuyo origen es un insumo de inventario. La respuesta incluye cantidad y unidad; las respuestas del POST y del PATCH también incluyen su estado.
+  description: Opción cuyo origen es un artículo de Inventario con su cantidad.
   additionalProperties: false
-  required: [optionId, sourceType, inventoryItemId, quantity, unit, displayName]
+  required: [optionId, sourceType, inventoryItemId, quantity, displayName, status, isAvailable]
   properties:
     optionId:
       type: string
       format: uuid
       description: Identificador UUID de la opción.
-      example: b2c3d4e5-f678-489a-bcde-f0123456789a
+      example: 89cce4da-2f19-4d27-942d-b2ee82fb5402
     sourceType:
       const: INVENTORY_ITEM
-      description: Indica que la opción se basa directamente en un insumo de inventario.
+      description: Indica que la opción se basa directamente en un artículo de Inventario.
     inventoryItemId:
       type: string
-      description: Identificador opaco del insumo de inventario de origen como string, sin formato impuesto.
+      description: Identificador opaco del artículo de Inventario de origen como string, sin formato impuesto.
       example: CARNE-150G
     quantity:
       type: number
       exclusiveMinimum: 0
-      description: Cantidad positiva del artículo.
-    unit:
-      type: string
-      minLength: 1
-      description: Unidad compatible con la del artículo.
+      description: Cantidad positiva expresada en la unidad que Inventario establece para el artículo; la opción no tiene unidad propia. Es distinta del número de rondas del grupo.
+      example: 150
     status:
       $ref: '#/OfferStatus'
-      description: Estado de la opción, incluido en las respuestas del POST y del PATCH; al crearla mediante POST el servidor asigna ACTIVE.
+      description: Estado administrativo de la opción.
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: Disponibilidad derivada de la opción según el último estado comunicado por Inventario sobre su contenido.
+      example: true
     displayName:
       type: string
       description: Nombre que se muestra para esta opción en el catálogo.
-      example: Queso cheddar
+      example: Carne Molida Res 80/20
   example:
-    optionId: b2c3d4e5-f678-489a-bcde-f0123456789a
+    optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
     sourceType: INVENTORY_ITEM
     inventoryItemId: CARNE-150G
     quantity: 150
-    unit: g
-    displayName: Queso cheddar
+    displayName: Carne Molida Res 80/20
+    status: ACTIVE
+    isAvailable: true
 
 SlotOption:
-  description: Opción de un slot; cada opción identifica una receta o un insumo de inventario.
+  description: Opción de un grupo de selección; cada opción identifica una receta o un artículo de Inventario.
   oneOf:
     - $ref: '#/RecipeSlotOption'
     - $ref: '#/InventoryItemSlotOption'
@@ -86,12 +96,10 @@ SlotOption:
 RecipeSlotOptionInput:
   type: object
   description: >-
-    Datos para crear una opción de slot basada en una receta mediante POST. Se selecciona
-    únicamente por recipeId; el servidor resuelve atómicamente la revisión válida más reciente
-    al asignarla y conserva esa referencia internamente. Las ediciones posteriores de la receta
-    no cambian la opción ni su historia. Una receta inexistente o sin revisión válida devuelve
-    422 sin aplicar cambios. El servidor genera optionId y asigna status ACTIVE; no se envían
-    optionId ni status en la solicitud.
+    Datos de una opción nueva cuyo origen es una receta; el servidor genera
+    optionId. status es opcional: si se omite, la opción inicia ACTIVE. Se
+    indica solo recipeId; la opción usa siempre la revisión vigente. Una receta
+    inexistente devuelve 422.
   additionalProperties: false
   required: [sourceType, recipeId, displayName]
   properties:
@@ -102,124 +110,143 @@ RecipeSlotOptionInput:
       type: string
       format: uuid
       description: Identificador UUID de la receta de origen.
-      example: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+      example: c4813f65-00b4-4921-874e-03c555796401
     displayName:
       type: string
+      minLength: 1
       description: >-
         Nombre que se mostrará para esta opción en el menú. Puede diferir del
         nombre de la receta de origen, que se resuelve mediante recipeId.
       example: Hamburguesa hawaiana
+    status:
+      $ref: '#/OfferStatus'
   example:
     sourceType: RECIPE
-    recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+    recipeId: c4813f65-00b4-4921-874e-03c555796401
     displayName: Hamburguesa hawaiana
 
 InventoryItemSlotOptionInput:
   type: object
-  description: Datos para crear una opción de slot basada en un insumo de inventario mediante POST; el servidor genera optionId y asigna status ACTIVE. No se envían optionId ni status en la solicitud.
+  description: >-
+    Datos de una opción nueva cuyo origen es un artículo de Inventario con su
+    cantidad; el servidor genera optionId. status es opcional: si se omite, la
+    opción inicia ACTIVE.
   additionalProperties: false
-  required: [sourceType, inventoryItemId, quantity, unit, displayName]
+  required: [sourceType, inventoryItemId, quantity, displayName]
   properties:
     sourceType:
       const: INVENTORY_ITEM
-      description: Indica que la opción se basa directamente en un insumo de inventario.
+      description: Indica que la opción se basa directamente en un artículo de Inventario.
     inventoryItemId:
       type: string
-      description: Identificador opaco del insumo de inventario de origen como string, sin formato impuesto.
+      minLength: 1
+      description: Identificador opaco del artículo de Inventario de origen como string, sin formato impuesto.
       example: CARNE-150G
     quantity:
       type: number
       exclusiveMinimum: 0
-      description: Cantidad positiva del artículo.
+      description: Cantidad positiva expresada en la unidad que Inventario establece para el artículo; la opción no tiene unidad propia. Es distinta del número de rondas del grupo.
       example: 150
-    unit:
-      type: string
-      minLength: 1
-      description: Unidad compatible con la del artículo.
-      example: g
     displayName:
       type: string
+      minLength: 1
       description: >-
         Nombre que se mostrará para esta opción en el menú. Puede diferir del
-        nombre del insumo de origen, que se resuelve mediante inventoryItemId.
-      example: Queso cheddar
+        nombre del artículo de Inventario de origen, que se resuelve mediante
+        inventoryItemId.
+      example: Carne Molida Res 80/20
+    status:
+      $ref: '#/OfferStatus'
   example:
     sourceType: INVENTORY_ITEM
     inventoryItemId: CARNE-150G
     quantity: 150
-    unit: g
-    displayName: Queso cheddar
+    displayName: Carne Molida Res 80/20
 
 SlotOptionInput:
-  description: Datos de una opción de slot con uno de los dos tipos de origen admitidos.
+  description: Datos de una opción de un grupo de selección con uno de los dos tipos de origen admitidos.
   oneOf:
     - $ref: '#/RecipeSlotOptionInput'
     - $ref: '#/InventoryItemSlotOptionInput'
 
 CompositionSlot:
   type: object
-  description: Slot de la composición con una cantidad, un curso y las opciones que pueden ocuparlo.
-  required: [slotId, name, quantity, options]
+  description: Grupo de selección de la composición con su número de rondas, su tiempo de servicio opcional y sus opciones.
+  required: [slotId, name, quantity, isAvailable, options]
   properties:
     slotId:
       type: string
       format: uuid
-      description: Identificador UUID del slot.
-      example: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+      description: Identificador UUID del grupo de selección.
+      example: b37c1bd7-17b2-47a2-a3a4-802559445301
     name:
       type: string
-      description: Nombre que identifica el slot dentro de la composición.
+      description: Nombre que identifica el grupo de selección dentro de la composición.
       example: Hamburguesa
-    status:
-      $ref: '#/OfferStatus'
-      description: Estado derivado, incluido en la respuesta del PATCH; ACTIVE si alguna opción está ACTIVE e INACTIVE si ninguna lo está.
     quantity:
       type: number
-      description: Rango y precisión no definidos en la fuente.
+      description: 'Número de rondas del grupo de selección: en cada ronda se elige una opción. No es una cantidad física; rangos y precisión pendientes en OPEN-006.'
       example: 1
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: true si y solo si al menos una opción ACTIVE del grupo está disponible.
+      example: true
     course:
       type: string
       enum: [entrada, plato fuerte, postre, bebida]
-      description: Curso al que pertenece el slot, si se especifica.
+      description: Tiempo de servicio al que pertenece el grupo de selección, si se especifica.
       example: plato fuerte
     options:
       type: array
-      description: Opciones disponibles para ocupar el slot.
+      description: Opciones del grupo en el orden de presentación establecido por el administrador.
       items:
         $ref: '#/SlotOption'
   example:
-    slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+    slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
     name: Hamburguesa
     quantity: 1
+    isAvailable: true
     course: plato fuerte
     options:
-      - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+      - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
         sourceType: RECIPE
-        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        recipeId: c4813f65-00b4-4921-874e-03c555796401
         displayName: Hamburguesa hawaiana
+        status: ACTIVE
+        isAvailable: true
+      - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+        sourceType: INVENTORY_ITEM
+        inventoryItemId: CARNE-150G
+        quantity: 150
+        displayName: Carne Molida Res 80/20
+        status: ACTIVE
+        isAvailable: true
 
 CompositionSlotInput:
   type: object
-  description: Datos para crear un slot de una composición; el servidor genera slotId.
+  description: Datos de un grupo de selección nuevo; el servidor genera slotId.
   additionalProperties: false
   required: [name, quantity, options]
   properties:
     name:
       type: string
-      description: Nombre que identifica el slot dentro de la composición.
+      minLength: 1
+      description: Nombre que identifica el grupo de selección dentro de la composición.
       example: Hamburguesa
     quantity:
       type: number
-      description: Rango y precisión no definidos en la fuente.
+      description: 'Número de rondas del grupo de selección: en cada ronda se elige una opción. No es una cantidad física; rangos y precisión pendientes en OPEN-006.'
       example: 1
     course:
       type: string
       enum: [entrada, plato fuerte, postre, bebida]
-      description: Curso al que pertenece el slot, si se especifica.
+      description: Tiempo de servicio al que pertenece el grupo de selección, si se especifica.
       example: plato fuerte
     options:
       type: array
-      description: Opciones disponibles para ocupar el slot.
+      minItems: 1
+      description: Opciones del grupo en el orden de presentación; no se repite el mismo artículo de Inventario ni la misma receta en el grupo (422 DUPLICATE_OPTION_CONTENT).
       items:
         $ref: '#/SlotOptionInput'
   example:
@@ -228,30 +255,33 @@ CompositionSlotInput:
     course: plato fuerte
     options:
       - sourceType: RECIPE
-        recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+        recipeId: c4813f65-00b4-4921-874e-03c555796401
         displayName: Hamburguesa hawaiana
 
 Composition:
   type: object
-  description: Composición de una oferta, expresada como una colección de slots.
+  description: Composición de una oferta, expresada como una colección de grupos de selección.
   required: [slots]
   properties:
     slots:
       type: array
-      description: Slots que forman la composición de la oferta.
+      description: Grupos de selección en el orden de presentación, que es también el orden de sucesión de sus rondas.
       items:
         $ref: '#/CompositionSlot'
   example:
     slots:
-      - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+      - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
         name: Hamburguesa
         quantity: 1
+        isAvailable: true
         course: plato fuerte
         options:
-          - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+          - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
             sourceType: RECIPE
-            recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+            recipeId: c4813f65-00b4-4921-874e-03c555796401
             displayName: Hamburguesa hawaiana
+            status: ACTIVE
+            isAvailable: true
 
 CompositionInput:
   type: object
@@ -261,25 +291,26 @@ CompositionInput:
   properties:
     slots:
       type: array
-      description: Slots que forman la composición enviada.
+      minItems: 1
+      description: Grupos de selección en el orden de presentación, que es también el orden de sucesión de sus rondas.
       items:
         $ref: '#/CompositionSlotInput'
 
 CatalogOfferSummary:
   type: object
   description: Campos que resumen una oferta del catálogo, su entrada asociada y su composición.
-  required: [id, entryId, entryName, presentationTag, basePrice, status, image, slotCount]
+  required: [id, entryId, entryName, presentationTag, basePrice, status, isAvailable, image, slotCount]
   properties:
     id:
       type: string
       format: uuid
       description: Identificador UUID de la oferta.
-      example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+      example: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
     entryId:
       type: string
       format: uuid
       description: Identificador UUID de la entrada a la que pertenece la oferta.
-      example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+      example: 7d19a8ce-402c-4bab-b383-9969b69fe101
     entryName:
       type: string
       description: Nombre comercial de la entrada asociada.
@@ -287,102 +318,125 @@ CatalogOfferSummary:
     presentationTag:
       type: string
       description: Etiqueta obligatoria que distingue esta presentación de la entrada; no admite null.
-      example: Combo
+      example: Individual
     basePrice:
       type: number
       description: Precio base de la oferta.
       example: 180.0
     status:
       $ref: '#/OfferStatus'
+      description: Estado administrativo de la oferta.
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: true si y solo si todos sus grupos de selección están disponibles; la oferta es ordenable si además ella y su entrada están ACTIVE y la entrada está disponible.
+      example: true
     image:
       $ref: 'Common.yaml#/Image'
     slotCount:
       type: integer
       minimum: 0
-      description: Cantidad de slots que contiene la composición.
-      example: 2
+      description: Cantidad de grupos de selección que contiene la composición.
+      example: 1
   example:
-    id: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
-    entryId: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+    id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
     entryName: Hamburguesa Hawaiana
-    presentationTag: Combo
+    presentationTag: Individual
     basePrice: 180.0
     status: ACTIVE
+    isAvailable: true
     image:
-      id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
       url: https://cdn.example.com/menu/burger.jpg
       thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
-    slotCount: 2
+    slotCount: 1
 
 CatalogOfferDetail:
   type: object
-  description: Datos completos de una oferta, incluidos los slots y las opciones de su composición.
-  required: [id, entryId, presentationTag, basePrice, status, image, composition]
+  description: Datos completos de una oferta, incluidos los grupos de selección y las opciones de su composición.
+  required: [id, entryId, presentationTag, basePrice, status, isAvailable, image, composition]
   properties:
     id:
       type: string
       format: uuid
       description: Identificador UUID de la oferta.
-      example: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
+      example: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
     entryId:
       type: string
       format: uuid
       description: Identificador UUID de la entrada a la que pertenece la oferta.
-      example: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
+      example: 7d19a8ce-402c-4bab-b383-9969b69fe101
     presentationTag:
       type: string
       description: Etiqueta obligatoria que distingue esta presentación de la entrada; no admite null.
-      example: Combo
+      example: Individual
     basePrice:
       type: number
       description: Precio base de la oferta.
       example: 180.0
     status:
       $ref: '#/OfferStatus'
+      description: Estado administrativo de la oferta.
+    isAvailable:
+      type: boolean
+      readOnly: true
+      description: true si y solo si todos sus grupos de selección están disponibles; la oferta es ordenable si además ella y su entrada están ACTIVE y la entrada está disponible.
+      example: true
     image:
       $ref: 'Common.yaml#/Image'
     composition:
       $ref: '#/Composition'
   example:
-    id: 4f3b2d1c-9e8a-47b6-85d4-1a2b3c4d5e6f
-    entryId: 82f7c6d4-3d9a-4fa1-bf2c-7b8d9e0f1a23
-    presentationTag: Combo
+    id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
+    entryId: 7d19a8ce-402c-4bab-b383-9969b69fe101
+    presentationTag: Individual
     basePrice: 180.0
     status: ACTIVE
+    isAvailable: true
     image:
-      id: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+      id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
       url: https://cdn.example.com/menu/burger.jpg
       thumbnailUrl: https://cdn.example.com/menu/burger-thumbnail.jpg
     composition:
       slots:
-        - slotId: c3d4e5f6-789a-4bcd-8ef0-123456789abc
+        - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
           name: Hamburguesa
           quantity: 1
+          isAvailable: true
           course: plato fuerte
           options:
-            - optionId: a1b2c3d4-e5f6-4789-8abc-def012345678
+            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
               sourceType: RECIPE
-              recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+              recipeId: c4813f65-00b4-4921-874e-03c555796401
               displayName: Hamburguesa hawaiana
+              status: ACTIVE
+              isAvailable: true
+            - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
+              sourceType: INVENTORY_ITEM
+              inventoryItemId: CARNE-150G
+              quantity: 150
+              displayName: Carne Molida Res 80/20
+              status: ACTIVE
+              isAvailable: true
 
 CatalogOfferCreateRequest:
   type: object
   description: >-
-    Datos JSON para crear una oferta y definir su composición inicial. La imagen
-    se carga previamente mediante POST /api/v1/media/images y esta solicitud
-    asocia su identificador; la carga y la asociación son operaciones separadas.
-    No se envían archivos ni URLs en esta solicitud. Los UUID de los slots y las
-    opciones los genera el servidor; no deben incluirse en este cuerpo. El
-    servidor asigna INACTIVE al crear la oferta y status ACTIVE a cada opción
-    nueva; status de las opciones no se envía en esta solicitud. La activación
-    manual de la oferta se realiza después mediante una actualización.
+    Datos JSON para crear una oferta con su composición inicial. La imagen se
+    carga antes con POST /menu/media/images y aquí se asocia su identificador,
+    que no se cambia después. Los grupos y opciones se envían sin identificador.
+    La oferta inicia INACTIVE; cada opción nueva admite status y, si lo omite,
+    inicia ACTIVE. Para crearla con una copia de otra oferta se envían los
+    grupos y opciones del origen sin identificadores y con su status.
   additionalProperties: false
   required: [presentationTag, basePrice, composition, imageId]
   properties:
     presentationTag:
       type: string
+      minLength: 1
       description: Etiqueta obligatoria que distingue esta presentación de la entrada; no admite null.
-      example: Combo
+      example: Individual
     basePrice:
       type: number
       description: Precio base de la oferta.
@@ -391,16 +445,16 @@ CatalogOfferCreateRequest:
       type: string
       format: uuid
       description: >-
-        UUID obligatorio de la imagen previamente cargada y validada, obtenido
-        de data.id en POST /api/v1/media/images. Debe identificar una imagen
-        existente y accesible al solicitante; no admite null, archivos ni URLs.
-      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        UUID obligatorio de la imagen previamente cargada, obtenido de data.id
+        en POST /menu/media/images; una imagen ya asociada devuelve 409
+        IMAGE_ALREADY_ASSOCIATED. No admite null, archivos ni URLs.
+      example: 8c3f4365-1d1d-4a85-969a-c6c80757b201
     composition:
       $ref: '#/CompositionInput'
   example:
-    presentationTag: Combo
+    presentationTag: Individual
     basePrice: 180.0
-    imageId: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+    imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
     composition:
       slots:
         - name: Hamburguesa
@@ -408,35 +462,33 @@ CatalogOfferCreateRequest:
           course: plato fuerte
           options:
             - sourceType: RECIPE
-              recipeId: 9a6c4d2e-1f3b-48a5-8c7d-6e5f4a3b2c1d
+              recipeId: c4813f65-00b4-4921-874e-03c555796401
               displayName: Hamburguesa hawaiana
+            - sourceType: INVENTORY_ITEM
+              inventoryItemId: CARNE-150G
+              quantity: 150
+              displayName: Carne Molida Res 80/20
+              status: INACTIVE
 
 CatalogOfferPatchRequest:
   type: object
   description: >-
-    Campos de una oferta que se desean actualizar mediante JSON. La imagen de
-    reemplazo se carga previamente mediante POST /api/v1/media/images; esta
-    solicitud actualiza su asociación con imageId. La carga y la asociación son
-    operaciones separadas. No se envían archivos ni URLs en esta solicitud.
-    presentationTag es obligatorio en toda solicitud; si no se desea cambiar,
-    se reenvía su valor vigente. Los demás campos omitidos se conservan
-    recursivamente; composition vacío conserva sus slots. Enviar slots u options
-    reemplaza su conjunto completo; los elementos existentes incluidos pueden
-    omitir campos para conservarlos y las opciones omitidas de un slot existente
-    se conservan. Las listas vacías devuelven 422. Los identificadores existentes
-    deben pertenecer a la oferta y al slot correspondiente: desconocidos, ajenos
-    o duplicados se rechazan con 422; no se mueven elementos ni se crean con ID
-    proporcionado. Los nuevos elementos omiten su ID y el servidor lo genera.
-    Se valida el resultado completo y las invariantes antes de persistir;
-    cualquier error rechaza toda la operación. Se recalculan los estados de
-    slots y oferta según las opciones y su habilitación administrativa. If-Match
-    protege la actualización de modificaciones concurrentes.
+    Campos de una oferta que se desean actualizar mediante JSON; todos son
+    opcionales y los omitidos se conservan. imageId no se acepta. Enviar
+    composition.slots reemplaza la lista completa de grupos (los ausentes se
+    eliminan con sus opciones); enviar options en un grupo reemplaza la lista
+    completa de opciones de ese grupo (las ausentes se eliminan); omitir slots u
+    options conserva la lista vigente. Los elementos existentes se identifican
+    por slotId u optionId y conservan los campos omitidos; los nuevos se envían
+    sin identificador. Se valida el resultado completo antes de persistir y
+    cualquier error rechaza toda la operación. If-Match protege la oferta y su
+    composición.
   additionalProperties: false
-  required: [presentationTag]
   properties:
     presentationTag:
       type: string
-      description: Etiqueta obligatoria de presentación; reenviar el valor vigente si no se desea cambiar. No admite null.
+      minLength: 1
+      description: Nueva etiqueta de presentación, si se desea cambiar.
       example: Combo familiar
     basePrice:
       type: number
@@ -445,25 +497,16 @@ CatalogOfferPatchRequest:
     status:
       $ref: '#/OfferStatus'
       description: >-
-        Estado administrativo solicitado. Activar exige una composición válida
-        con al menos un slot ACTIVE. Una solicitud INACTIVE explícita prevalece
-        sobre la reactivación automática.
-    imageId:
-      type: string
-      format: uuid
-      description: >-
-        UUID opcional de la imagen de reemplazo previamente cargada y validada,
-        obtenido de data.id en POST /api/v1/media/images. Debe identificar una
-        imagen existente y accesible al solicitante. Omitirlo conserva la imagen
-        vigente; no admite null, archivos ni URLs.
-      example: 6b78d901-2c3a-4f5b-8d6e-7a9b0c1d2e3f
+        Estado administrativo solicitado. Activar exige una composición válida,
+        que toda oferta mantiene, y no exige disponibilidad; se rechaza con 409
+        ENTRY_ARCHIVED si la entrada está archivada. Exige menu:offers:status.
     composition:
       $ref: '#/CompositionPatchInput'
 
 CompositionPatchInput:
   type: object
   additionalProperties: false
-  description: Composición enviada al PATCH; omitir slots o enviar un objeto vacío conserva los slots vigentes. Enviar slots reemplaza el conjunto completo y no admite una lista vacía.
+  description: Composición enviada al PATCH; omitir slots o enviar un objeto vacío conserva los grupos de selección vigentes. Enviar slots reemplaza la lista completa y no admite una lista vacía.
   properties:
     slots:
       type: array
@@ -475,20 +518,22 @@ CompositionSlotPatchInput:
   type: object
   additionalProperties: false
   description: >-
-    Con slotId actualiza un slot existente de esta oferta y conserva los campos omitidos. Sin slotId
-    crea un slot y requiere name, quantity y options; el servidor genera su ID. options reemplaza el
-    conjunto completo al enviarse; omitirlo en un slot existente conserva sus opciones. IDs
-    desconocidos, ajenos o duplicados se rechazan con 422; no permite mover slots ni crear nuevos
-    con ID. course null retira el curso opcional.
+    Con slotId actualiza un grupo existente de esta oferta y conserva los
+    campos omitidos; sin slotId crea un grupo y requiere name, quantity y
+    options. options reemplaza la lista completa de opciones del grupo;
+    omitirlo en un grupo existente la conserva. Identificadores desconocidos,
+    ajenos o duplicados devuelven 422. course null retira el tiempo de
+    servicio.
   properties:
     slotId:
       type: string
       format: uuid
     name:
       type: string
+      minLength: 1
     quantity:
       type: number
-      description: Rango y precisión pendientes en OPEN-006.
+      description: Número de rondas; rangos y precisión pendientes en OPEN-006.
     course:
       type:
         - string
@@ -530,12 +575,13 @@ CompositionSlotPatchInput:
 RecipeSlotOptionPatchInput:
   type: object
   description: >-
-    Datos para actualizar o crear una opción basada en una receta. Enviar recipeId, incluso
-    si coincide con el actual, asigna atómicamente la revisión válida más reciente de esa
-    receta; el servidor conserva internamente la referencia resuelta. Omitir recipeId en una
-    opción existente de tipo RECIPE conserva su asignación. Cambiar el tipo de origen a
-    RECIPE requiere recipeId. Las ediciones posteriores de la receta no cambian opciones ni
-    historia. Una receta inexistente o sin revisión válida devuelve 422 sin aplicar cambios.
+    Datos para actualizar o crear una opción con receta. Con optionId,
+    sourceType debe coincidir con el almacenado (si no, 422
+    SOURCE_TYPE_IMMUTABLE) y los campos omitidos se conservan; omitir recipeId
+    conserva la receta asignada. Sin optionId crea una opción y requiere
+    displayName y recipeId; status es opcional (por omisión ACTIVE). La opción
+    usa siempre la revisión vigente de la receta; una receta inexistente
+    devuelve 422.
   additionalProperties: false
   required: [sourceType]
   properties:
@@ -548,6 +594,7 @@ RecipeSlotOptionPatchInput:
       description: Identificador de una opción existente; se omite para crearla.
     displayName:
       type: string
+      minLength: 1
       description: Nombre que se muestra para esta opción.
     status:
       $ref: '#/OfferStatus'
@@ -559,11 +606,16 @@ RecipeSlotOptionPatchInput:
         not:
           required: [optionId]
       then:
-        required: [displayName, status, recipeId]
+        required: [displayName, recipeId]
 
 InventoryItemSlotOptionPatchInput:
   type: object
-  description: Datos para actualizar o crear una opción basada en un insumo de inventario.
+  description: >-
+    Datos para actualizar o crear una opción con un artículo de Inventario. Con
+    optionId, sourceType debe coincidir con el almacenado (422
+    SOURCE_TYPE_IMMUTABLE) y los campos omitidos se conservan. Sin optionId
+    requiere displayName, inventoryItemId y quantity; status es opcional (por
+    omisión ACTIVE).
   additionalProperties: false
   required: [sourceType]
   properties:
@@ -576,34 +628,34 @@ InventoryItemSlotOptionPatchInput:
       description: Identificador de una opción existente; se omite para crearla.
     displayName:
       type: string
+      minLength: 1
       description: Nombre que se muestra para esta opción.
     status:
       $ref: '#/OfferStatus'
     inventoryItemId:
       type: string
-      description: Identificador opaco del insumo de inventario como string, sin formato impuesto.
+      description: Identificador opaco del artículo de Inventario como string, sin formato impuesto.
       example: CARNE-150G
     quantity:
       type: number
       exclusiveMinimum: 0
-    unit:
-      type: string
-      minLength: 1
+      description: Cantidad positiva expresada en la unidad que Inventario establece para el artículo; la opción no tiene unidad propia. Es distinta del número de rondas del grupo.
   allOf:
     - if:
         not:
           required: [optionId]
       then:
-        required: [displayName, status, inventoryItemId, quantity, unit]
+        required: [displayName, inventoryItemId, quantity]
 
 SlotOptionPatchInput:
   description: >-
-    Con optionId actualiza una opción existente del slot y conserva los campos omitidos; sourceType
-    debe coincidir con el tipo almacenado para que los cambios parciales sean válidos. Sin optionId
-    crea una opción nueva; debe incluir displayName, status y la tupla completa del origen indicado.
-    El servidor genera el ID. IDs desconocidos, ajenos o duplicados se rechazan con 422; no se pueden
-    mover opciones ni crear nuevas con ID. Para cambiar el tipo de una opción existente, se debe
-    enviar sourceType y la tupla completa del nuevo origen; el servidor aplica el cambio atómicamente.
+    Con optionId actualiza una opción existente del grupo; sin optionId crea
+    una opción nueva y el servidor genera su identificador. El tipo de
+    contenido de una opción no cambia: un sourceType distinto del almacenado
+    devuelve 422 SOURCE_TYPE_IMMUTABLE; para usar el otro tipo se crea una
+    opción nueva. Identificadores desconocidos, ajenos o duplicados devuelven
+    422. Incluir status en una opción existente es un cambio de estado y exige
+    menu:offers:status; el status de una opción nueva forma parte de su alta.
   oneOf:
     - $ref: '#/RecipeSlotOptionPatchInput'
     - $ref: '#/InventoryItemSlotOptionPatchInput'
@@ -627,82 +679,3 @@ CatalogOfferResponse:
   properties:
     data:
       $ref: '#/CatalogOfferDetail'
-
-CatalogOfferPatchRecipeSlotOption:
-  allOf:
-    - $ref: '#/RecipeSlotOption'
-    - type: object
-      description: >-
-        En la respuesta del PATCH siempre se incluye el estado de la opción. La receta se
-        identifica mediante recipeId; la revisión asignada se conserva internamente.
-      required: [status]
-      properties:
-        status:
-          $ref: '#/OfferStatus'
-
-CatalogOfferPatchInventoryItemSlotOption:
-  allOf:
-    - $ref: '#/InventoryItemSlotOption'
-    - type: object
-      description: >-
-        En la respuesta del PATCH siempre se incluyen el estado de la opción, la cantidad y la
-        unidad del insumo.
-      required: [status, quantity, unit]
-      properties:
-        status:
-          $ref: '#/OfferStatus'
-        quantity:
-          type: number
-          exclusiveMinimum: 0
-        unit:
-          type: string
-          minLength: 1
-
-CatalogOfferPatchSlotOption:
-  description: Opción de slot devuelta por PATCH con los campos obligatorios de su tipo de origen.
-  oneOf:
-    - $ref: '#/CatalogOfferPatchRecipeSlotOption'
-    - $ref: '#/CatalogOfferPatchInventoryItemSlotOption'
-
-CatalogOfferPatchCompositionSlot:
-  allOf:
-    - $ref: '#/CompositionSlot'
-    - type: object
-      description: La respuesta del PATCH siempre incluye el estado derivado del slot.
-      required: [status]
-      properties:
-        status:
-          $ref: '#/OfferStatus'
-        options:
-          type: array
-          items:
-            $ref: '#/CatalogOfferPatchSlotOption'
-
-CatalogOfferPatchComposition:
-  allOf:
-    - $ref: '#/Composition'
-    - type: object
-      properties:
-        slots:
-          type: array
-          items:
-            $ref: '#/CatalogOfferPatchCompositionSlot'
-
-CatalogOfferPatchDetail:
-  allOf:
-    - $ref: '#/CatalogOfferDetail'
-    - type: object
-      description: >-
-        Detalle devuelto por PATCH. Los estados derivados y los datos de origen específicos de cada
-        opción están presentes en todos los slots y opciones.
-      properties:
-        composition:
-          $ref: '#/CatalogOfferPatchComposition'
-
-CatalogOfferPatchResponse:
-  type: object
-  description: Respuesta del PATCH de una oferta con los estados y datos de origen completos.
-  required: [data]
-  properties:
-    data:
-      $ref: '#/CatalogOfferPatchDetail'

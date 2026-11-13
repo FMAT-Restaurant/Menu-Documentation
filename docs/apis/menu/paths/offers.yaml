@@ -2,13 +2,21 @@ offers:
   get:
     tags: [Ofertas]
     operationId: listMenuOffers
+    x-required-permission:
+      - menu:offers:read
     summary: Listar ofertas
     description: >-
-      Devuelve una página de ofertas. Puede limitar los resultados a una
-      entrada y excluir una oferta concreta; la lista se pagina en el servidor.
+      Consulta administrativa de ofertas en cualquier estado administrativo, con su
+      composición resumida. entryId limita a las ofertas de una entrada; excludeOfferId
+      excluye una oferta y excludeArchivedEntries=true excluye las ofertas de entradas
+      archivadas, de modo que, para elegir el origen de una copia de composición, se
+      combinan excludeOfferId con la oferta destino y excludeArchivedEntries=true. Las
+      ofertas de una misma entrada se ordenan alfabéticamente por etiqueta de
+      presentación. La lista se pagina en el servidor.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/EntryIdQuery
       - $ref: ../openapi.yaml#/components/parameters/ExcludeOfferId
+      - $ref: ../openapi.yaml#/components/parameters/ExcludeArchivedEntries
       - $ref: ../openapi.yaml#/components/parameters/Page
       - $ref: ../openapi.yaml#/components/parameters/PageSize
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
@@ -33,6 +41,7 @@ offers:
                       presentationTag: Individual
                       basePrice: 180.0
                       status: ACTIVE
+                      isAvailable: true
                       image:
                         id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                         url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -65,41 +74,44 @@ entryOffers:
   post:
     tags: [Ofertas]
     operationId: createEntryOffer
+    x-required-permission:
+      - menu:offers:write
     summary: Crear una oferta para una entrada
     description: >-
-      Crea una oferta asociada a la entrada indicada en la ruta. La composición
-      define los espacios de selección y sus opciones. La imagen es obligatoria:
-      cárguela antes mediante POST /api/v1/media/images y envíe data.id de la
-      respuesta como imageId en el cuerpo JSON. Esta operación no recibe archivos
-      ni URLs. imageId debe identificar una imagen existente, válida y accesible
-      al solicitante; una referencia inválida devuelve 422 sin crear la oferta.
-      Toda oferta se crea con estado INACTIVE y debe activarse manualmente después.
-      El servidor asigna status: ACTIVE a todas las opciones nuevas; el cuerpo
-      de POST no acepta status para las opciones. Si falla la consulta a Inventario
-      necesaria para validar un origen INVENTORY_ITEM, devuelve 502 sin crear la
-      oferta; un artículo de inventario inválido devuelve 422.
-      La carga previa es una operación independiente y no se deshace si falla la
-      creación de la oferta.
+      Crea una oferta en la entrada indicada con su etiqueta de presentación, precio
+      base, imagen y composición inicial válida. La oferta inicia INACTIVE y se activa
+      después con PATCH. Cada opción nueva admite status opcional; si se omite, inicia
+      ACTIVE. La imagen se carga antes con POST /menu/media/images y su data.id se envía
+      como imageId; una imagen ya asociada devuelve 409 IMAGE_ALREADY_ASSOCIATED y una
+      referencia inexistente o inválida 422. Una entrada archivada devuelve 409
+      ENTRY_ARCHIVED. Una opción RECIPE se indica solo con recipeId y usa siempre la
+      revisión vigente de la receta; una receta inexistente devuelve 422. En un mismo
+      grupo no se repite el contenido (422 DUPLICATE_OPTION_CONTENT). Si Inventario no
+      responde al validar un artículo, devuelve 502 sin crear la oferta; un artículo
+      inexistente devuelve 422. Copia de composición: para crear la oferta con una copia
+      de otra, consulte la oferta origen con GET /menu/offers/{offerId} y envíe sus
+      grupos y opciones sin slotId ni optionId, conservando el status de cada opción; no
+      se copian el precio base, la etiqueta de presentación ni la imagen, y no se guarda
+      ninguna referencia al origen. Una receta creada antes desde la configuración de una
+      opción (POST /menu/recipes) es una operación independiente y permanece en la
+      biblioteca aunque se rechace la oferta.
+
       Requiere Idempotency-Key, un UUID generado por el cliente por creación lógica,
       con alcance por usuario autenticado, menú, método POST y ruta concreta (incluido
       entryId). Durante 24 horas desde la primera creación confirmada, reenviar la misma
       clave y el mismo JSON semántico devuelve el 201, cuerpo y ETag originales, con la
-      misma oferta, slots, opciones e imagen; no repite efectos ni resuelve otra vez las
-      revisiones de recetas. El orden de propiedades y los espacios del JSON no alteran
-      su igualdad; el orden de arrays y la diferencia entre omisión y null sí la alteran.
-      Tras autenticar y autorizar al solicitante, el resultado guardado se recupera antes
-      de validar los recursos o referencias vigentes, incluso si después fueron editados
-      o eliminados. Otra carga JSON con la misma clave devuelve 409 con
-      error.details.code IDEMPOTENCY_KEY_REUSED; una creación todavía en curso
-      devuelve 409 con error.details.code IDEMPOTENCY_IN_PROGRESS y Retry-After. La ausencia o
-      invalidez del encabezado devuelve 400. Los errores anteriores a la creación
-      confirmada, incluido 502, no fijan un resultado y liberan la clave para reintentar
-      la misma solicitud. Los reintentos no extienden el plazo; después de 24 horas la
-      clave puede tratarse como nueva y ya no garantiza evitar duplicados.
-      Una opción RECIPE se selecciona solo por recipeId: al asignarla, el servidor
-      resuelve atómicamente la revisión válida publicada más reciente y la conserva
-      internamente; no se expone una revisión en la opción. Una receta inexistente o
-      sin revisión válida devuelve 422 sin aplicar cambios.
+      misma oferta, grupos de selección, opciones e imagen; no repite efectos. El orden
+      de propiedades y los espacios del JSON no alteran su igualdad; el orden de arrays
+      y la diferencia entre omisión y null sí la alteran. Tras autenticar y autorizar al
+      solicitante, el resultado guardado se recupera antes de validar los recursos o
+      referencias vigentes, incluso si después fueron editados o eliminados. Otra carga
+      JSON con la misma clave devuelve 409 con error.details.code IDEMPOTENCY_KEY_REUSED;
+      una creación todavía en curso devuelve 409 con error.details.code
+      IDEMPOTENCY_IN_PROGRESS y Retry-After. La ausencia o invalidez del encabezado
+      devuelve 400. Los errores anteriores a la creación confirmada, incluido 502, no
+      fijan un resultado y liberan la clave para reintentar la misma solicitud. Los
+      reintentos no extienden el plazo; después de 24 horas la clave puede tratarse como
+      nueva y ya no garantiza evitar duplicados.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IdempotencyKey
     requestBody:
@@ -125,7 +137,7 @@ entryOffers:
                           recipeId: c4813f65-00b4-4921-874e-03c555796401
                           displayName: Hamburguesa Hawaiana
             ofertaConInventario:
-              summary: Crear una oferta con una opción de insumo de inventario
+              summary: Crear una oferta con una opción de artículo de Inventario
               value:
                 presentationTag: Individual
                 basePrice: 180.0
@@ -139,8 +151,28 @@ entryOffers:
                         - sourceType: INVENTORY_ITEM
                           inventoryItemId: CARNE-150G
                           quantity: 200
-                          unit: g
                           displayName: Papas
+            ofertaCopiada:
+              summary: Crear una oferta con la composición copiada de otra
+              value:
+                presentationTag: Doble
+                basePrice: 230.0
+                imageId: 8c3f4365-1d1d-4a85-969a-c6c80757b201
+                composition:
+                  slots:
+                    - name: Plato principal
+                      quantity: 1
+                      course: plato fuerte
+                      options:
+                        - sourceType: RECIPE
+                          recipeId: c4813f65-00b4-4921-874e-03c555796401
+                          displayName: Hamburguesa Hawaiana
+                          status: ACTIVE
+                        - sourceType: INVENTORY_ITEM
+                          inventoryItemId: CARNE-150G
+                          quantity: 200
+                          displayName: Carne extra
+                          status: INACTIVE
     responses:
       '201':
         description: Oferta creada; un reintento idempotente reproduce el cuerpo y el ETag de la creación original.
@@ -172,6 +204,7 @@ entryOffers:
                     presentationTag: Individual
                     basePrice: 185.0
                     status: INACTIVE
+                    isAvailable: false
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -182,14 +215,16 @@ entryOffers:
                           name: Plato principal
                           quantity: 1
                           course: plato fuerte
+                          isAvailable: true
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
                               displayName: Hamburguesa Hawaiana
                               status: ACTIVE
+                              isAvailable: true
               ofertaCreadaConInventario:
-                summary: Oferta creada con una opción de insumo de inventario
+                summary: Oferta creada con una opción de artículo de Inventario
                 value:
                   data:
                     id: c68f8a31-7f0e-4b4b-a8ed-118da2ce4102
@@ -197,6 +232,7 @@ entryOffers:
                     presentationTag: Individual
                     basePrice: 180.0
                     status: INACTIVE
+                    isAvailable: false
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -207,14 +243,15 @@ entryOffers:
                           name: Acompañamiento
                           quantity: 1
                           course: plato fuerte
+                          isAvailable: true
                           options:
                             - optionId: 79a1bc24-0d4f-489b-9836-3a60b5c4ed12
                               sourceType: INVENTORY_ITEM
                               inventoryItemId: CARNE-150G
                               quantity: 200
-                              unit: g
                               displayName: Papas
                               status: ACTIVE
+                              isAvailable: true
       '400':
         $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
@@ -234,7 +271,7 @@ entryOffers:
                   error:
                     message: No se encontró la entrada indicada.
       '409':
-        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
+        $ref: ../openapi.yaml#/components/responses/IdempotencyOrDomainConflict
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '429':
@@ -255,12 +292,16 @@ offerById:
   get:
     tags: [Ofertas]
     operationId: getMenuOffer
+    x-required-permission:
+      - menu:offers:read
     summary: Consultar una oferta y su composición
     description: >-
-      Devuelve los datos de la oferta y su composición. Cada opción identifica su
-      origen mediante sourceType y los campos específicos del tipo: RECIPE incluye
-      recipeId; la revisión asignada se conserva internamente. INVENTORY_ITEM incluye inventoryItemId, quantity
-      y unit. displayName es el nombre de la opción que se muestra en el menú.
+      Devuelve la oferta y su composición en cualquier estado administrativo. Cada
+      opción incluye status e isAvailable; RECIPE incluye recipeId y usa la revisión
+      vigente de la receta; INVENTORY_ITEM incluye inventoryItemId y quantity, expresada
+      en la unidad que Inventario establece para el artículo. Los grupos de selección y
+      las opciones se devuelven en el orden de presentación, que es también el orden de
+      sucesión de las rondas. displayName es el nombre mostrado de la opción.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfNoneMatch
     responses:
@@ -275,7 +316,7 @@ offerById:
               $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
             examples:
               ofertaConReceta:
-                summary: Oferta con un espacio de receta
+                summary: Oferta con un grupo de selección de receta
                 value:
                   data:
                     id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
@@ -283,6 +324,7 @@ offerById:
                     presentationTag: Individual
                     basePrice: 180.0
                     status: ACTIVE
+                    isAvailable: true
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -293,13 +335,16 @@ offerById:
                           name: Plato principal
                           quantity: 1
                           course: plato fuerte
+                          isAvailable: true
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
                               displayName: Hamburguesa Hawaiana
+                              status: ACTIVE
+                              isAvailable: true
               ofertaConInventario:
-                summary: Oferta con un espacio de insumo de inventario
+                summary: Oferta con un grupo de selección de artículo de Inventario
                 value:
                   data:
                     id: b57f7e2a-02a4-4fb7-bb41-55f2d974b101
@@ -307,6 +352,7 @@ offerById:
                     presentationTag: Individual
                     basePrice: 180.0
                     status: ACTIVE
+                    isAvailable: true
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -317,13 +363,15 @@ offerById:
                           name: Acompañamiento
                           quantity: 1
                           course: plato fuerte
+                          isAvailable: true
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                               sourceType: INVENTORY_ITEM
                               inventoryItemId: CARNE-150G
                               quantity: 200
-                              unit: g
                               displayName: Papas
+                              status: ACTIVE
+                              isAvailable: true
       '304':
         $ref: ../openapi.yaml#/components/responses/NotModified
       '401':
@@ -337,23 +385,44 @@ offerById:
   patch:
     tags: [Ofertas]
     operationId: patchMenuOffer
+    x-required-permission:
+      - menu:offers:write
+      - menu:offers:status
     summary: Actualizar una oferta
     description: >-
-      Actualiza parcialmente una oferta. presentationTag es un string requerido
-      en cada solicitud; los demás campos omitidos se conservan;
-      enviar composition.slots o las options de un slot reemplaza el conjunto
-      completo. La composición se valida íntegramente y se persiste de forma
-      atómica. Una ejecución nueva requiere el ETag vigente en If-Match. Las reglas de IDs, tipos de
-      opción, estados e imagen se detallan en el esquema de solicitud.
-      Si falla la consulta a Inventario necesaria para validar un origen
-      INVENTORY_ITEM, devuelve 502 sin aplicar cambios; un artículo de inventario
-      inválido devuelve 422.
-      Para una opción RECIPE, enviar recipeId, incluso si coincide con el actual,
-      asigna atómicamente la revisión válida publicada más reciente. Omitir recipeId
-      en una opción que ya es RECIPE conserva la asignación anterior; cambiar el tipo
-      de origen a RECIPE requiere recipeId. La revisión resuelta se conserva internamente
-      y no se expone en la opción. Una receta inexistente o sin revisión válida devuelve
-      422 sin aplicar cambios; editar después la receta no altera las opciones existentes.
+      Actualiza parcialmente la oferta y su composición en una sola operación atómica;
+      la oferta es la raíz del agregado y su ETag protege también la composición. Todos
+      los campos son opcionales; los omitidos se conservan. imageId no se acepta: la
+      imagen se cambia con PUT /menu/media/images/{imageId}. Enviar composition.slots
+      reemplaza la lista completa de grupos: los grupos vigentes que no aparecen se
+      eliminan con sus opciones. Enviar options en un grupo reemplaza la lista completa
+      de opciones de ese grupo: las opciones vigentes que no aparecen se eliminan. Omitir
+      slots u options conserva la lista vigente; dentro de un grupo u opción existente,
+      identificado por slotId u optionId, los campos omitidos se conservan. Los grupos y
+      opciones nuevos se envían sin identificador. El orden de los arrays es el orden de
+      presentación y el de las rondas. Se rechazan con 422 las listas vacías, los
+      identificadores desconocidos, ajenos o duplicados, un sourceType distinto del
+      almacenado en una opción existente (SOURCE_TYPE_IMMUTABLE) y el contenido repetido
+      en un grupo (DUPLICATE_OPTION_CONTENT). Activar la oferta (status ACTIVE) exige una
+      composición válida, que toda oferta mantiene, y no exige disponibilidad; ningún
+      proceso reactiva una oferta inactivada. Cualquier PATCH sobre una oferta de una
+      entrada archivada devuelve 409 ENTRY_ARCHIVED. Una opción RECIPE usa siempre la
+      revisión vigente de su receta; omitir recipeId en una opción RECIPE existente
+      conserva la receta asignada. Si Inventario no responde al validar un artículo,
+      devuelve 502 sin cambios; un artículo inexistente devuelve 422. Copia de
+      composición: para agregar a esta oferta una copia de otra, consulte la oferta
+      origen con GET /menu/offers/{offerId} y envíe en composition.slots los grupos
+      vigentes que desea conservar (con slotId) junto con los grupos y opciones del
+      origen sin identificadores, conservando el status de cada opción; no se copian el
+      precio base, la etiqueta de presentación ni la imagen, y no se guarda ninguna
+      referencia al origen.
+
+      Cuenta como cambio de estado el `status` de la oferta o el `status` de una opción
+      existente (con `optionId`); el `status` de una opción nueva forma parte de su alta.
+      Un cuerpo sin cambios de estado exige `menu:offers:write`; un cuerpo con solo
+      cambios de estado exige `menu:offers:status`; un cuerpo que los mezcla con otros
+      cambios exige ambos permisos.
+
       Requiere Idempotency-Key, un UUID generado por el cliente para este guardado lógico,
       además de If-Match. La clave se delimita por el sujeto autenticado, el menú,
       el método PATCH y la ruta concreta de la oferta. Los reintentos conservan la clave,
@@ -362,11 +431,10 @@ offerById:
       Tras autenticar y autorizar, un resultado exitoso con la misma solicitud se
       recupera antes de volver a comprobar el ETag o las referencias vigentes.
       Durante 24 horas desde la confirmación inicial devuelve el 200, cuerpo y ETag
-      originales, incluidos los IDs generados, la imagen y la asignación de recetas,
-      sin repetir la actualización ni resolver otra revisión, aunque después se haya
-      editado o eliminado la oferta. Cambiar el JSON o el If-Match bajo la misma clave
-      devuelve 409 con error.details.code IDEMPOTENCY_KEY_REUSED. Una solicitud en
-      proceso o cuyo resultado aún no se ha confirmado devuelve 409 con
+      originales, incluidos los IDs generados, sin repetir la actualización, aunque
+      después se haya editado o eliminado la oferta. Cambiar el JSON o el If-Match bajo
+      la misma clave devuelve 409 con error.details.code IDEMPOTENCY_KEY_REUSED. Una
+      solicitud en proceso o cuyo resultado aún no se ha confirmado devuelve 409 con
       error.details.code IDEMPOTENCY_IN_PROGRESS y Retry-After; no se inicia otra
       actualización hasta confirmar el resultado anterior. La ausencia o invalidez
       de Idempotency-Key devuelve 400. If-Match sigue siendo obligatorio: omitirlo
@@ -387,9 +455,8 @@ offerById:
             $ref: ../openapi.yaml#/components/schemas/CatalogOfferPatchRequest
           examples:
             actualizarComposicion:
-              summary: Conservar dos slots y actualizar parcialmente las opciones del segundo
+              summary: Conservar dos grupos de selección y actualizar parcialmente las opciones del segundo
               value:
-                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -401,9 +468,8 @@ offerById:
                         - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                           sourceType: INVENTORY_ITEM
             agregarSlot:
-              summary: Conservar un slot existente y agregar un slot nuevo
+              summary: Conservar un grupo de selección existente y agregar uno nuevo
               value:
-                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -411,26 +477,12 @@ offerById:
                       quantity: 1
                       options:
                         - displayName: Papas
-                          status: ACTIVE
                           sourceType: INVENTORY_ITEM
                           inventoryItemId: CARNE-150G
                           quantity: 200
-                          unit: g
-            cambiarOrigen:
-              summary: Asignar una receta por ID usando su revisión válida más reciente
-              value:
-                presentationTag: Individual
-                composition:
-                  slots:
-                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
-                      options:
-                        - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
-                          sourceType: RECIPE
-                          recipeId: c4813f65-00b4-4921-874e-03c555796401
             actualizarNombreReceta:
-              summary: Cambiar el nombre de una opción RECIPE conservando su asignación
+              summary: Cambiar el nombre de una opción RECIPE conservando su receta
               value:
-                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
@@ -441,7 +493,6 @@ offerById:
             actualizarCantidadInventario:
               summary: Cambiar solo la cantidad de una opción existente que ya usa INVENTORY_ITEM
               value:
-                presentationTag: Individual
                 composition:
                   slots:
                     - slotId: b37c1bd7-17b2-47a2-a3a4-802559445302
@@ -449,6 +500,30 @@ offerById:
                         - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                           sourceType: INVENTORY_ITEM
                           quantity: 250
+            activarOferta:
+              summary: Activar la oferta
+              value:
+                status: ACTIVE
+            copiarComposicion:
+              summary: Conservar el grupo vigente y agregar la composición copiada de otra oferta
+              value:
+                composition:
+                  slots:
+                    - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
+                    - name: Bebida
+                      quantity: 1
+                      course: bebida
+                      options:
+                        - sourceType: INVENTORY_ITEM
+                          inventoryItemId: REFRESCO-355ML
+                          quantity: 1
+                          displayName: Refresco
+                          status: ACTIVE
+                        - sourceType: INVENTORY_ITEM
+                          inventoryItemId: AGUA-500ML
+                          quantity: 1
+                          displayName: Agua
+                          status: INACTIVE
     responses:
       '200':
         description: Oferta actualizada o respuesta original del mismo guardado idempotente, con el cuerpo y ETag originales.
@@ -458,7 +533,7 @@ offerById:
         content:
           application/json:
             schema:
-              $ref: ../openapi.yaml#/components/schemas/CatalogOfferPatchResponse
+              $ref: ../openapi.yaml#/components/schemas/CatalogOfferResponse
             examples:
               ofertaActualizada:
                 summary: Oferta actualizada
@@ -469,6 +544,7 @@ offerById:
                     presentationTag: Individual
                     basePrice: 185.0
                     status: ACTIVE
+                    isAvailable: true
                     image:
                       id: 8c3f4365-1d1d-4a85-969a-c6c80757b201
                       url: https://cdn.example.com/menu/hamburguesa-individual.jpg
@@ -477,22 +553,23 @@ offerById:
                       slots:
                         - slotId: b37c1bd7-17b2-47a2-a3a4-802559445301
                           name: Plato principal
-                          status: ACTIVE
                           quantity: 1
                           course: plato fuerte
+                          isAvailable: true
                           options:
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5401
                               sourceType: RECIPE
                               recipeId: c4813f65-00b4-4921-874e-03c555796401
                               status: ACTIVE
+                              isAvailable: true
                               displayName: Hamburguesa Hawaiana
                             - optionId: 89cce4da-2f19-4d27-942d-b2ee82fb5402
                               sourceType: INVENTORY_ITEM
                               inventoryItemId: CARNE-150G
                               status: ACTIVE
+                              isAvailable: true
                               displayName: Papas
                               quantity: 200
-                              unit: g
       '400':
         $ref: ../openapi.yaml#/components/responses/IdempotencyBadRequest
       '401':
@@ -502,24 +579,14 @@ offerById:
       '404':
         $ref: ../openapi.yaml#/components/responses/NotFound
       '409':
-        $ref: ../openapi.yaml#/components/responses/IdempotencyConflict
+        $ref: ../openapi.yaml#/components/responses/IdempotencyOrDomainConflict
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
         description: El ETag de If-Match es obsoleto y no existe un resultado exitoso recuperable para el mismo guardado idempotente.
       '422':
         $ref: ../openapi.yaml#/components/responses/UnprocessableEntity
       '428':
-        description: Se requiere el encabezado If-Match para actualizar la oferta.
-        content:
-          application/json:
-            schema:
-              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
-            examples:
-              faltaIfMatch:
-                summary: Encabezado de concurrencia ausente
-                value:
-                  error:
-                    message: El encabezado If-Match es requerido.
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
       '502':
@@ -527,20 +594,21 @@ offerById:
   delete:
     tags: [Ofertas]
     operationId: deleteMenuOffer
+    x-required-permission:
+      - menu:offers:write
     summary: Eliminar una oferta
     description: >-
-      Requiere el ETag vigente en If-Match y que la oferta esté INACTIVE. Devuelve
-      409 si la oferta no está INACTIVE o si eliminarla deja una entrada ACTIVE
-      sin una oferta ACTIVE válida. El rechazo conserva íntegramente la oferta
-      y su historia. Si falta If-Match, devuelve 428; si no coincide con el ETag
-      vigente, devuelve 412.
+      Elimina una oferta INACTIVE; una oferta ACTIVE devuelve 409 OFFER_NOT_INACTIVE y
+      una oferta de una entrada archivada 409 ENTRY_ARCHIVED, sin cambios. Elimina
+      también su composición, grupos de selección y opciones, y su imagen. Haber servido
+      como origen de una copia no impide eliminarla. Recalcula la disponibilidad de la
+      entrada sin cambiar su estado administrativo. Exige If-Match: su ausencia devuelve
+      428 y un valor obsoleto 412.
     parameters:
       - $ref: ../openapi.yaml#/components/parameters/IfMatch
     responses:
       '204':
-        description: >-
-          Oferta eliminada. La respuesta no contiene cuerpo ni encabezado ETag,
-          porque no queda una representación vigente del recurso eliminado.
+        description: Oferta eliminada; sin cuerpo ni ETag.
       '401':
         $ref: ../openapi.yaml#/components/responses/Unauthorized
       '403':
@@ -548,35 +616,10 @@ offerById:
       '404':
         $ref: ../openapi.yaml#/components/responses/NotFound
       '409':
-        description: El estado de la oferta o de su entrada impide eliminarla.
-        content:
-          application/json:
-            schema:
-              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
-            examples:
-              ofertaNoInactiva:
-                summary: La oferta debe estar INACTIVE para eliminarse
-                value:
-                  error:
-                    message: La oferta debe estar INACTIVE para eliminarse.
-              entradaSinOfertaActiva:
-                summary: La entrada ACTIVE quedaría sin una oferta ACTIVE válida
-                value:
-                  error:
-                    message: No se puede dejar una entrada ACTIVE sin una oferta ACTIVE válida.
+        $ref: ../openapi.yaml#/components/responses/DomainConflict
       '412':
         $ref: ../openapi.yaml#/components/responses/PreconditionFailed
       '428':
-        description: Se requiere el encabezado If-Match para eliminar la oferta.
-        content:
-          application/json:
-            schema:
-              $ref: ../openapi.yaml#/components/schemas/ErrorEnvelope
-            examples:
-              faltaIfMatch:
-                summary: Encabezado de concurrencia ausente
-                value:
-                  error:
-                    message: El encabezado If-Match es requerido.
+        $ref: ../openapi.yaml#/components/responses/PreconditionRequired
       '429':
         $ref: ../openapi.yaml#/components/responses/TooManyRequests
